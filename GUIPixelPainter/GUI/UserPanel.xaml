@@ -1,0 +1,44 @@
+﻿<UserControl x:Class="GUIPixelPainter.GUI.UserPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GUIPixelPainter.GUI"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="800">
+    <StackPanel>
+        <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
+            <StackPanel>
+                <Expander Header="Users" IsExpanded="True">
+                    <StackPanel>
+                        <ListView Name="userList" SelectionChanged="OnUserSelection" Margin="5" Height="200">
+
+                        </ListView>
+                        <Button Margin="5" Click="OnNewUserClick">New user</Button>
+
+                        <Label FontWeight="Bold">User settings</Label>
+                        <DockPanel Margin="5">
+                            <Label>Name (cosmetical):</Label>
+                            <TextBox Name="userName" LostFocus="OnTextBoxLostFocus" IsEnabled="False"></TextBox>
+                        </DockPanel>
+                        <DockPanel Margin="5">
+                            <Label>Proxy url:</Label>
+                            <TextBox Name="userProxy" LostFocus="OnTextBoxLostFocus" IsEnabled="False"></TextBox>
+                        </DockPanel>
+                        <DockPanel Margin="5">
+                            <Label>authKey:</Label>
+                            <TextBox Name="authKey" LostFocus="OnTextBoxLostFocus" IsEnabled="False"></TextBox>
+                        </DockPanel>
+                        <DockPanel Margin="5">
+                            <Label>authToken:</Label>
+                            <TextBox Name="authToken" LostFocus="OnTextBoxLostFocus" IsEnabled="False"></TextBox>
+                        </DockPanel>
+                        <Label Margin="5" Name="userStatus">Status:</Label>
+                        <CheckBox Margin="5" Name="enableUser" Checked="OnEnableUser" Unchecked="OnDisableUser" IsEnabled="False">Enabled</CheckBox>
+                        <Button Margin="5" Name="deleteUser" Click="OnDeleteUserClick" IsEnabled="False">Delete</Button>
+                    </StackPanel>
+                </Expander>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>
