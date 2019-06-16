@@ -28,7 +28,7 @@ namespace GUIPixelPainter.GUI
             public string authKey;
             public string authToken;
             public bool isEnabled;
-            public UserStatus status;
+            public Status status;
         }
 
         private List<User> users = new List<User>();
@@ -60,6 +60,15 @@ namespace GUIPixelPainter.GUI
             if (userList.SelectedItem == null)
                 return Guid.Empty;
             return Guid.Parse(((userList.SelectedItem as StackPanel).Children[1] as TextBlock).Text);
+        }
+
+        public void SetUserStatus(Guid id, Status status)
+        {
+            var user = GetUser(id);
+            if (user == null)
+                return;
+            user.status = status;
+            UpdateUserList();
         }
 
         private User GetSelectedUser()
@@ -110,7 +119,15 @@ namespace GUIPixelPainter.GUI
                     if (Guid.Parse((item.Children[1] as TextBlock).Text) == user.internalId)
                     {
                         exists = true;
-                        (item.Children[0] as Label).Content = user.name; //update name of existing user in case it changed
+                        //update name and status of existing user
+                        var itemText = (item.Children[0] as Label);
+                        itemText.Content = user.name;
+                        if (user.status == Status.CONNECTING || user.status == Status.OPEN)
+                            itemText.Foreground = Brushes.Green;
+                        else if (user.status == Status.CLOSEDDISCONNECT || user.status == Status.CLOSEDERROR)
+                            itemText.Foreground = Brushes.Red;
+                        else
+                            itemText.Foreground = Brushes.Black;
                         break;
                     }
                 }
@@ -145,6 +162,7 @@ namespace GUIPixelPainter.GUI
                 authToken.IsEnabled = false;
                 enableUser.IsEnabled = false;
                 deleteUser.IsEnabled = false;
+                userStatus.Content = "Status: ";
 
                 ignoreEvents = false;
                 return;
@@ -156,7 +174,7 @@ namespace GUIPixelPainter.GUI
             authKey.Text = selectedUser.authKey;
             authToken.Text = selectedUser.authToken;
             enableUser.IsChecked = selectedUser.isEnabled;
-            userStatus.Content = selectedUser.status;
+            userStatus.Content = "Status: " + selectedUser.status.ToString();
 
             userName.IsEnabled = true;
             userProxy.IsEnabled = true;

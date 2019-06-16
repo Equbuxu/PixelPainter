@@ -26,10 +26,8 @@
 
                 <local:TaskPanel x:Name="taskList"></local:TaskPanel>
 
-                <Border BorderBrush="Gray" Margin="5">
-                    <StackPanel Height="245" >
-                        <Label>Name (666): 0 p/s</Label>
-                        <Label>Nami (667): 0 p/s</Label>
+                <Border BorderBrush="Gray" Margin="5" BorderThickness="1">
+                    <StackPanel Name="speedPanel">
                     </StackPanel>
                 </Border>
             </StackPanel>

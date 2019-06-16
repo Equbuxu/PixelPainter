@@ -106,6 +106,7 @@ namespace GUIPixelPainter
         public int Y { get; }
     }
 
+    //TODO rewrite using HttpClient
     public class SocketIO
     {
         class IdResponce
@@ -182,7 +183,7 @@ namespace GUIPixelPainter
             rq.Method = "POST";
             rq.Timeout = 4000;
 
-            using (StreamWriter s = new StreamWriter(rq.GetRequestStream()))
+            using (StreamWriter s = new StreamWriter(rq.GetRequestStream()))//TODO web exceprion crash
             {
                 foreach (IdPixel pixel in pixels)
                 {

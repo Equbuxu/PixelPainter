@@ -7,16 +7,9 @@ using System.Threading.Tasks;
 
 namespace GUIPixelPainter
 {
-    public enum UserStatus
-    {
-        CLOSED,
-        OPEN,
-        CLOSEDERROR,
-    }
-
     public class GUIUser
     {
-        public GUIUser(Guid internalId, string name, string proxy, string authKey, string authToken, UserStatus status, bool enabled)
+        public GUIUser(Guid internalId, string name, string proxy, string authKey, string authToken, Status status, bool enabled)
         {
             InternalId = internalId;
             Name = name;
@@ -31,7 +24,7 @@ namespace GUIPixelPainter
         public string Proxy { get; }
         public string AuthKey { get; }
         public string AuthToken { get; }
-        public UserStatus Status { get; }
+        public Status Status { get; }
         public bool Enabled { get; }
     }
 
@@ -203,29 +196,29 @@ namespace GUIPixelPainter
             botWindow.AddChatText(message);
         }
 
-        public void PushPixel(int x, int y, Color color, int boardId)
+        public void PushPixel(int x, int y, Color color, int boardId, int userId)
         {
             if (boardId == CanvasId)
-                pixelCanvas.SetPixel(x, y, System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B));
+            {
+                var cColor = System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B);
+                pixelCanvas.SetPixel(x, y, cColor, userId);
+                botWindow.UpdateSpeed(x, y, cColor, userId);
+            }
         }
 
         //TODO "Modify" methods. Modify data stored here and update controls accordingly
-        public void ModifyTaskStatus(Guid taskId)
+
+        public void PushUserStatus(UserStatusData data)
+        {
+            userPanel.SetUserStatus(data.UserId, data.UserStatus);
+        }
+
+        public void PushTaskEnabledState(Guid task)
         {
 
         }
 
-        public void ModifyUserStatus(Guid userId)
-        {
-
-        }
-
-        public void ModifyTaskEnabledState(Guid task)
-        {
-
-        }
-
-        public void ModifyUserPlacementSpeed()
+        public void PushUserPlacementSpeed()
         {
 
         }

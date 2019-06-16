@@ -26,7 +26,6 @@ namespace GUIPixelPainter
         public UserSession(SocketIO server)
         {
             this.server = server;
-            server.OnEvent += OnEvent;
 
             drawThread = new Thread(DrawLoop);
             drawThread.IsBackground = true;
@@ -129,20 +128,12 @@ namespace GUIPixelPainter
             }
             lastPacketTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
 
-            server.SendPixels(toPlace);
+            if (server.GetStatus() == Status.OPEN)
+                server.SendPixels(toPlace);
+            else
+                Console.WriteLine("Failed to send pixels");
             return true;
         }
-
-        private void OnEvent(string type, EventArgs args)
-        {
-            if (type == "throw.error")
-            {
-                //if ((args as ErrorPacket).id == 11) //You are placing pixels too fast
-                //    pixelChill += 50;
-                //lastTooFastErrorTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-            }
-        }
-
     }
 
 }

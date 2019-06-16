@@ -27,7 +27,16 @@ namespace GUIPixelPainter.GUI
         private bool drawing = false;
         private Color selectedColor = Color.FromArgb(0, 1, 2, 3);
 
-        private List<Border> nameLabels = new List<Border>();
+        private Dictionary<int, Border> nameLabels = new Dictionary<int, Border>();
+        private Dictionary<int, long> userPlaceTime = new Dictionary<int, long>();
+        private long lastUpdateTime = -1;
+        private Dictionary<int, string> knownUsernames = new Dictionary<int, string>()
+        {
+            {21246, "Equbuxu"},
+            {29297, "Uncertain" },
+            {21235, "Powerlay" },
+            {29396, "Kisalena" },
+        };
 
         private WriteableBitmap bitmap;
         private int canvasId = -1;
@@ -69,36 +78,6 @@ namespace GUIPixelPainter.GUI
             }
         }
 
-        public void ClearNameLabels()
-        {
-            foreach (Border border in nameLabels)
-            {
-                MainCanvas.Children.Remove(border);
-            }
-            nameLabels.Clear();
-        }
-
-        public void AddNameLabel(string name, int x, int y, Color color)
-        {
-            Border border = new Border()
-            {
-                Background = Brushes.Gray,
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(1.0),
-            };
-            Label nameLabel = new Label()
-            {
-                Content = name,
-                Foreground = new SolidColorBrush(color),
-                FontWeight = FontWeights.Bold
-            };
-            border.Child = nameLabel;
-            Canvas.SetLeft(border, x);
-            Canvas.SetTop(border, y);
-            MainCanvas.Children.Add(border);
-            nameLabels.Add(border);
-        }
-
         public void OverlayTasks(List<GUITask> tasks)
         {
             MainCanvas.Children.RemoveRange(2, MainCanvas.Children.Count - 2);
@@ -114,9 +93,66 @@ namespace GUIPixelPainter.GUI
             }
         }
 
-        public void SetPixel(int x, int y, Color color)
+        public void SetPixel(int x, int y, Color color, int userId)
         {
             bitmap.SetPixel(x, y, color);
+            UpdateNameLabel(x, y, color, userId);
+        }
+
+        private void UpdateNameLabel(int x, int y, Color c, int userId)
+        {
+            if (!userPlaceTime.ContainsKey(userId))
+            {
+                userPlaceTime.Add(userId, 0);
+                nameLabels.Add(userId, AddNameLabel(userId, x, y, c));
+            }
+
+            var time = DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond;
+            userPlaceTime[userId] = time;
+            Canvas.SetLeft(nameLabels[userId], x + 1);
+            Canvas.SetTop(nameLabels[userId], y + 1);
+            (nameLabels[userId].Child as TextBlock).Foreground = new SolidColorBrush(c);
+
+            if (time - lastUpdateTime > 100)
+            {
+                lastUpdateTime = time;
+                List<int> toDelete = new List<int>();
+
+                foreach (KeyValuePair<int, long> userTime in userPlaceTime)
+                {
+                    if (time - userTime.Value > 1500)
+                        toDelete.Add(userTime.Key);
+                }
+
+                foreach (int id in toDelete)
+                {
+                    userPlaceTime.Remove(id);
+                    MainCanvas.Children.Remove(nameLabels[id]);
+                    nameLabels.Remove(id);
+                }
+            }
+        }
+
+        private Border AddNameLabel(int name, int x, int y, Color color)
+        {
+            Border border = new Border()
+            {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(0.0),
+                Background = new SolidColorBrush(Color.FromArgb(100, 100, 100, 100)),
+                Height = 16,
+            };
+            TextBlock nameLabel = new TextBlock()
+            {
+                Text = knownUsernames.ContainsKey(name) ? knownUsernames[name] : name.ToString(),
+                Foreground = new SolidColorBrush(color),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            border.Child = nameLabel;
+            Canvas.SetLeft(border, x + 1);
+            Canvas.SetTop(border, y + 1);
+            MainCanvas.Children.Add(border);
+            return border;
         }
 
         private void CreatePalette()

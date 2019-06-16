@@ -9,9 +9,20 @@ using System.Windows.Media.Imaging;
 
 namespace GUIPixelPainter
 {
+    public class UserStatusData : EventArgs
+    {
+        public UserStatusData(Guid userId, Status userStatus)
+        {
+            UserId = userId;
+            UserStatus = userStatus;
+        }
+        public Guid UserId { get; }
+        public Status UserStatus { get; }
+    }
+
     /// <summary>
     /// Manages connections
-    /// Converts and distributes tasks amoung users
+    /// Converts and distributes tasks among users
     /// </summary>
     public class UserManager
     {
@@ -80,6 +91,7 @@ namespace GUIPixelPainter
             {
                 resetEvent.WaitOne();
 
+                //TODO remake queues on update (or maybe not?)
                 RefreshConnections();
                 ManageQueues();
                 ProcessGUIEvents();
@@ -91,7 +103,7 @@ namespace GUIPixelPainter
         private void ManageQueues()
         {
             //TODO write managequeues
-
+            var total = users.Where((a) => a.Client.GetStatus() == Status.OPEN).ToList();
             foreach (Connection conn in users)
             {
                 if (conn.Client.GetStatus() != Status.OPEN)
@@ -99,8 +111,7 @@ namespace GUIPixelPainter
                 if (conn.Session.QueueLength() > 50)
                     continue;
 
-                var queue = BuildQueue();
-
+                var queue = BuildQueue(total.IndexOf(conn), total.Count);
                 foreach (IdPixel pixel in queue)
                 {
                     conn.Session.Enqueue(pixel);
@@ -120,6 +131,7 @@ namespace GUIPixelPainter
                     users[i].Session.Close();
                     if (users[i].Client.GetStatus() != Status.CLOSEDERROR && users[i].Client.GetStatus() != Status.CLOSEDDISCONNECT)
                         users[i].Client.Disconnect();
+                    CreateEventToDispatch("manager.status", new UserStatusData(users[i].Id, Status.NOTOPEN));
                     users.RemoveAt(i);
                 }
             }
@@ -135,8 +147,20 @@ namespace GUIPixelPainter
                     SocketIO server = CreateSocketIO(user);
                     server.Connect();
                     UserSession newUser = new UserSession(server);
-                    users.Add(new Connection(server, newUser, user.Id));
+                    Connection connection = new Connection(server, newUser, user.Id);
+                    users.Add(connection);
+                    CreateEventToDispatch("manager.status", new UserStatusData(connection.Id, Status.OPEN));
                     lastUserConnectionTime = DateTime.UtcNow;
+                }
+            }
+
+            //send status for disconnected users
+            foreach (Connection user in users)
+            {
+                var status = user.Client.GetStatus();
+                if (status == Status.CLOSEDDISCONNECT || status == Status.CLOSEDERROR)
+                {
+                    CreateEventToDispatch("manager.status", new UserStatusData(user.Id, Status.CLOSEDERROR));
                 }
             }
         }
@@ -166,7 +190,7 @@ namespace GUIPixelPainter
                     if (eventTuple.Item1 == "pixels")
                     {
                         PixelPacket pixel = eventTuple.Item2 as PixelPacket;
-                        Color actualColor = palette[curCanvas][pixel.color];
+                        Color actualColor = palette[curCanvas][pixel.color]; //TODO this crashes
                         var border = borders.GetPixel(pixel.x, pixel.y);
                         if (!(border.R == 204 && border.G == 204 && border.B == 204))
                             canvas.SetPixel(pixel.x, pixel.y, actualColor);
@@ -176,7 +200,7 @@ namespace GUIPixelPainter
             }
         }
 
-        private List<IdPixel> BuildQueue()
+        private List<IdPixel> BuildQueue(int userNum, int totalUser)
         {
 
             List<IdPixel> queue = new List<IdPixel>();
@@ -184,7 +208,7 @@ namespace GUIPixelPainter
             {
                 for (int j = 0; j < task.Image.Height; j++)
                 {
-                    for (int i = 0; i < task.Image.Width; i++)
+                    for (int i = userNum; i < task.Image.Width; i += totalUser)
                     {
                         var canvasPixel = canvas.GetPixel(task.X + i, task.Y + j);
                         if (canvasPixel.R == 204 && canvasPixel.G == 204 && canvasPixel.B == 204)
@@ -268,6 +292,11 @@ namespace GUIPixelPainter
             SocketIO socket = new SocketIO(user.AuthKey, user.AuthToken, guiData.CanvasId);
             socket.OnEvent += (a, b) => { OnSocketEvent(a, b, user.Id); };
             return socket;
+        }
+
+        private void CreateEventToDispatch(string type, EventArgs data)
+        {
+            eventsToDispatch.Add(new Tuple<string, EventArgs>(type, data));
         }
 
         private void OnSocketEvent(string type, EventArgs args, Guid user)

@@ -82,7 +82,7 @@ namespace GUIPixelPainter
                 {
                     if (!task.Enabled)
                         continue;
-                    UsefulTask newTask = new UsefulTask(task.InternalId, task.Dithering ? task.DitheredConvertedBitmap : task.ConvertedBitmap, task.X, task.Y);
+                    UsefulTask newTask = new UsefulTask(task.InternalId, task.Dithering ? task.DitheredConvertedBitmap.Clone() as Bitmap : task.ConvertedBitmap.Clone() as Bitmap, task.X, task.Y);
                     tasks.Add(newTask);
                 }
             }

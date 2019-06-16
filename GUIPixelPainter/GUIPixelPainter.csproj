@@ -79,7 +79,6 @@
     </Compile>
     <Compile Include="ImageConverter.cs" />
     <Compile Include="Launcher.cs" />
-    <Compile Include="OrderedSet.cs" />
     <Compile Include="GUI\PixelCanvas.xaml.cs">
       <DependentUpon>PixelCanvas.xaml</DependentUpon>
     </Compile>
