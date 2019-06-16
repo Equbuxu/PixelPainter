@@ -58,7 +58,11 @@ namespace GUIPixelPainter
                         formatted = String.Format("{0}: {1}", message.username, message.message);
                     else
                         formatted = String.Format("<{0}>{1}: {2}", message.guild, message.username, message.message);
-                    DataExchange.PushChatMessage(formatted);
+                    int boardId = message.boardId;
+                    if (!palette.ContainsKey(boardId))
+                        boardId = 7;
+                    Color color = palette[boardId][message.color];
+                    DataExchange.PushChatMessage(formatted, System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B));
                 }
                 else if (eventTuple.Item1 == "pixels")
                 {

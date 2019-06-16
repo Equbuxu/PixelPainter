@@ -82,12 +82,23 @@ namespace GUIPixelPainter.GUI
                 AddChatText(String.Format("<{0}>{1}: {2}", args.guild, args.username, args.message));
         }*/
 
-        public void AddChatText(string text)
+        public void AddChatText(string text, System.Windows.Media.Color c)
         {
-            chat.Text += "\n" + text;
-            if (chat.Text.Length > 1000)
-                chat.Text = chat.Text.Substring(chat.Text.Length - 1000);
+            chat.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
+            TextBlock msgBlock = new TextBlock();
+            msgBlock.Padding = new Thickness(5);
+            msgBlock.TextWrapping = TextWrapping.Wrap;
+            msgBlock.Text = text;
+            msgBlock.Foreground = new SolidColorBrush(c);
+            msgBlock.Effect = textShadow;
+
+            chat.Children.Add(msgBlock);
             chatScroll.ScrollToBottom();
+
+            if (chat.Children.Count >35)
+            {
+                chat.Children.RemoveAt(0);
+            }
         }
 
         public void UpdateSpeed(int x, int y, System.Windows.Media.Color c, int userId)

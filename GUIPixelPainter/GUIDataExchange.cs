@@ -191,9 +191,9 @@ namespace GUIPixelPainter
         }
 
         //TODO "Push" methods. Transfer individual events forward to controls. They don't impact data stored here.
-        public void PushChatMessage(string message)
+        public void PushChatMessage(string message, System.Windows.Media.Color c)
         {
-            botWindow.AddChatText(message);
+            botWindow.AddChatText(message, c);
         }
 
         public void PushPixel(int x, int y, Color color, int boardId, int userId)

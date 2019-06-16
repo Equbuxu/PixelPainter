@@ -40,9 +40,12 @@
                 <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
                     <StackPanel Margin="5">
                         <Label FontWeight="Black">Chat</Label>
-                        <ScrollViewer Name="chatScroll" Width="220" Height="230" >
-                            <TextBlock Background="Black" Foreground="White" Padding="5" Name="chat" TextWrapping="Wrap"></TextBlock>
-                        </ScrollViewer>
+                        <Border BorderBrush="Gray" Margin="5" BorderThickness="1">
+                            <ScrollViewer Name="chatScroll" Width="220" Height="230" >
+                                <StackPanel Name="chat">
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
                         <DockPanel Margin="5">
                             <TextBox Width="170" Name="chatTextBox" KeyUp="OnChatTextBoxKeyUp"></TextBox>
                             <Button Click="OnChatSend">Send</Button>
