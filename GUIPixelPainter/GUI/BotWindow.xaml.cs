@@ -23,7 +23,7 @@ namespace GUIPixelPainter.GUI
     public partial class BotWindow : Window
     {
         private Dictionary<int, LinkedList<long>> lastUserPlaceTimes = new Dictionary<int, LinkedList<long>>();
-        private Dictionary<int, Label> speedLabels = new Dictionary<int, Label>();
+        private Dictionary<int, StackPanel> speedLabels = new Dictionary<int, StackPanel>();
         long lastUpdateTime = -1;
         private Dictionary<int, string> knownUsernames = new Dictionary<int, string>()
         {
@@ -95,16 +95,28 @@ namespace GUIPixelPainter.GUI
             if (!lastUserPlaceTimes.ContainsKey(userId))
             {
                 lastUserPlaceTimes.Add(userId, new LinkedList<long>());
-                Label newLabel = new Label();
-                newLabel.FontWeight = FontWeights.Bold;
-                newLabel.Effect = textShadow;
-                speedLabels.Add(userId, newLabel);
-                speedPanel.Children.Add(newLabel);
+                Label lableNick = new Label();
+                lableNick.FontWeight = FontWeights.Bold;
+                lableNick.Effect = textShadow;
+                lableNick.Width = 125;
+
+                Label labelSpeed = new Label();
+                labelSpeed.FontWeight = FontWeights.Bold;
+                labelSpeed.Effect = textShadow;
+
+                StackPanel rowUserSpeed = new StackPanel();
+                rowUserSpeed.Orientation = Orientation.Horizontal;
+                rowUserSpeed.Children.Add(lableNick);
+                rowUserSpeed.Children.Add(labelSpeed);
+                
+                speedLabels.Add(userId, rowUserSpeed);
+                speedPanel.Children.Add(rowUserSpeed);
             }
             var time = DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond;
 
             lastUserPlaceTimes[userId].AddLast(DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond);
-            speedLabels[userId].Foreground = new SolidColorBrush(c);
+            (speedLabels[userId].Children[0] as Label).Foreground = new SolidColorBrush(c);
+            (speedLabels[userId].Children[1] as Label).Foreground = new SolidColorBrush(c);
             while (time - lastUserPlaceTimes[userId].First.Value > 10000)
                 lastUserPlaceTimes[userId].RemoveFirst();
 
@@ -122,9 +134,9 @@ namespace GUIPixelPainter.GUI
                     }
                     double dT = (time - userTime.Value.First.Value) / 1000.0;
                     double speed = userTime.Value.Count / (dT == 0 ? 1 : dT);
-                    string userName = (knownUsernames.ContainsKey(userTime.Key) ? knownUsernames[userTime.Key] : userTime.Key.ToString()) + ':';
-                    speedLabels[userTime.Key].Content = String.Format("{0,-20}\t{1:N2} px/s",userName,speed);
-                    //speedLabels[userTime.Key].Content = (knownUsernames.ContainsKey(userTime.Key) ? knownUsernames[userTime.Key] : userTime.Key.ToString()) + ":\t" + speed.ToString("0.00") + "px/s";
+                    string userName = knownUsernames.ContainsKey(userTime.Key) ? knownUsernames[userTime.Key] : userTime.Key.ToString();
+                    (speedLabels[userTime.Key].Children[0] as Label).Content = userName.ToString() + ':';
+                    (speedLabels[userTime.Key].Children[1] as Label).Content = speed.ToString("0.00") + " px/s";
                 }
 
                 foreach (int id in toDelete)
