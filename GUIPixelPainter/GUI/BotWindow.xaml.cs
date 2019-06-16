@@ -122,7 +122,9 @@ namespace GUIPixelPainter.GUI
                     }
                     double dT = (time - userTime.Value.First.Value) / 1000.0;
                     double speed = userTime.Value.Count / (dT == 0 ? 1 : dT);
-                    speedLabels[userTime.Key].Content = (knownUsernames.ContainsKey(userTime.Key) ? knownUsernames[userTime.Key] : userTime.Key.ToString()) + ":\t" + speed.ToString("0.00") + "px/s";
+                    string userName = (knownUsernames.ContainsKey(userTime.Key) ? knownUsernames[userTime.Key] : userTime.Key.ToString()) + ':';
+                    speedLabels[userTime.Key].Content = String.Format("{0,-20}\t{1:N2} px/s",userName,speed);
+                    //speedLabels[userTime.Key].Content = (knownUsernames.ContainsKey(userTime.Key) ? knownUsernames[userTime.Key] : userTime.Key.ToString()) + ":\t" + speed.ToString("0.00") + "px/s";
                 }
 
                 foreach (int id in toDelete)
