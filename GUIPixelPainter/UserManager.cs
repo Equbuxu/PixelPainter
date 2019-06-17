@@ -104,7 +104,7 @@ namespace GUIPixelPainter
         {
             //TODO write managequeues
             var total = users.Where((a) => a.Client.GetStatus() == Status.OPEN).ToList();
-            foreach (Connection conn in users) //todo fix crash
+            foreach (Connection conn in total)
             {
                 if (conn.Client.GetStatus() != Status.OPEN)
                     continue;
@@ -117,6 +117,19 @@ namespace GUIPixelPainter
                     conn.Session.Enqueue(pixel);
                 }
             }
+            //foreach (Connection conn in users)
+            //{
+            //    if (conn.Client.GetStatus() != Status.OPEN)
+            //        continue;
+            //    if (conn.Session.QueueLength() > 50)
+            //        continue;
+
+            //    var queue = BuildQueue(total.IndexOf(conn), total.Count);
+            //    foreach (IdPixel pixel in queue)
+            //    {
+            //        conn.Session.Enqueue(pixel);
+            //    }
+            //}
         }
 
         private void RefreshConnections()
