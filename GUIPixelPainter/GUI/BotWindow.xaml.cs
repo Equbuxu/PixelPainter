@@ -74,14 +74,6 @@ namespace GUIPixelPainter.GUI
             return int.TryParse(canvasId.Text, out id) ? id : 7;
         }
 
-        /*public void OnChatMessage(object sender, MessageEventArgs args)
-        {
-            if (String.IsNullOrWhiteSpace(args.guild))
-                AddChatText(String.Format("{0}: {1}", args.username, args.message));
-            else
-                AddChatText(String.Format("<{0}>{1}: {2}", args.guild, args.username, args.message));
-        }*/
-
         public void AddChatText(string text, System.Windows.Media.Color c)
         {
             chat.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));

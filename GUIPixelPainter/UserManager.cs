@@ -117,19 +117,6 @@ namespace GUIPixelPainter
                     conn.Session.Enqueue(pixel);
                 }
             }
-            //foreach (Connection conn in users)
-            //{
-            //    if (conn.Client.GetStatus() != Status.OPEN)
-            //        continue;
-            //    if (conn.Session.QueueLength() > 50)
-            //        continue;
-
-            //    var queue = BuildQueue(total.IndexOf(conn), total.Count);
-            //    foreach (IdPixel pixel in queue)
-            //    {
-            //        conn.Session.Enqueue(pixel);
-            //    }
-            //}
         }
 
         private void RefreshConnections()

@@ -251,7 +251,7 @@ namespace GUIPixelPainter
                             status = Status.CLOSEDERROR;
                             return;
                         }
-                        Console.WriteLine(response.Length > 40 ? response.Substring(0, 40) : response);
+                        //Console.WriteLine(response.Length > 40 ? response.Substring(0, 40) : response);
                         tasks.RemoveAt(i);
                     }
 
@@ -382,7 +382,7 @@ namespace GUIPixelPainter
                     }
                     else
                     {
-                        Console.WriteLine("3");
+                        //Console.WriteLine("3");
                     }
                     data = data.Substring(packetSize + colonIndex + 1);
                 }
@@ -436,13 +436,13 @@ namespace GUIPixelPainter
                             ErrorPacket eventArgs = new ErrorPacket();
                             eventArgs.id = errorId;
                             OnEvent("throw.error", eventArgs);
-                            Console.WriteLine("code err");
-                            Console.WriteLine("\a");
+                            //Console.WriteLine("code err");
+                            //Console.WriteLine("\a");
                         }
                         if (errorId == 0 || errorId == 1 || errorId == 2 || errorId == 6 || errorId == 7 || errorId == 9 || errorId == 10 || errorId == 18 || errorId == 19 || errorId == 20)
                         {
                             Console.WriteLine("\a");
-                            Console.WriteLine("site err {0}", errorId);
+                            //Console.WriteLine("site err {0}", errorId);
                             return false;
                         }
                         break;
