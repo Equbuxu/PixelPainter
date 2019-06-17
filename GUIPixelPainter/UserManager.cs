@@ -104,7 +104,7 @@ namespace GUIPixelPainter
         {
             //TODO write managequeues
             var total = users.Where((a) => a.Client.GetStatus() == Status.OPEN).ToList();
-            foreach (Connection conn in users)
+            foreach (Connection conn in users) //todo fix crash
             {
                 if (conn.Client.GetStatus() != Status.OPEN)
                     continue;
