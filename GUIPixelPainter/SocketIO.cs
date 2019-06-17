@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -106,7 +107,7 @@ namespace GUIPixelPainter
         public int Y { get; }
     }
 
-    //TODO rewrite using HttpClient
+    //TODO make disposable to get rid of the client
     public class SocketIO
     {
         class IdResponce
@@ -138,6 +139,9 @@ namespace GUIPixelPainter
         public event OnEventHandler OnEvent;
         public delegate void OnEventHandler(string type, EventArgs args);
 
+        private List<Task<HttpResponseMessage>> tasks = new List<Task<HttpResponseMessage>>();
+        private HttpClient client;
+
         public SocketIO(string authKey, string authToken, int boardId)
         {
             this.authKey = authKey;
@@ -151,9 +155,133 @@ namespace GUIPixelPainter
                 throw new Exception("already connected");
             status = Status.CONNECTING;
 
+            client = new HttpClient();
+
+            ConnectSequence();
+            if (status == Status.CLOSEDDISCONNECT)
+                return;
+
             thread = new Thread(ConnectLoop);
             thread.IsBackground = true;
             thread.Start();
+        }
+
+        private void ConnectSequence()
+        {
+            try
+            {
+                //Get ID
+                {
+                    HttpResponseMessage resp = client.GetAsync(urlBase + CalcTime()).Result;
+                    string response = resp.Content.ReadAsStringAsync().Result;
+                    response = response.Remove(0, response.IndexOf('{'));
+                    int index = response.IndexOf('}');
+                    response = response.Remove(index + 1, response.Length - index - 1);
+                    IdResponce result = JsonConvert.DeserializeObject<IdResponce>(response);
+                    this.id = result.sid;
+                }
+                //Send authKey and authToken
+                {
+                    StringBuilder sb = new StringBuilder();
+                    StringWriter sw = new StringWriter(sb);
+
+                    using (JsonWriter writer = new JsonTextWriter(sw))
+                    {
+                        writer.Formatting = Formatting.None;
+                        writer.WriteStartArray();
+                        writer.WriteValue("init");
+                        writer.WriteStartObject();
+                        writer.WritePropertyName("authKey");
+                        writer.WriteValue(authKey);
+                        writer.WritePropertyName("authToken");
+                        writer.WriteValue(authToken);
+                        writer.WritePropertyName("boardId");
+                        writer.WriteValue(boardId);
+                        writer.WriteEndObject();
+                        writer.WriteEnd();
+                    }
+                    string resultJson = sb.ToString();
+                    StringContent request = new StringContent((resultJson.Length + 2).ToString() + ":42" + resultJson);
+                    HttpResponseMessage response = client.PostAsync(urlBase + CalcTime() + "&sid=" + id, request).Result;
+                }
+            }
+            catch (HttpRequestException)
+            {
+                status = Status.CLOSEDDISCONNECT;
+            }
+            catch (AggregateException)
+            {
+                status = Status.CLOSEDDISCONNECT;
+            }
+        }
+
+        private void ConnectLoop()
+        {
+            status = Status.OPEN;
+
+            DateTime lastUpdate;
+            int updateCount = 0;
+            while (true)
+            {
+                lastUpdate = DateTime.Now;
+
+                if (abortRequested || status != Status.OPEN)
+                    return;
+
+                try
+                {
+                    //Process responses
+                    for (int i = tasks.Count - 1; i >= 0; i--)
+                    {
+                        if (!tasks[i].IsCompleted)
+                            continue;
+                        if (tasks[i].IsFaulted)
+                        {
+                            status = Status.CLOSEDDISCONNECT;
+                            return;
+                        }
+                        string response = tasks[i].Result.Content.ReadAsStringAsync().Result;
+                        if (response.Contains("Session ID unknown")) //HACK shouldnt be here
+                        {
+                            status = Status.CLOSEDDISCONNECT;
+                            return;
+                        }
+                        if (!ProcessMessage(response))
+                        {
+                            status = Status.CLOSEDERROR;
+                            return;
+                        }
+                        Console.WriteLine(response.Length > 40 ? response.Substring(0, 40) : response);
+                        tasks.RemoveAt(i);
+                    }
+
+                    //Request update
+                    tasks.Add(client.GetAsync(urlBase + CalcTime() + "&sid=" + id));
+
+                    //Ping
+                    if (updateCount % 25 == 24)
+                    {
+                        StringContent pingContent = new StringContent("1:2");
+                        tasks.Add(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, pingContent));
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    status = Status.CLOSEDDISCONNECT;
+                    return;
+                }
+                catch (AggregateException)
+                {
+                    status = Status.CLOSEDDISCONNECT;
+                    return;
+                }
+
+                updateCount++;
+
+                int delay = 1000 - (DateTime.Now - lastUpdate).Milliseconds;
+                if (delay > 0)
+                    Thread.Sleep(delay);
+            }
         }
 
         public Status GetStatus()
@@ -178,31 +306,22 @@ namespace GUIPixelPainter
                 throw new Exception("not connected");
             }
 
-
-            HttpWebRequest rq = (HttpWebRequest)WebRequest.Create(urlBase + CalcTime() + "&sid=" + id);
-            rq.Method = "POST";
-            rq.Timeout = 4000;
-
-            using (StreamWriter s = new StreamWriter(rq.GetRequestStream()))//TODO web exceprion crash
+            StringBuilder builder = new StringBuilder();
+            foreach (IdPixel pixel in pixels)
             {
-                foreach (IdPixel pixel in pixels)
-                {
-                    string pixelMessage = String.Format("42[\"place\",{{\"x\":{0},\"y\":{1},\"c\":{2}}}]", pixel.X, pixel.Y, pixel.Color);
-                    s.Write(String.Format("{0}:{1}", pixelMessage.Length, pixelMessage));
-                }
+                string pixelMessage = String.Format("42[\"place\",{{\"x\":{0},\"y\":{1},\"c\":{2}}}]", pixel.X, pixel.Y, pixel.Color);
+                builder.Append(String.Format("{0}:{1}", pixelMessage.Length, pixelMessage));
             }
-
-            HttpWebResponse resp;
+            StringContent content = new StringContent(builder.ToString());
             try
             {
-                resp = (HttpWebResponse)rq.GetResponse();
+                tasks.Add(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content));
             }
-            catch (WebException)
+            catch (HttpRequestException)
             {
-                rq.Abort();
+                status = Status.CLOSEDDISCONNECT;
                 return false;
             }
-            resp.Close();
             return true;
         }
 
@@ -213,28 +332,18 @@ namespace GUIPixelPainter
                 throw new Exception("not connected");
             }
 
-
-            HttpWebRequest rq = (HttpWebRequest)WebRequest.Create(urlBase + CalcTime() + "&sid=" + id);
-            rq.Method = "POST";
-            rq.Timeout = 4000;
-
-            using (StreamWriter s = new StreamWriter(rq.GetRequestStream()))
-            {
-                string toSend = String.Format("42[\"chat.message\",{{\"message\":\"{0}\",\"color\":{1}}}]", message, color);
-                s.Write(String.Format("{0}:{1}", toSend.Length, toSend));
-            }
-
-            HttpWebResponse resp;
+            string data = String.Format("42[\"chat.message\",{{\"message\":\"{0}\",\"color\":{1}}}]", message, color);
+            string packet = String.Format("{0}:{1}", data.Length, data);
+            StringContent content = new StringContent(packet);
             try
             {
-                resp = (HttpWebResponse)rq.GetResponse();
+                tasks.Add(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content));
             }
-            catch (WebException)
+            catch (HttpRequestException)
             {
-                rq.Abort();
+                status = Status.CLOSEDDISCONNECT;
                 return false;
             }
-            resp.Close();
             return true;
         }
 
@@ -250,207 +359,6 @@ namespace GUIPixelPainter
             }
             while (time > 0);
             return result;
-        }
-
-        private bool FetchID()
-        {
-            HttpWebRequest rq = (HttpWebRequest)WebRequest.Create(urlBase + CalcTime());
-            rq.Timeout = 4000;
-            rq.Method = "GET";
-            HttpWebResponse resp;
-            try
-            {
-                resp = (HttpWebResponse)rq.GetResponse();
-            }
-            catch (WebException)
-            {
-                rq.Abort();
-                return false;
-            }
-            string response;
-            using (StreamReader s = new StreamReader(resp.GetResponseStream()))
-            {
-                response = s.ReadToEnd();
-            }
-
-            response = response.Remove(0, response.IndexOf('{'));
-            int index = response.IndexOf('}');
-            response = response.Remove(index + 1, response.Length - index - 1);
-
-            IdResponce result = JsonConvert.DeserializeObject<IdResponce>(response);
-
-            this.id = result.sid;
-            return true;
-        }
-
-        private bool SendAuthInfo()
-        {
-            StringBuilder sb = new StringBuilder();
-            StringWriter sw = new StringWriter(sb);
-
-            using (JsonWriter writer = new JsonTextWriter(sw))
-            {
-                writer.Formatting = Formatting.None;
-
-                writer.WriteStartArray();
-                writer.WriteValue("init");
-                writer.WriteStartObject();
-                writer.WritePropertyName("authKey");
-                writer.WriteValue(authKey);
-                writer.WritePropertyName("authToken");
-                writer.WriteValue(authToken);
-                writer.WritePropertyName("boardId");
-                writer.WriteValue(boardId);
-                writer.WriteEndObject();
-                writer.WriteEnd();
-            }
-
-            HttpWebRequest rq = (HttpWebRequest)WebRequest.Create(urlBase + CalcTime() + "&sid=" + id);
-            rq.Method = "POST";
-            rq.Timeout = 4000;
-
-            string resultJson = sb.ToString();
-            using (StreamWriter s = new StreamWriter(rq.GetRequestStream()))
-            {
-                s.Write(resultJson.Length + 2);
-                s.Write(":42");
-                s.Write(resultJson);
-            }
-
-            HttpWebResponse resp;
-            try
-            {
-                resp = (HttpWebResponse)rq.GetResponse();
-            }
-            catch (WebException)
-            {
-                rq.Abort();
-                return false;
-            }
-            return true;
-        }
-
-        private string FetchUpdate()
-        {
-            string time = CalcTime();
-            //Console.WriteLine(time);
-            HttpWebRequest rq = (HttpWebRequest)WebRequest.Create(urlBase + time + "&sid=" + id);
-            rq.Timeout = 4000;
-
-            rq.Method = "GET";
-
-            HttpWebResponse resp;
-            try
-            {
-                resp = (HttpWebResponse)rq.GetResponse();
-            }
-            catch (WebException)
-            {
-                return null;
-            }
-
-            string response;
-            using (StreamReader s = new StreamReader(resp.GetResponseStream()))
-            {
-                response = s.ReadToEnd();
-            }
-            //File.WriteAllText("text.txt", response);
-            return response;
-        }
-
-        private bool SendPing()
-        {
-            HttpWebRequest rq = (HttpWebRequest)WebRequest.Create(urlBase + CalcTime() + "&sid=" + id);
-            rq.Timeout = 4000;
-
-            rq.Method = "POST";
-
-            using (StreamWriter s = new StreamWriter(rq.GetRequestStream()))
-            {
-                s.Write("1:2");
-            }
-
-            HttpWebResponse resp;
-            try
-            {
-                resp = (HttpWebResponse)rq.GetResponse();
-            }
-            catch (WebException)
-            {
-                rq.Abort();
-                return false;
-            }
-
-            resp.Close();
-
-            return true;
-        }
-
-        private void ConnectLoop()
-        {
-            Console.WriteLine("fetch id");
-            if (!FetchID() || !SendAuthInfo())
-            {
-                status = Status.CLOSEDDISCONNECT;
-                return;
-            }
-
-            Console.WriteLine("recent actions");
-            string recentActions = FetchUpdate();
-            if (recentActions == null)
-            {
-                status = Status.CLOSEDDISCONNECT;
-                return;
-            }
-
-            if (!ProcessMessage(recentActions))
-            {
-                status = Status.CLOSEDERROR;
-                return;
-            }
-
-            status = Status.OPEN;
-            Console.WriteLine("successful connection");
-
-            DateTime lastUpdate;
-            int updateCount = 0;
-            while (true)
-            {
-                lastUpdate = DateTime.Now;
-
-                if (abortRequested)
-                    return;
-
-                Console.WriteLine("fetch update");
-                string update = FetchUpdate();
-                if (update == null)
-                {
-                    status = Status.CLOSEDDISCONNECT;
-                    return;
-                }
-
-                if (!ProcessMessage(update))
-                {
-                    status = Status.CLOSEDERROR;
-                    return;
-                }
-
-                if (updateCount % 25 == 24)
-                {
-                    Console.WriteLine("ping");
-                    if (!SendPing())
-                    {
-                        status = Status.CLOSEDDISCONNECT;
-                        return;
-                    }
-                }
-
-                updateCount++;
-
-                int delay = 900 - (DateTime.Now - lastUpdate).Milliseconds;
-                if (delay > 0)
-                    System.Threading.Thread.Sleep(delay);
-            }
         }
 
         private bool ProcessMessage(string data)
@@ -534,7 +442,7 @@ namespace GUIPixelPainter
                         if (errorId == 0 || errorId == 1 || errorId == 2 || errorId == 6 || errorId == 7 || errorId == 9 || errorId == 10 || errorId == 18 || errorId == 19 || errorId == 20)
                         {
                             Console.WriteLine("\a");
-                            Console.WriteLine("site err");
+                            Console.WriteLine("site err {0}", errorId);
                             return false;
                         }
                         break;
