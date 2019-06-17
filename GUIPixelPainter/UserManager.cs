@@ -117,19 +117,6 @@ namespace GUIPixelPainter
                     conn.Session.Enqueue(pixel);
                 }
             }
-            //foreach (Connection conn in users)
-            //{
-            //    if (conn.Client.GetStatus() != Status.OPEN)
-            //        continue;
-            //    if (conn.Session.QueueLength() > 50)
-            //        continue;
-
-            //    var queue = BuildQueue(total.IndexOf(conn), total.Count);
-            //    foreach (IdPixel pixel in queue)
-            //    {
-            //        conn.Session.Enqueue(pixel);
-            //    }
-            //}
         }
 
         private void RefreshConnections()
@@ -137,7 +124,7 @@ namespace GUIPixelPainter
             //Remove old users
             for (int i = users.Count - 1; i >= 0; i--)
             {
-                if (guiData.Users.Where((a) => a.Id == users[i].Id).Count() == 0)
+                if (guiData.Users.Where((a) => a.Id == users[i].Id).Count() == 0 || users[i].Client.GetStatus() == Status.CLOSEDDISCONNECT)
                 {
                     Console.WriteLine("user connection removed");
                     users[i].Session.ClearQueue();
@@ -173,7 +160,7 @@ namespace GUIPixelPainter
                 var status = user.Client.GetStatus();
                 if (status == Status.CLOSEDDISCONNECT || status == Status.CLOSEDERROR)
                 {
-                    CreateEventToDispatch("manager.status", new UserStatusData(user.Id, Status.CLOSEDERROR));
+                    CreateEventToDispatch("manager.status", new UserStatusData(user.Id, status));
                 }
             }
         }
@@ -316,10 +303,11 @@ namespace GUIPixelPainter
         {
             if (user != currentActiveUser)
             {
-                var curactive = users.Where((a) => a.Id == user).ToList();
+                var curactive = users.Where((a) => a.Id == currentActiveUser).ToList();
                 if (curactive.Count == 0 || curactive[0].Client.GetStatus() != Status.OPEN)
                 {
                     currentActiveUser = user;
+                    Console.WriteLine("Listening to {0}", user);
                 }
                 else
                 {
@@ -335,6 +323,11 @@ namespace GUIPixelPainter
             {
                 eventsToDispatch.Add(new Tuple<string, EventArgs>(type, args));
             }
+        }
+
+        private void FilterEventsToDispatch(string type, EventArgs args, Guid user)
+        {
+            //TODO filter events here instead of sending all of them in OnSocketEvent
         }
     }
 }

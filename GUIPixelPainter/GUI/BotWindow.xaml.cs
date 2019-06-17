@@ -74,14 +74,6 @@ namespace GUIPixelPainter.GUI
             return int.TryParse(canvasId.Text, out id) ? id : 7;
         }
 
-        /*public void OnChatMessage(object sender, MessageEventArgs args)
-        {
-            if (String.IsNullOrWhiteSpace(args.guild))
-                AddChatText(String.Format("{0}: {1}", args.username, args.message));
-            else
-                AddChatText(String.Format("<{0}>{1}: {2}", args.guild, args.username, args.message));
-        }*/
-
         public void AddChatText(string text, System.Windows.Media.Color c)
         {
             chat.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
@@ -95,13 +87,13 @@ namespace GUIPixelPainter.GUI
             chat.Children.Add(msgBlock);
             chatScroll.ScrollToBottom();
 
-            if (chat.Children.Count >35)
+            if (chat.Children.Count > 35)
             {
                 chat.Children.RemoveAt(0);
             }
         }
 
-        public void UpdateSpeed(int x, int y, System.Windows.Media.Color c, int userId)
+        public void UpdateSpeed(int x, int y, System.Windows.Media.Color c, int userId, bool myOwnPixel)
         {
             if (!lastUserPlaceTimes.ContainsKey(userId))
             {
@@ -119,7 +111,7 @@ namespace GUIPixelPainter.GUI
                 rowUserSpeed.Orientation = Orientation.Horizontal;
                 rowUserSpeed.Children.Add(lableNick);
                 rowUserSpeed.Children.Add(labelSpeed);
-                
+
                 speedLabels.Add(userId, rowUserSpeed);
                 speedPanel.Children.Add(rowUserSpeed);
             }
@@ -145,6 +137,8 @@ namespace GUIPixelPainter.GUI
                     }
                     double dT = (time - userTime.Value.First.Value) / 1000.0;
                     double speed = userTime.Value.Count / (dT == 0 ? 1 : dT);
+                    if (myOwnPixel)
+                        speed /= 2;
                     string userName = knownUsernames.ContainsKey(userTime.Key) ? knownUsernames[userTime.Key] : userTime.Key.ToString();
                     (speedLabels[userTime.Key].Children[0] as Label).Content = userName.ToString() + ':';
                     (speedLabels[userTime.Key].Children[1] as Label).Content = speed.ToString("0.00") + " px/s";

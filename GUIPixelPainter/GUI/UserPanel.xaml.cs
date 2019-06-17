@@ -67,6 +67,8 @@ namespace GUIPixelPainter.GUI
             var user = GetUser(id);
             if (user == null)
                 return;
+            if (user.status == status) //HACK hacky fix of a bug where you can't change user data while the user is enabled. May still be a problem in rare cases
+                return;
             user.status = status;
             UpdateUserList();
         }

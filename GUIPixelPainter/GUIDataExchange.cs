@@ -196,13 +196,13 @@ namespace GUIPixelPainter
             botWindow.AddChatText(message, c);
         }
 
-        public void PushPixel(int x, int y, Color color, int boardId, int userId)
+        public void PushPixel(int x, int y, Color color, int boardId, int userId, bool myOwnPixel)
         {
             if (boardId == CanvasId)
             {
                 var cColor = System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B);
                 pixelCanvas.SetPixel(x, y, cColor, userId);
-                botWindow.UpdateSpeed(x, y, cColor, userId);
+                botWindow.UpdateSpeed(x, y, cColor, userId, myOwnPixel);
             }
         }
 
