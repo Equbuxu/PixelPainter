@@ -528,13 +528,11 @@ namespace GUIPixelPainter
                             ErrorPacket eventArgs = new ErrorPacket();
                             eventArgs.id = errorId;
                             OnEvent("throw.error", eventArgs);
-                            Console.WriteLine("code err");
-                            Console.WriteLine("\a");
                         }
                         if (errorId == 0 || errorId == 1 || errorId == 2 || errorId == 6 || errorId == 7 || errorId == 9 || errorId == 10 || errorId == 18 || errorId == 19 || errorId == 20)
                         {
                             Console.WriteLine("\a");
-                            Console.WriteLine("site err");
+                            Console.WriteLine("site err " + errorId);
                             return false;
                         }
                         break;
