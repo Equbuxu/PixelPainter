@@ -81,6 +81,18 @@ namespace GUIPixelPainter.GUI
             DataExchange.UpdateTasksFromGUI();
         }
 
+        public void SetTaskEnabledState(Guid id, bool state)
+        {
+            if (!TaskExists(id))
+                return;
+            Task task = GetTask(id);
+            if (task.isEnabled == state)
+                return;
+            task.isEnabled = state;
+            UpdateTaskList();
+            DataExchange.UpdateTasksFromGUI();
+        }
+
         private Task GetSelectedTask()
         {
             return GetTask(Guid.Parse(((taskList.SelectedItem as StackPanel).Children[1] as TextBlock).Text));
@@ -127,7 +139,12 @@ namespace GUIPixelPainter.GUI
                     if (Guid.Parse((item.Children[1] as TextBlock).Text) == task.internalId)
                     {
                         exists = true;
-                        (item.Children[0] as Label).Content = task.name; //update name of existing task in case it changed
+                        var nameLabel = (item.Children[0] as Label);
+                        nameLabel.Content = task.name; //update name of existing task in case it changed
+                        if (task.isEnabled)
+                            nameLabel.Foreground = System.Windows.Media.Brushes.Green;
+                        else
+                            nameLabel.Foreground = System.Windows.Media.Brushes.Black;
                         break;
                     }
                 }
@@ -324,6 +341,8 @@ namespace GUIPixelPainter.GUI
                 return;
             GetSelectedTask().isEnabled = true;
 
+            UpdateTaskList();
+
             DataExchange.UpdateTasksFromGUI();
         }
 
@@ -335,6 +354,7 @@ namespace GUIPixelPainter.GUI
             if (taskList.SelectedItem == null)
                 return;
             GetSelectedTask().isEnabled = false;
+            UpdateTaskList();
 
             DataExchange.UpdateTasksFromGUI();
         }

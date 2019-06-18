@@ -31,7 +31,7 @@
                             <TextBox Name="y" LostFocus="OnBoxLostFocus" IsEnabled="False"></TextBox>
                         </DockPanel>
                         <CheckBox Margin="5" Name="dithering" LostFocus="OnBoxLostFocus" Checked="OnDitheringChange" Unchecked="OnDitheringChange" IsEnabled="False">Dithering</CheckBox>
-                        <CheckBox Margin="5" Name="loop" LostFocus="OnBoxLostFocus" Checked="OnKeepRepairingChange" IsEnabled="False">Keep repairing after completion</CheckBox>
+                        <CheckBox Margin="5" Name="loop" LostFocus="OnBoxLostFocus" Checked="OnKeepRepairingChange" Unchecked="OnKeepRepairingChange" IsEnabled="False">Keep repairing after completion</CheckBox>
                         <Button Name="deleteThisTask" Margin="5" Click="OnDeleteTaskClick" IsEnabled="False">Delete this task</Button>
                     </StackPanel>
                 </Expander>

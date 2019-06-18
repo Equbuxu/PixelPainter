@@ -213,15 +213,11 @@ namespace GUIPixelPainter
             userPanel.SetUserStatus(data.UserId, data.UserStatus);
         }
 
-        public void PushTaskEnabledState(Guid task)
+        public void PushTaskEnabledState(TaskEnableStateData data)
         {
-
+            taskPanel.SetTaskEnabledState(data.TaskId, data.Enabled);
         }
 
-        public void PushUserPlacementSpeed()
-        {
-
-        }
     }
 }
 
