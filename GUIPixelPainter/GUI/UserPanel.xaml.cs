@@ -73,6 +73,23 @@ namespace GUIPixelPainter.GUI
             UpdateUserList();
         }
 
+        public void AddNewUser(GUIUser user)
+        {
+            User newUser = new User()
+            {
+                internalId = user.InternalId,
+                name = user.Name,
+                proxyUrl = user.Proxy,
+                authKey = user.AuthKey,
+                authToken = user.AuthToken,
+                isEnabled = user.Enabled,
+                status = user.Status
+            };
+            users.Add(newUser);
+            DataExchange.UpdateUsersFromGUI();
+            UpdateUserList();
+        }
+
         private User GetSelectedUser()
         {
             return GetUser(Guid.Parse(((userList.SelectedItem as StackPanel).Children[1] as TextBlock).Text));

@@ -9,17 +9,19 @@ namespace GUIPixelPainter
 {
     public class UsefulTask
     {
-        public UsefulTask(Guid id, Bitmap image, int x, int y)
+        public UsefulTask(Guid id, Bitmap image, int x, int y, bool keepRepairing)
         {
             Id = id;
             Image = image;
             X = x;
             Y = y;
+            KeepRepairing = keepRepairing;
         }
         public Guid Id { get; }
         public Bitmap Image { get; }
         public int X { get; }
         public int Y { get; }
+        public bool KeepRepairing { get; }
     }
 
     public class UsefulUser
@@ -78,11 +80,11 @@ namespace GUIPixelPainter
                 tasks.Clear();
                 if (!dataExchange.BotEnabled)
                     return;
-                foreach (GUITask task in dataExchange.GUITasks)
+                foreach (GUITask task in dataExchange.GUITasks[CanvasId])
                 {
                     if (!task.Enabled)
                         continue;
-                    UsefulTask newTask = new UsefulTask(task.InternalId, task.Dithering ? task.DitheredConvertedBitmap.Clone() as Bitmap : task.ConvertedBitmap.Clone() as Bitmap, task.X, task.Y);
+                    UsefulTask newTask = new UsefulTask(task.InternalId, task.Dithering ? task.DitheredConvertedBitmap.Clone() as Bitmap : task.ConvertedBitmap.Clone() as Bitmap, task.X, task.Y, task.KeepRepairing);
                     tasks.Add(newTask);
                 }
             }

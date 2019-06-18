@@ -20,6 +20,17 @@ namespace GUIPixelPainter
         public Status UserStatus { get; }
     }
 
+    public class TaskEnableStateData : EventArgs
+    {
+        public TaskEnableStateData(Guid taskId, bool enabled)
+        {
+            TaskId = taskId;
+            Enabled = enabled;
+        }
+        public Guid TaskId { get; }
+        public bool Enabled { get; }
+    }
+
     /// <summary>
     /// Manages connections
     /// Converts and distributes tasks among users
@@ -206,6 +217,7 @@ namespace GUIPixelPainter
             List<IdPixel> queue = new List<IdPixel>();
             foreach (UsefulTask task in guiData.Tasks)
             {
+                bool completed = true;
                 for (int j = 0; j < task.Image.Height; j++)
                 {
                     for (int i = userNum; i < task.Image.Width; i += totalUser)
@@ -218,13 +230,15 @@ namespace GUIPixelPainter
                             continue;
                         if (!invPalette[curCanvas].ContainsKey(reqPixel))
                             continue;
-
+                        completed = false;
                         IdPixel pixel = new IdPixel(invPalette[curCanvas][reqPixel], task.X + i, task.Y + j);
                         queue.Add(pixel);
                         if (queue.Count > 99)
                             goto end;
                     }
                 }
+                if (completed && !task.KeepRepairing)
+                    CreateEventToDispatch("manager.taskenable", new TaskEnableStateData(task.Id, false));
             }
 
         end:

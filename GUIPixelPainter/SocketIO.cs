@@ -157,6 +157,7 @@ namespace GUIPixelPainter
 
             client = new HttpClient();
 
+
             ConnectSequence();
             if (status == Status.CLOSEDDISCONNECT)
                 return;

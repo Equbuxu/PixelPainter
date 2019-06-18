@@ -71,6 +71,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DataLoader.cs" />
     <Compile Include="GUIHelper.cs" />
     <Compile Include="GUIDataExchange.cs" />
     <Compile Include="GUIUpdater.cs" />

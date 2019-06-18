@@ -78,6 +78,11 @@ namespace GUIPixelPainter
                     UserStatusData data = eventTuple.Item2 as UserStatusData;
                     DataExchange.PushUserStatus(data);
                 }
+                else if (eventTuple.Item1 == "manager.taskenable")
+                {
+                    TaskEnableStateData data = eventTuple.Item2 as TaskEnableStateData;
+                    DataExchange.PushTaskEnabledState(data);
+                }
             }
         }
     }

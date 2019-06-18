@@ -34,7 +34,8 @@ namespace GUIPixelPainter.GUI
         };
         DropShadowEffect textShadow = new DropShadowEffect();
 
-        public GUIDataExchange DataExchange { get; set; }
+        private GUIDataExchange dataExchange;
+        public GUIDataExchange DataExchange { get { return dataExchange; } set { dataExchange = value; dataExchange.UpdateGeneralSettingsFromGUI(); } }
 
         public BotWindow()
         {
@@ -52,10 +53,12 @@ namespace GUIPixelPainter.GUI
             textShadow.Opacity = 0.5;
             textShadow.BlurRadius = 0.5;
 
-
             var updateTimer = new Timer(500);
             updateTimer.Elapsed += (a, b) => Dispatcher.Invoke(() => DataExchange.CreateUpdate()); //TODO exception on close: task cancelled
             updateTimer.Start();
+
+            Closed += (a, b) => laucher.Save(); //TODO Should wait for taskpanel conversion thread to finish
+
         }
 
         public bool IsBotEnabled()
