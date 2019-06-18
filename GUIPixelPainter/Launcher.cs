@@ -118,33 +118,33 @@ namespace GUIPixelPainter
 
         public void Test()
         {
-            SocketIO socketIO = new SocketIO(
+            /*SocketIO socketIO = new SocketIO(
                 "ljmltf44s38t906gfe0ohqquzuu9je34xppq4uvxx3q74xojco8tfyofsjocxshuh7lm1gjzja6n7u7jjfdze2e7l3jjv0dd7zz9fj8zufn1auluayto18vnbf67gkknjkxz36yxllzwgkqqjkfktb75rec7ywvhgsgkzfhl0hhg187ltn6mzdsqr4xq1s7ilo2l3k641nk3wsopfuce854092qbvythnw2qh8uiwfms8ain5v2d07da94l53fm",
                 "z6z8z92taue1oyqt0htajrozfmcgi3biaaraku4uoivchm5i3zsnqhm64zmm3x5d8xosrsngbiss5ya9x3wokjuojhbmfh0neog5h3msmelrdw1bzxzkhu80bknq1nefculuy7mkm7cz4da3bans4wtfhg6i4kyhfkbdryye5beapod0z1t3ynjf4qx9awqqg138z2m5e0f3pt4ovxstlc8p26yd2o3jq7rqaewoebr45wt0ultfy24183fbsiu",
-                7);
+                7);*/
 
             /*SocketIO socketIO = new SocketIO(
                 "jmltf44s38t906gfe0ohqquzuu9je34xppq4uvxx3q74xojco8tfyofsjocxshuh7lm1gjzja6n7u7jjfdze2e7l3jjv0dd7zz9fj8zufn1auluayto18vnbf67gkknjkxz36yxllzwgkqqjkfktb75rec7ywvhgsgkzfhl0hhg187ltn6mzdsqr4xq1s7ilo2l3k641nk3wsopfuce854092qbvythnw2qh8uiwfms8ain5v2d07da94l53fm",
                 "gzvv6cwds86j2hlu0iupx4fi4srwyd5ed1ajd7x5f4phlbcmu6brbq9fj1bhfhwsi6cwd92tdsbz3nlxuwp5nyl70xofel8xrku5txy7p97sxtqrqfxdejleh9uwv2tmmosglrna1v2yosqe7osl8d0pnuliwe5i3yzopmyqi1p6ugl25dodro2fjnxf23y51xtqksh3t79nnvps9e5028flvd1yg03hxx8iqplkwv8kqyczci0eqg0mt1l91pr",
                 7);*/
 
-            socketIO.Connect();
+            /*socketIO.Connect();
 
-            UserSession session = new UserSession(socketIO);
+             UserSession session = new UserSession(socketIO);
 
-            int x = 1084;
-            int y = 704;
-            for (int i = 0; i < 20; i++)
-            {
-                for (int j = 0; j < 20; j++)
-                {
-                    if (i % 2 == j % 2)
-                        session.Enqueue(new IdPixel(5, x + i, y + j));
-                    else
-                        session.Enqueue(new IdPixel(21, x + i, y + j));
-                }
-            }
-
+             int x = 1084;
+             int y = 704;
+             for (int i = 0; i < 20; i++)
+             {
+                 for (int j = 0; j < 20; j++)
+                 {
+                     if (i % 2 == j % 2)
+                         session.Enqueue(new IdPixel(5, x + i, y + j));
+                     else
+                         session.Enqueue(new IdPixel(21, x + i, y + j));
+                 }
+             }
+             */
         }
     }
 }
