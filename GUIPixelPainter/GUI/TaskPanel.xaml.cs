@@ -59,14 +59,21 @@ namespace GUIPixelPainter.GUI
         /// returns an immutable copy of tasks
         /// </summary>
         /// <returns></returns>
-        public List<GUITask> GetTasks()
+        public Dictionary<int, List<GUITask>> GetTasks()
         {
-            List<GUITask> converted = new List<GUITask>();
+            Dictionary<int, List<GUITask>> converted = new Dictionary<int, List<GUITask>>();
 
-            foreach (Task task in tasks[canvasId])
+            foreach (KeyValuePair<int, List<Task>> canvas in tasks)
             {
-                if (task.imagesConverted)
-                    converted.Add(new GUITask(task.internalId, task.name, task.isEnabled, task.x, task.y, task.dithering, task.loop, task.originalImage, task.convertedImage, task.ditheredImage));
+                converted.Add(canvas.Key, new List<GUITask>());
+                foreach (Task task in canvas.Value)
+                {
+                    if (task.imagesConverted)
+                    {
+                        GUITask newTask = new GUITask(task.internalId, task.name, task.isEnabled, task.x, task.y, task.dithering, task.loop, task.originalImage, task.convertedImage, task.ditheredImage);
+                        converted[canvas.Key].Add(newTask);
+                    }
+                }
             }
             return converted;
         }
@@ -78,7 +85,6 @@ namespace GUIPixelPainter.GUI
                 tasks.Add(canvasId, new List<Task>());
 
             UpdateTaskList();
-            DataExchange.UpdateTasksFromGUI();
         }
 
         public void SetTaskEnabledState(Guid id, bool state)
@@ -91,6 +97,30 @@ namespace GUIPixelPainter.GUI
             task.isEnabled = state;
             UpdateTaskList();
             DataExchange.UpdateTasksFromGUI();
+        }
+
+        public void AddTask(GUITask task, int taskCanvasId)
+        {
+            Task newTask = new Task()
+            {
+                internalId = task.InternalId,
+                imagesConverted = true,
+                name = task.Name,
+                x = task.X,
+                y = task.Y,
+                originalImage = task.OriginalBitmap,
+                convertedImage = task.ConvertedBitmap,
+                ditheredImage = task.DitheredConvertedBitmap,
+                dithering = task.Dithering,
+                loop = task.KeepRepairing,
+                isEnabled = task.Enabled
+            };
+            if (!tasks.ContainsKey(taskCanvasId))
+                tasks.Add(taskCanvasId, new List<Task>());
+
+            tasks[taskCanvasId].Add(newTask);
+            DataExchange.UpdateTasksFromGUI();
+            UpdateTaskList();
         }
 
         private Task GetSelectedTask()
@@ -152,6 +182,10 @@ namespace GUIPixelPainter.GUI
                     continue;
 
                 Label label = new Label() { Content = task.name };
+                if (task.isEnabled)
+                    label.Foreground = System.Windows.Media.Brushes.Green;
+                else
+                    label.Foreground = System.Windows.Media.Brushes.Black;
                 TextBlock id = new TextBlock() { Text = task.internalId.ToString(), Visibility = Visibility.Collapsed };
                 StackPanel panel = new StackPanel();
                 panel.Children.Add(label);
@@ -370,6 +404,8 @@ namespace GUIPixelPainter.GUI
 
         private void OnKeepRepairingChange(object sender, RoutedEventArgs e)
         {
+            if (ignoreEvents)
+                return;
             GetSelectedTask().loop = loop.IsChecked == true;
             DataExchange.UpdateTasksFromGUI();
         }

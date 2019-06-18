@@ -15,17 +15,11 @@ namespace GUIPixelPainter
         UsefulDataRepresentation representation;
         GUIUpdater updater;
         UserManager manager;
+        DataLoader loader;
 
         public void Launch(GUI.BotWindow window)
         {
             this.window = window;
-
-            dataExchange = new GUIDataExchange(window.usersPanel, window.taskList, window.pixelCanvas, window);
-
-            window.DataExchange = dataExchange;
-            window.taskList.DataExchange = dataExchange;
-            window.usersPanel.DataExchange = dataExchange;
-            window.pixelCanvas.DataExchange = dataExchange;
 
             var palette = new Dictionary<int, Dictionary<int, System.Drawing.Color>>()
             {
@@ -87,10 +81,15 @@ namespace GUIPixelPainter
             }).ToDictionary((a) => a.Key, (a) => a.Value);
             GUIPalette[7].RemoveRange(27, 2); //dont show premium color in UI
 
-
             helper = new GUIHelper(GUIPalette);
             window.taskList.Helper = helper;
             window.pixelCanvas.Helper = helper;
+
+            dataExchange = new GUIDataExchange(window.usersPanel, window.taskList, window.pixelCanvas, window);
+
+            window.taskList.DataExchange = dataExchange;
+            window.usersPanel.DataExchange = dataExchange;
+            window.pixelCanvas.DataExchange = dataExchange;
 
             ServicePointManager.DefaultConnectionLimit = 10;
 
@@ -104,7 +103,17 @@ namespace GUIPixelPainter
             dataExchange.UsefulData = representation;
             dataExchange.Updater = updater;
 
+            window.DataExchange = dataExchange;
+
+            loader = new DataLoader(dataExchange);
+            loader.Load();
+
             //Test();
+        }
+
+        public void Save()
+        {
+            loader.Save();
         }
 
         public void Test()

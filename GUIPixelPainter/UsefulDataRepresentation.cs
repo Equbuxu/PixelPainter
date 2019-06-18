@@ -80,7 +80,7 @@ namespace GUIPixelPainter
                 tasks.Clear();
                 if (!dataExchange.BotEnabled)
                     return;
-                foreach (GUITask task in dataExchange.GUITasks)
+                foreach (GUITask task in dataExchange.GUITasks[CanvasId])
                 {
                     if (!task.Enabled)
                         continue;

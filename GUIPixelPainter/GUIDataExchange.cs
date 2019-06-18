@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -50,8 +51,11 @@ namespace GUIPixelPainter
         public int Y { get; }
         public bool Dithering { get; }
         public bool KeepRepairing { get; }
+        [JsonIgnore]
         public Bitmap OriginalBitmap { get; }
+        [JsonIgnore]
         public Bitmap ConvertedBitmap { get; }
+        [JsonIgnore]
         public Bitmap DitheredConvertedBitmap { get; }
     }
 
@@ -93,11 +97,9 @@ namespace GUIPixelPainter
 
         public int CanvasId { get; private set; }
 
-        private List<GUITask> guiTasks = new List<GUITask>();
-        public IReadOnlyCollection<GUITask> GUITasks { get { return guiTasks.AsReadOnly(); } }
-
-        private List<GUIUserSpeed> guiUserSpeeds = new List<GUIUserSpeed>();
-        public IReadOnlyCollection<GUIUserSpeed> GUIUserSpeeds { get { return guiUserSpeeds.AsReadOnly(); } }
+        private Dictionary<int, List<GUITask>> guiTasks = new Dictionary<int, List<GUITask>>();
+        //public IReadOnlyDictionary<int, IReadOnlyList<GUITask>> GUITasks => (IReadOnlyDictionary<int, IReadOnlyList<GUITask>>)guiTasks;
+        public IReadOnlyDictionary<int, IReadOnlyList<GUITask>> GUITasks => guiTasks.ToDictionary((a) => a.Key, (a) => (IReadOnlyList<GUITask>)a.Value.AsReadOnly());
 
         public bool MoveToolSelected { get; private set; }
 
@@ -105,11 +107,8 @@ namespace GUIPixelPainter
 
         public bool BucketToolSelected { get; private set; }
 
-        private List<PaletteColor> paletteColors = new List<PaletteColor>();
-        public IReadOnlyCollection<PaletteColor> PaletteColors { get { return paletteColors.AsReadOnly(); } }
-
         private List<GUIUser> guiUsers = new List<GUIUser>();
-        public IReadOnlyCollection<GUIUser> GUIUsers { get { return guiUsers.AsReadOnly(); } }
+        public IReadOnlyCollection<GUIUser> GUIUsers => guiUsers;
 
         //Other
         private GUI.UserPanel userPanel;
@@ -142,7 +141,8 @@ namespace GUIPixelPainter
             guiTasks = taskPanel.GetTasks();
             UsefulData.UpdateTasks();
             Updater.Update();
-            pixelCanvas.OverlayTasks(guiTasks.Where((a) => a.Enabled).ToList());
+            if (guiTasks.ContainsKey(CanvasId))
+                pixelCanvas.OverlayTasks(guiTasks[CanvasId].Where((a) => a.Enabled).ToList());
         }
 
         public void UpdateGeneralSettingsFromGUI()
@@ -161,8 +161,8 @@ namespace GUIPixelPainter
                 UsefulData.UpdateCanvasId();
             }
 
-            if (SuperimposeTasks)
-                pixelCanvas.OverlayTasks(guiTasks.Where((a) => a.Enabled).ToList());
+            if (SuperimposeTasks && guiTasks.ContainsKey(canvasId))
+                pixelCanvas.OverlayTasks(guiTasks[CanvasId].Where((a) => a.Enabled).ToList());
             else
                 pixelCanvas.OverlayTasks(new List<GUITask>());
 
@@ -170,7 +170,7 @@ namespace GUIPixelPainter
             Updater.Update();
         }
 
-        //TODO
+        //"Create" methonds. They are like push methods, but push data back instead of forward
         /// <summary>
         /// return true on success, false on failure 
         /// </summary>
@@ -190,7 +190,7 @@ namespace GUIPixelPainter
             Updater.Update();
         }
 
-        //TODO "Push" methods. Transfer individual events forward to controls. They don't impact data stored here.
+        //"Push" methods. Transfer individual events forward to controls. They don't impact data stored here.
         public void PushChatMessage(string message, System.Windows.Media.Color c)
         {
             botWindow.AddChatText(message, c);
@@ -206,8 +206,6 @@ namespace GUIPixelPainter
             }
         }
 
-        //TODO "Modify" methods. Modify data stored here and update controls accordingly
-
         public void PushUserStatus(UserStatusData data)
         {
             userPanel.SetUserStatus(data.UserId, data.UserStatus);
@@ -218,6 +216,15 @@ namespace GUIPixelPainter
             taskPanel.SetTaskEnabledState(data.TaskId, data.Enabled);
         }
 
+        public void PushNewTask(GUITask task, int taskCanvasId)
+        {
+            taskPanel.AddTask(task, taskCanvasId);
+        }
+
+        public void PushNewUser(GUIUser user)
+        {
+            userPanel.AddNewUser(user);
+        }
     }
 }
 
