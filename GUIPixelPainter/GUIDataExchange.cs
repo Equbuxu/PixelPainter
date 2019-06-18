@@ -141,7 +141,7 @@ namespace GUIPixelPainter
             guiTasks = taskPanel.GetTasks();
             UsefulData.UpdateTasks();
             Updater.Update();
-            if (guiTasks.ContainsKey(CanvasId))
+            if (guiTasks.ContainsKey(CanvasId) && SuperimposeTasks)
                 pixelCanvas.OverlayTasks(guiTasks[CanvasId].Where((a) => a.Enabled).ToList());
         }
 

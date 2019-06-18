@@ -31,6 +31,7 @@ namespace GUIPixelPainter.GUI
             {29297, "Uncertain" },
             {21235, "Powerlay" },
             {29396, "Kisalena" },
+            {30677, "Kurumika" }
         };
         DropShadowEffect textShadow = new DropShadowEffect();
 

@@ -218,7 +218,8 @@ namespace GUIPixelPainter
             foreach (UsefulTask task in guiData.Tasks)
             {
                 bool completed = true;
-                for (int j = 0; j < task.Image.Height; j++)
+                //for (int j = 0; j < task.Image.Height; j++)
+                for (int j = task.Image.Height - 1; j >= 0; j--)
                 {
                     for (int i = userNum; i < task.Image.Width; i += totalUser)
                     {
@@ -303,7 +304,7 @@ namespace GUIPixelPainter
 
         private SocketIO CreateSocketIO(UsefulUser user)
         {
-            SocketIO socket = new SocketIO(user.AuthKey, user.AuthToken, guiData.CanvasId);
+            SocketIO socket = new SocketIO(user.AuthKey, user.AuthToken, guiData.CanvasId, user.Proxy);
             socket.OnEvent += (a, b) => { OnSocketEvent(a, b, user.Id); };
             return socket;
         }
