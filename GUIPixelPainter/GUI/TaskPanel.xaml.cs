@@ -290,6 +290,13 @@ namespace GUIPixelPainter.GUI
                 UpdateTaskList();
         }
 
+        private void OnTextBoxGotFocus(object sender, RoutedEventArgs e)
+        {
+            taskName.SelectAll();
+            x.SelectAll();
+            y.SelectAll();
+        }
+
         private void ConvertImages()
         {
             if (converterThread != null)

@@ -18,17 +18,17 @@
                     <StackPanel Margin="5" Name="taskSettings">
                         <DockPanel Margin="5">
                             <Label>Name:</Label>
-                            <TextBox Name="taskName" LostFocus="OnBoxLostFocus"  IsEnabled="False"></TextBox>
+                            <TextBox Name="taskName" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" IsEnabled="False"></TextBox>
                         </DockPanel>
                         <CheckBox Name="taskEnabled" Checked="OnEnableTask" Unchecked="OnDisableTask" IsEnabled="False">Enabled</CheckBox>
                         <Button Name="selectImage" Margin="5" Click="OnSelectImageClick" IsEnabled="False">Select image</Button>
                         <DockPanel Margin="5">
                             <Label>x:</Label>
-                            <TextBox Name="x" LostFocus="OnBoxLostFocus" IsEnabled="False"></TextBox>
+                            <TextBox Name="x" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" IsEnabled="False"></TextBox>
                         </DockPanel>
                         <DockPanel Margin="5">
                             <Label>y:</Label>
-                            <TextBox Name="y" LostFocus="OnBoxLostFocus" IsEnabled="False"></TextBox>
+                            <TextBox Name="y" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" IsEnabled="False"></TextBox>
                         </DockPanel>
                         <CheckBox Margin="5" Name="dithering" LostFocus="OnBoxLostFocus" Checked="OnDitheringChange" Unchecked="OnDitheringChange" IsEnabled="False">Dithering</CheckBox>
                         <CheckBox Margin="5" Name="loop" LostFocus="OnBoxLostFocus" Checked="OnKeepRepairingChange" Unchecked="OnKeepRepairingChange" IsEnabled="False">Keep repairing after completion</CheckBox>

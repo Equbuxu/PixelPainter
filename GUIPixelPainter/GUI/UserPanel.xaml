@@ -19,19 +19,19 @@
                         <Label FontWeight="Bold">User settings</Label>
                         <DockPanel Margin="5">
                             <Label>Name (cosmetical):</Label>
-                            <TextBox Name="userName" LostFocus="OnTextBoxLostFocus" IsEnabled="False"></TextBox>
+                            <TextBox Name="userName" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" IsEnabled="False"></TextBox>
                         </DockPanel>
                         <DockPanel Margin="5">
                             <Label>Proxy url:</Label>
-                            <TextBox Name="userProxy" LostFocus="OnTextBoxLostFocus" IsEnabled="False"></TextBox>
+                            <TextBox Name="userProxy" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" IsEnabled="False"></TextBox>
                         </DockPanel>
                         <DockPanel Margin="5">
                             <Label>authKey:</Label>
-                            <TextBox Name="authKey" LostFocus="OnTextBoxLostFocus" IsEnabled="False"></TextBox>
+                            <TextBox Name="authKey" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" IsEnabled="False"></TextBox>
                         </DockPanel>
                         <DockPanel Margin="5">
                             <Label>authToken:</Label>
-                            <TextBox Name="authToken" LostFocus="OnTextBoxLostFocus" IsEnabled="False"></TextBox>
+                            <TextBox Name="authToken" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" IsEnabled="False"></TextBox>
                         </DockPanel>
                         <Label Margin="5" Name="userStatus">Status:</Label>
                         <CheckBox Margin="5" Name="enableUser" Checked="OnEnableUser" Unchecked="OnDisableUser" IsEnabled="False">Enabled</CheckBox>

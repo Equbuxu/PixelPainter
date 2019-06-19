@@ -162,6 +162,11 @@ namespace GUIPixelPainter.GUI
             DataExchange.UpdateGeneralSettingsFromGUI();
         }
 
+        private void OnTextBoxGotFocus(object sender, RoutedEventArgs e)
+        {
+            canvasId.SelectAll();
+        }
+
         private void OnChatSend(object sender, RoutedEventArgs e)
         {
             if (DataExchange.CreateChatMessage(chatTextBox.Text, 0))

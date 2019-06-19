@@ -19,7 +19,7 @@
                         </DockPanel>
                         <DockPanel>
                             <Label>Canvas ID:</Label>
-                            <TextBox Name="canvasId" LostFocus="OnGeneralSettingChange">7</TextBox>
+                            <TextBox Name="canvasId" GotFocus="OnTextBoxGotFocus" LostFocus="OnGeneralSettingChange">7</TextBox>
                         </DockPanel>
                     </StackPanel>
                 </Border>
