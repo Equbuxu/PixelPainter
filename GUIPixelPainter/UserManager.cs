@@ -201,7 +201,11 @@ namespace GUIPixelPainter
                     if (eventTuple.Item1 == "pixels")
                     {
                         PixelPacket pixel = eventTuple.Item2 as PixelPacket;
-                        Color actualColor = palette[curCanvas][pixel.color]; //TODO this crashes
+                        Color actualColor;
+                        if (palette.ContainsKey(curCanvas))
+                            actualColor = palette[curCanvas][pixel.color];
+                        else
+                            actualColor = palette[7][pixel.color];
                         var border = borders.GetPixel(pixel.x, pixel.y);
                         if (!(border.R == 204 && border.G == 204 && border.B == 204))
                             canvas.SetPixel(pixel.x, pixel.y, actualColor);

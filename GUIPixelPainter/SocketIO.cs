@@ -140,7 +140,7 @@ namespace GUIPixelPainter
         public event OnEventHandler OnEvent;
         public delegate void OnEventHandler(string type, EventArgs args);
 
-        private List<Task<HttpResponseMessage>> tasks = new List<Task<HttpResponseMessage>>();
+        private List<Tuple<Task<HttpResponseMessage>, bool>> tasks = new List<Tuple<Task<HttpResponseMessage>, bool>>();
         private HttpClient client;
 
         public SocketIO(string authKey, string authToken, int boardId, string proxy)
@@ -233,6 +233,8 @@ namespace GUIPixelPainter
             status = Status.OPEN;
 
             DateTime lastUpdate;
+
+            int updateResponsesRecieved = 1;
             int updateCount = 0;
             while (true)
             {
@@ -246,14 +248,14 @@ namespace GUIPixelPainter
                     //Process responses
                     for (int i = tasks.Count - 1; i >= 0; i--)
                     {
-                        if (!tasks[i].IsCompleted)
+                        if (!tasks[i].Item1.IsCompleted)
                             continue;
-                        if (tasks[i].IsFaulted)
+                        if (tasks[i].Item1.IsFaulted)
                         {
                             status = Status.CLOSEDDISCONNECT;
                             return;
                         }
-                        string response = tasks[i].Result.Content.ReadAsStringAsync().Result;
+                        string response = tasks[i].Item1.Result.Content.ReadAsStringAsync().Result;
                         if (response.Contains("Session ID unknown")) //HACK shouldnt be here
                         {
                             status = Status.CLOSEDDISCONNECT;
@@ -264,18 +266,25 @@ namespace GUIPixelPainter
                             status = Status.CLOSEDERROR;
                             return;
                         }
-                        //Console.WriteLine(response.Length > 40 ? response.Substring(0, 40) : response);
+                        Console.WriteLine(response.Length > 40 ? response.Substring(0, 40) : response);
+                        if (tasks[i].Item2)
+                            updateResponsesRecieved++;
                         tasks.RemoveAt(i);
                     }
 
+
                     //Request update
-                    tasks.Add(client.GetAsync(urlBase + CalcTime() + "&sid=" + id));
+                    if (updateResponsesRecieved > 0)
+                    {
+                        tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.GetAsync(urlBase + CalcTime() + "&sid=" + id), true));
+                        updateResponsesRecieved--;
+                    }
 
                     //Ping
                     if (updateCount % 25 == 24)
                     {
                         StringContent pingContent = new StringContent("1:2");
-                        tasks.Add(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, pingContent));
+                        tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, pingContent), false));
                     }
                 }
                 catch (HttpRequestException)
@@ -328,7 +337,7 @@ namespace GUIPixelPainter
             StringContent content = new StringContent(builder.ToString());
             try
             {
-                tasks.Add(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content));
+                tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content), false));
             }
             catch (HttpRequestException)
             {
@@ -350,7 +359,7 @@ namespace GUIPixelPainter
             StringContent content = new StringContent(packet);
             try
             {
-                tasks.Add(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content));
+                tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content), false));
             }
             catch (HttpRequestException)
             {
