@@ -32,6 +32,7 @@ namespace GUIPixelPainter
 
                 var tasks = data.Item1;
                 var users = data.Item2;
+                
 
                 //load images and push tasks
                 foreach (KeyValuePair<int, List<GUITask>> canvas in tasks)
