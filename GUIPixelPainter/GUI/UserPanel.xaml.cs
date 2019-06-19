@@ -222,6 +222,14 @@ namespace GUIPixelPainter.GUI
             UpdateUserSettingsPanel();
         }
 
+        private void OnTextBoxGotFocus(object sender, RoutedEventArgs e)
+        {
+            userName.SelectAll();
+            userProxy.SelectAll();
+            authKey.SelectAll();
+            authToken.SelectAll();
+        }
+
         private void OnTextBoxLostFocus(object sender, RoutedEventArgs e)
         {
             if (ignoreEvents)
