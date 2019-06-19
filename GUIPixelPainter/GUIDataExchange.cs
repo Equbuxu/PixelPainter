@@ -138,10 +138,11 @@ namespace GUIPixelPainter
 
         public void UpdateTasksFromGUI()
         {
+            SuperimposeTasks = botWindow.IsSuperimpositionEnabled();
             guiTasks = taskPanel.GetTasks();
             UsefulData.UpdateTasks();
             Updater.Update();
-            if (guiTasks.ContainsKey(CanvasId))
+            if (SuperimposeTasks && guiTasks.ContainsKey(CanvasId))
                 pixelCanvas.OverlayTasks(guiTasks[CanvasId].Where((a) => a.Enabled).ToList());
         }
 
