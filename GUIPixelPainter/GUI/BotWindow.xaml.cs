@@ -45,7 +45,6 @@ namespace GUIPixelPainter.GUI
 
             laucher.Launch(this);
 
-            superimpose.IsChecked = true;
             (speedPanel.Parent as Border).Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
 
             textShadow.Color = System.Windows.Media.Color.FromRgb(0, 0, 0);
@@ -74,7 +73,7 @@ namespace GUIPixelPainter.GUI
         
         public void SetSetings(bool superimposeTasks, int canvasId)
         {
-            superimpose.Content = superimposeTasks;
+            superimpose.IsChecked = superimposeTasks;
             this.canvasId.Text = canvasId.ToString();
         }
 

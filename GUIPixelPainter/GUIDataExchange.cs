@@ -226,5 +226,20 @@ namespace GUIPixelPainter
         {
             userPanel.AddNewUser(user);
         }
+
+        public void PushSettings(bool superimposeTasks, int canvasId)
+        {
+            SuperimposeTasks = superimposeTasks;
+            botWindow.SetSetings(superimposeTasks,canvasId);
+            if (canvasId != CanvasId)
+            {
+                CanvasId = canvasId;
+
+                taskPanel.SetCanvasId(canvasId);
+                pixelCanvas.ReloadCanvas(canvasId);
+
+                UsefulData.UpdateCanvasId();
+            }
+        }
     }
 }
