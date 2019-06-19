@@ -25,19 +25,13 @@ namespace GUIPixelPainter.GUI
         private Dictionary<int, LinkedList<long>> lastUserPlaceTimes = new Dictionary<int, LinkedList<long>>();
         private Dictionary<int, StackPanel> speedLabels = new Dictionary<int, StackPanel>();
         long lastUpdateTime = -1;
-        private Dictionary<int, string> knownUsernames = new Dictionary<int, string>()
-        {
-            {21246, "Equbuxu"},
-            {29297, "Uncertain" },
-            {21235, "Powerlay" },
-            {29396, "Kisalena" },
-            {30677, "Kurumika" }
-        };
+
         DropShadowEffect textShadow = new DropShadowEffect();
 
         private GUIDataExchange dataExchange;
         public GUIDataExchange DataExchange { get { return dataExchange; } set { dataExchange = value; dataExchange.UpdateGeneralSettingsFromGUI(); } }
         private Launcher laucher = new Launcher();
+        public GUIHelper Helper { get; set; }
 
         public BotWindow()
         {
@@ -70,7 +64,7 @@ namespace GUIPixelPainter.GUI
         {
             return superimpose.IsChecked == true;
         }
-        
+
         public void SetSetings(bool superimposeTasks, int canvasId)
         {
             superimpose.IsChecked = superimposeTasks;
@@ -79,8 +73,7 @@ namespace GUIPixelPainter.GUI
 
         public int GetCanvasId()
         {
-            int id;
-            return int.TryParse(canvasId.Text, out id) ? id : 7;
+            return int.TryParse(canvasId.Text, out int id) ? id : 7;
         }
 
         public void AddChatText(string text, System.Windows.Media.Color c)
@@ -148,7 +141,7 @@ namespace GUIPixelPainter.GUI
                     double speed = userTime.Value.Count / (dT == 0 ? 1 : dT);
                     if (myOwnPixel)
                         speed /= 2;
-                    string userName = knownUsernames.ContainsKey(userTime.Key) ? knownUsernames[userTime.Key] : userTime.Key.ToString();
+                    string userName = Helper.GetUsernameById(userTime.Key);
                     (speedLabels[userTime.Key].Children[0] as Label).Content = userName.ToString() + ':';
                     (speedLabels[userTime.Key].Children[1] as Label).Content = speed.ToString("0.00") + " px/s";
                 }

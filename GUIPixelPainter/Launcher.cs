@@ -82,6 +82,7 @@ namespace GUIPixelPainter
             GUIPalette[7].RemoveRange(27, 2); //dont show premium color in UI
 
             helper = new GUIHelper(GUIPalette);
+            window.Helper = helper;
             window.taskList.Helper = helper;
             window.pixelCanvas.Helper = helper;
 

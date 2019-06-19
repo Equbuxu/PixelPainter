@@ -30,14 +30,6 @@ namespace GUIPixelPainter.GUI
         private Dictionary<int, Border> nameLabels = new Dictionary<int, Border>();
         private Dictionary<int, long> userPlaceTime = new Dictionary<int, long>();
         private long lastUpdateTime = -1;
-        private Dictionary<int, string> knownUsernames = new Dictionary<int, string>()
-        {
-            {21246, "Equbuxu"},
-            {29297, "Uncertain" },
-            {21235, "Powerlay" },
-            {29396, "Kisalena" },
-            {30677, "Kurumika" }
-        };
 
         private WriteableBitmap bitmap;
         private int canvasId = -1;
@@ -145,7 +137,7 @@ namespace GUIPixelPainter.GUI
             };
             TextBlock nameLabel = new TextBlock()
             {
-                Text = knownUsernames.ContainsKey(name) ? knownUsernames[name] : name.ToString(),
+                Text = Helper.GetUsernameById(name),
                 Foreground = new SolidColorBrush(color),
                 VerticalAlignment = VerticalAlignment.Center
             };
