@@ -130,6 +130,7 @@ namespace GUIPixelPainter
         private int boardId;
         private string authKey;
         private string authToken;
+        private string proxy;
 
         private string id;
         private Status status;
@@ -142,11 +143,12 @@ namespace GUIPixelPainter
         private List<Task<HttpResponseMessage>> tasks = new List<Task<HttpResponseMessage>>();
         private HttpClient client;
 
-        public SocketIO(string authKey, string authToken, int boardId)
+        public SocketIO(string authKey, string authToken, int boardId, string proxy)
         {
             this.authKey = authKey;
             this.authToken = authToken;
             this.boardId = boardId;
+            this.proxy = proxy;
         }
 
         public void Connect()
@@ -155,7 +157,17 @@ namespace GUIPixelPainter
                 throw new Exception("already connected");
             status = Status.CONNECTING;
 
-            client = new HttpClient();
+            if (string.IsNullOrWhiteSpace(proxy))
+                client = new HttpClient();
+            else
+            {
+                HttpClientHandler handler = new HttpClientHandler()
+                {
+                    UseProxy = true,
+                    Proxy = new WebProxy(proxy)
+                };
+                client = new HttpClient(handler);
+            }
 
 
             ConnectSequence();
@@ -437,11 +449,13 @@ namespace GUIPixelPainter
                             ErrorPacket eventArgs = new ErrorPacket();
                             eventArgs.id = errorId;
                             OnEvent("throw.error", eventArgs);
+                            Console.WriteLine("err" + errorId.ToString());
+                            //Console.WriteLine("\a");
                         }
                         if (errorId == 0 || errorId == 1 || errorId == 2 || errorId == 6 || errorId == 7 || errorId == 9 || errorId == 10 || errorId == 18 || errorId == 19 || errorId == 20)
                         {
                             Console.WriteLine("\a");
-                            //Console.WriteLine("site err {0}", errorId);
+                            Console.WriteLine("site err {0}", errorId);
                             return false;
                         }
                         break;
