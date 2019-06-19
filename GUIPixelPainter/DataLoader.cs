@@ -28,10 +28,12 @@ namespace GUIPixelPainter
             using (StreamReader file = File.OpenText(configPath))
             {
                 JsonSerializer serializer = new JsonSerializer();
-                var data = (Tuple<Dictionary<int, List<GUITask>>, List<GUIUser>>)serializer.Deserialize(file, typeof(Tuple<Dictionary<int, List<GUITask>>, List<GUIUser>>));
+                var data = (Tuple<Dictionary<int, List<GUITask>>, List<GUIUser>, bool, int>)serializer.Deserialize(file, typeof(Tuple<Dictionary<int, List<GUITask>>, List<GUIUser>, bool, int>));
 
                 var tasks = data.Item1;
                 var users = data.Item2;
+                bool superimposeTasks = data.Item3;
+                int canvasId = data.Item4;
 
                 //load images and push tasks
                 foreach (KeyValuePair<int, List<GUITask>> canvas in tasks)
@@ -59,6 +61,7 @@ namespace GUIPixelPainter
                 {
                     dataExchange.PushNewUser(user);
                 }
+                dataExchange.PushSettings(superimposeTasks,canvasId);
             }
         }
 
@@ -84,7 +87,9 @@ namespace GUIPixelPainter
                 JsonSerializer serializer = new JsonSerializer();
                 Dictionary<int, List<GUITask>> tasks = dataExchange.GUITasks.Select((a) => a).ToDictionary((a) => a.Key, (a) => a.Value.Select((b) => b).ToList());
                 List<GUIUser> users = dataExchange.GUIUsers.Select((a) => a).ToList();
-                serializer.Serialize(file, new Tuple<Dictionary<int, List<GUITask>>, List<GUIUser>>(tasks, users));
+                bool superimposeTasks = dataExchange.SuperimposeTasks;
+                int canvasId = dataExchange.CanvasId;
+                serializer.Serialize(file, new Tuple<Dictionary<int, List<GUITask>>, List<GUIUser>, bool, int>(tasks, users, superimposeTasks,canvasId));
 
                 //save images
                 foreach (KeyValuePair<int, List<GUITask>> pair in tasks)

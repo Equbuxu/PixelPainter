@@ -21,6 +21,9 @@
                             <Label>Canvas ID:</Label>
                             <TextBox Name="canvasId" GotFocus="OnTextBoxGotFocus" LostFocus="OnGeneralSettingChange">7</TextBox>
                         </DockPanel>
+                        <DockPanel Margin="5">
+                            <Button Click="save">Save all</Button>
+                        </DockPanel>
                     </StackPanel>
                 </Border>
 

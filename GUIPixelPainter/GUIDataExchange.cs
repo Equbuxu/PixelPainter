@@ -226,6 +226,11 @@ namespace GUIPixelPainter
         {
             userPanel.AddNewUser(user);
         }
+
+        public void PushSettings(bool superimposeTasks, int canvasId)
+        {
+            SuperimposeTasks = superimposeTasks;
+            CanvasId = canvasId;
+        }
     }
 }
-

@@ -36,12 +36,12 @@ namespace GUIPixelPainter.GUI
 
         private GUIDataExchange dataExchange;
         public GUIDataExchange DataExchange { get { return dataExchange; } set { dataExchange = value; dataExchange.UpdateGeneralSettingsFromGUI(); } }
+        private Launcher laucher = new Launcher();
 
         public BotWindow()
         {
             InitializeComponent();
 
-            Launcher laucher = new Launcher();
             laucher.Launch(this);
 
             superimpose.IsChecked = true;
@@ -69,6 +69,12 @@ namespace GUIPixelPainter.GUI
         public bool IsSuperimpositionEnabled()
         {
             return superimpose.IsChecked == true;
+        }
+        
+        public void SetSetings(bool superimposeTasks, int canvasId)
+        {
+            superimpose.Content = superimposeTasks;
+            this.canvasId.Text = canvasId.ToString();
         }
 
         public int GetCanvasId()
@@ -171,6 +177,12 @@ namespace GUIPixelPainter.GUI
             if (DataExchange.CreateChatMessage(chatTextBox.Text, 0))
                 chatTextBox.Text = "";
         }
+
+        private void save(object sender, RoutedEventArgs e)
+        {
+            laucher.Save();
+        }
+
 
         private void OnChatTextBoxKeyUp(object sender, KeyEventArgs e)
         {
