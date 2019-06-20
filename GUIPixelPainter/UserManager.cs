@@ -87,7 +87,7 @@ namespace GUIPixelPainter
         {
             latestGUIEvents = events.Select((a) => a).ToList();
             resetEvent.Set();
-            Console.WriteLine("update");
+            //Console.WriteLine("update");
             lock (eventsToDispatch)
             {
                 var copy = eventsToDispatch.Select((a) => a).ToList();

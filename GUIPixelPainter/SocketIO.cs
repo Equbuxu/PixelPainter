@@ -266,7 +266,7 @@ namespace GUIPixelPainter
                             status = Status.CLOSEDERROR;
                             return;
                         }
-                        Console.WriteLine(response.Length > 40 ? response.Substring(0, 40) : response);
+                        //Console.WriteLine(response.Length > 40 ? response.Substring(0, 40) : response);
                         if (tasks[i].Item2)
                             updateResponsesRecieved++;
                         tasks.RemoveAt(i);
@@ -458,8 +458,7 @@ namespace GUIPixelPainter
                             ErrorPacket eventArgs = new ErrorPacket();
                             eventArgs.id = errorId;
                             OnEvent("throw.error", eventArgs);
-                            Console.WriteLine("err" + errorId.ToString());
-                            //Console.WriteLine("\a");
+                            Console.WriteLine("err {0}", errorId);
                         }
                         if (errorId == 0 || errorId == 1 || errorId == 2 || errorId == 6 || errorId == 7 || errorId == 9 || errorId == 10 || errorId == 18 || errorId == 19 || errorId == 20)
                         {
