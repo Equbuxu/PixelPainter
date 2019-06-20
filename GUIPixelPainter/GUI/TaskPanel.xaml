@@ -18,17 +18,25 @@
                     <StackPanel Margin="5" Name="taskSettings">
                         <DockPanel Margin="5">
                             <Label>Name:</Label>
-                            <TextBox Name="taskName" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" IsEnabled="False"></TextBox>
+                            <TextBox Name="taskName" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
                         </DockPanel>
                         <CheckBox Name="taskEnabled" Checked="OnEnableTask" Unchecked="OnDisableTask" IsEnabled="False">Enabled</CheckBox>
                         <Button Name="selectImage" Margin="5" Click="OnSelectImageClick" IsEnabled="False">Select image</Button>
                         <DockPanel Margin="5">
-                            <Label>x:</Label>
-                            <TextBox Name="x" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" IsEnabled="False"></TextBox>
+                            <StackPanel Orientation="Horizontal">
+                                <Label>x:</Label>
+                                <Button Name="xDown" Width="26" Click="OnXDownClick">-</Button>
+                                <TextBox Name="x" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" Width="90" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
+                                <Button Name="xUp" Width="26" Click="OnXUpClick">+</Button>
+                            </StackPanel>
                         </DockPanel>
                         <DockPanel Margin="5">
-                            <Label>y:</Label>
-                            <TextBox Name="y" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" IsEnabled="False"></TextBox>
+                            <StackPanel Orientation="Horizontal">
+                                <Label>y:</Label>
+                                <Button Name="ydown" Width="26" Click="OnYDownClick">-</Button>
+                                <TextBox Name="y" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" Width="90" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
+                                <Button Name="yUp" Width="26" Click="OnYUpClick">+</Button>
+                            </StackPanel>
                         </DockPanel>
                         <CheckBox Margin="5" Name="dithering" LostFocus="OnBoxLostFocus" Checked="OnDitheringChange" Unchecked="OnDitheringChange" IsEnabled="False">Dithering</CheckBox>
                         <CheckBox Margin="5" Name="loop" LostFocus="OnBoxLostFocus" Checked="OnKeepRepairingChange" Unchecked="OnKeepRepairingChange" IsEnabled="False">Keep repairing after completion</CheckBox>

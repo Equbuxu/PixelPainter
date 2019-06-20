@@ -19,7 +19,7 @@
                         </DockPanel>
                         <DockPanel>
                             <Label>Canvas ID:</Label>
-                            <TextBox Name="canvasId" GotFocus="OnTextBoxGotFocus" LostFocus="OnGeneralSettingChange">7</TextBox>
+                            <TextBox Name="canvasId" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" LostFocus="OnGeneralSettingChange">7</TextBox>
                         </DockPanel>
                         <DockPanel Margin="5">
                             <Button Click="save">Save all</Button>
@@ -50,7 +50,7 @@
                             </ScrollViewer>
                         </Border>
                         <DockPanel Margin="5">
-                            <TextBox Width="170" Name="chatTextBox" KeyUp="OnChatTextBoxKeyUp"></TextBox>
+                            <TextBox Width="170" Name="chatTextBox" VerticalContentAlignment="Center" KeyUp="OnChatTextBoxKeyUp"></TextBox>
                             <Button Click="OnChatSend">Send</Button>
                         </DockPanel>
                     </StackPanel>

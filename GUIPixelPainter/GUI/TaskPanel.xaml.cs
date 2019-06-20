@@ -297,6 +297,57 @@ namespace GUIPixelPainter.GUI
             y.SelectAll();
         }
 
+        private void OnXDownClick(object sender, RoutedEventArgs e)
+        {
+            if (int.TryParse(x.Text, out int xPos))
+            {
+                ChangePosX(xPos - 1, sender);
+            }
+        }
+
+        private void OnXUpClick(object sender, RoutedEventArgs e)
+        {
+            if (int.TryParse(x.Text, out int xPos))
+            {
+                ChangePosX(xPos + 1, sender);
+            }
+        }
+
+        private void OnYDownClick(object sender, RoutedEventArgs e)
+        {
+            if (int.TryParse(y.Text, out int yPos))
+            {
+                ChangePosY(yPos - 1, sender);
+            }
+        }
+
+        private void OnYUpClick(object sender, RoutedEventArgs e)
+        {
+            if (int.TryParse(y.Text, out int yPos))
+            {
+                ChangePosY(yPos + 1, sender);
+            }
+        }
+
+        private void ChangePosX(int xPos, object sender)
+        {
+            Task selectedTask = GetSelectedTask();
+            x.Text = (xPos).ToString();
+            selectedTask.x = xPos;
+            DataExchange.UpdateTasksFromGUI();
+            if (sender.Equals(taskName))
+                UpdateTaskList();
+        }
+        private void ChangePosY(int yPos, object sender)
+        {
+            Task selectedTask = GetSelectedTask();
+            y.Text = (yPos).ToString();
+            selectedTask.y = yPos;
+            DataExchange.UpdateTasksFromGUI();
+            if (sender.Equals(taskName))
+                UpdateTaskList();
+        }
+
         private void ConvertImages()
         {
             if (converterThread != null)
