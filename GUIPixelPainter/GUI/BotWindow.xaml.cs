@@ -39,7 +39,7 @@ namespace GUIPixelPainter.GUI
 
             laucher.Launch(this);
 
-            (speedPanel.Parent as Border).Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
+            ((speedPanel.Parent as Canvas).Parent as Border).Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
 
             textShadow.Color = System.Windows.Media.Color.FromRgb(0, 0, 0);
             textShadow.Direction = 320;
@@ -182,6 +182,16 @@ namespace GUIPixelPainter.GUI
             if (e.Key != Key.Enter)
                 return;
             OnChatSend(null, null);
+        }
+
+        private void OnSpeedRefresh(object sender, RoutedEventArgs e)
+        {
+            foreach (KeyValuePair<int, LinkedList<long>> pair in lastUserPlaceTimes)
+            {
+                long last = pair.Value.Last.Value;
+                pair.Value.Clear();
+                pair.Value.AddLast(last);
+            }
         }
     }
 }

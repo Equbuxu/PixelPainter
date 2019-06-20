@@ -29,9 +29,12 @@
 
                 <local:TaskPanel x:Name="taskList"></local:TaskPanel>
 
-                <Border BorderBrush="Gray" Margin="5" BorderThickness="1">
-                    <StackPanel Name="speedPanel">
-                    </StackPanel>
+                <Border BorderBrush="Gray" Margin="5" BorderThickness="1" MinHeight="30" Height="{Binding ActualHeight, ElementName=speedPanel}">
+                    <Canvas>
+                        <Button Canvas.Right="5" Canvas.Top="5" Width="20" Height="20" Click="OnSpeedRefresh">↻</Button>
+                        <StackPanel Name="speedPanel">
+                        </StackPanel>
+                    </Canvas>
                 </Border>
             </StackPanel>
         </ScrollViewer>
