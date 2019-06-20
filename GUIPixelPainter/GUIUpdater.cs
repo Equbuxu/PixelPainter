@@ -53,11 +53,18 @@ namespace GUIPixelPainter
                 if (eventTuple.Item1 == "chat.user.message")
                 {
                     var message = eventTuple.Item2 as ChatMessagePacket;
-                    string formatted;
-                    if (String.IsNullOrWhiteSpace(message.guild))
-                        formatted = String.Format("{0}: {1}", message.username, message.message);
-                    else
-                        formatted = String.Format("<{0}>{1}: {2}", message.guild, message.username, message.message);
+
+                    string formatted = String.Format("{0}: {1}", message.username, message.message);
+                    if (!String.IsNullOrWhiteSpace(message.guild))
+                        formatted = formatted.Insert(0, String.Format("<{0}>", message.guild));
+                    if (message.admin)
+                        formatted = formatted.Insert(0, "[🔧]");
+                    if (message.mod)
+                        formatted = formatted.Insert(0, "[🔨]");
+                    if (message.premium)
+                        formatted = formatted.Insert(0, "[💎]");
+
+
                     int boardId = message.boardId;
                     if (!palette.ContainsKey(boardId))
                         boardId = 7;
