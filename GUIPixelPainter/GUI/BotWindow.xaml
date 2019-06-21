@@ -43,13 +43,24 @@
 
                 <local:TaskPanel x:Name="taskList"></local:TaskPanel>
 
-                <Border BorderBrush="Gray" Margin="5" BorderThickness="1" MinHeight="30" Height="{Binding ActualHeight, ElementName=speedPanel}">
-                    <Canvas>
-                        <Button Canvas.Right="5" Canvas.Top="5" Width="20" Height="20" Click="OnSpeedRefresh">↻</Button>
-                        <StackPanel Name="speedPanel">
-                        </StackPanel>
-                    </Canvas>
-                </Border>
+                <WrapPanel>
+                    <Button Margin="5" HorizontalAlignment="Left"  Width="20" Height="20" Click="OnSpeedRefresh">↻</Button>
+                    <Label Margin ="5">Speed refresh</Label>
+                </WrapPanel>
+                <Canvas>
+                    <Border BorderBrush="Gray" Margin="5" BorderThickness="1" MinHeight="30" MinWidth="60">
+                        <Grid Name="speedPanelGrid">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Name="speedPanelName">
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Name="speedPanelSpeed">
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Canvas>
             </StackPanel>
         </ScrollViewer>
 

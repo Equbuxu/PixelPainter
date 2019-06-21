@@ -23,7 +23,8 @@ namespace GUIPixelPainter.GUI
     public partial class BotWindow : Window
     {
         private Dictionary<int, LinkedList<long>> lastUserPlaceTimes = new Dictionary<int, LinkedList<long>>();
-        private Dictionary<int, StackPanel> speedLabels = new Dictionary<int, StackPanel>();
+        private Dictionary<int, Label> nicksLabel = new Dictionary<int, Label>();
+        private Dictionary<int, Label> speedsLabel = new Dictionary<int, Label>();
         long lastUpdateTime = -1;
 
         DropShadowEffect textShadow = new DropShadowEffect();
@@ -39,7 +40,7 @@ namespace GUIPixelPainter.GUI
 
             laucher.Launch(this);
 
-            ((speedPanel.Parent as Canvas).Parent as Border).Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
+            speedPanelGrid.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
 
             textShadow.Color = System.Windows.Media.Color.FromRgb(0, 0, 0);
             textShadow.Direction = 320;
@@ -103,25 +104,22 @@ namespace GUIPixelPainter.GUI
                 Label lableNick = new Label();
                 lableNick.FontWeight = FontWeights.Bold;
                 lableNick.Effect = textShadow;
-                lableNick.Width = 125;
 
                 Label labelSpeed = new Label();
                 labelSpeed.FontWeight = FontWeights.Bold;
                 labelSpeed.Effect = textShadow;
 
-                StackPanel rowUserSpeed = new StackPanel();
-                rowUserSpeed.Orientation = Orientation.Horizontal;
-                rowUserSpeed.Children.Add(lableNick);
-                rowUserSpeed.Children.Add(labelSpeed);
+                nicksLabel.Add(userId, lableNick);
+                speedsLabel.Add(userId, labelSpeed);
 
-                speedLabels.Add(userId, rowUserSpeed);
-                speedPanel.Children.Add(rowUserSpeed);
+                speedPanelName.Children.Add(lableNick);
+                speedPanelSpeed.Children.Add(labelSpeed);
             }
             var time = DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond;
 
             lastUserPlaceTimes[userId].AddLast(DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond);
-            (speedLabels[userId].Children[0] as Label).Foreground = new SolidColorBrush(c);
-            (speedLabels[userId].Children[1] as Label).Foreground = new SolidColorBrush(c);
+            nicksLabel[userId].Foreground = new SolidColorBrush(c);
+            speedsLabel[userId].Foreground = new SolidColorBrush(c);
             while (time - lastUserPlaceTimes[userId].First.Value > 10000)
                 lastUserPlaceTimes[userId].RemoveFirst();
 
@@ -142,15 +140,18 @@ namespace GUIPixelPainter.GUI
                     if (myOwnPixel)
                         speed /= 2;
                     string userName = Helper.GetUsernameById(userTime.Key);
-                    (speedLabels[userTime.Key].Children[0] as Label).Content = userName.ToString() + ':';
-                    (speedLabels[userTime.Key].Children[1] as Label).Content = speed.ToString("0.00") + " px/s";
+                    nicksLabel[userTime.Key].Content = userName.ToString() + ':';
+                    speedsLabel[userTime.Key].Content = speed.ToString("0.00") + " px/s";
                 }
 
                 foreach (int id in toDelete)
                 {
                     lastUserPlaceTimes.Remove(id);
-                    speedPanel.Children.Remove(speedLabels[id]);
-                    speedLabels.Remove(id);
+                    speedPanelName.Children.Remove(nicksLabel[id]);
+                    speedPanelSpeed.Children.Remove(speedsLabel[id]);
+
+                    nicksLabel.Remove(id);
+                    speedsLabel.Remove(id);
                 }
             }
         }
