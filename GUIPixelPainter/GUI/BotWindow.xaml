@@ -68,7 +68,7 @@
 
                 <local:TaskPanel x:Name="taskList"></local:TaskPanel>
 
-                <Canvas MinWidth="130">
+                <Canvas MinWidth="130" Height="{Binding ElementName=speedPanelGrid, Path=ActualHeight}">
                     <WrapPanel>
                         <Border BorderBrush="Gray" Margin="5" BorderThickness="1" MinHeight="25" MinWidth="100">
                             <Border.ToolTip>
