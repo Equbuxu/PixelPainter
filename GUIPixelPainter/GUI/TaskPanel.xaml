@@ -9,19 +9,46 @@
     <StackPanel>
         <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
             <StackPanel>
-                <Label FontWeight="Bold">Tasks</Label>
+                <Label FontWeight="Bold">Tasks
+                    <Label.ToolTip>
+                        <ToolTip>
+                            Tasklist
+                        </ToolTip>
+                    </Label.ToolTip>
+                </Label>
                 <ListView Name="taskList" SelectionChanged="OnTaskSelection" SelectionMode="Single" Margin="5" Height="200">
-
+                    
                 </ListView>
-                <Button Margin="5" Click="OnNewTaskClick">New task</Button>
+                <Button Margin="5" Click="OnNewTaskClick">
+                    New task
+                    <Button.ToolTip>
+                        <ToolTip>
+                            Adds a task to tasklist
+                        </ToolTip>
+                    </Button.ToolTip>
+                </Button>
                 <Expander Header="Task Settings" IsExpanded="True">
                     <StackPanel Margin="5" Name="taskSettings">
                         <DockPanel Margin="5">
                             <Label>Name:</Label>
                             <TextBox Name="taskName" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
                         </DockPanel>
-                        <CheckBox Name="taskEnabled" Checked="OnEnableTask" Unchecked="OnDisableTask" IsEnabled="False">Enabled</CheckBox>
-                        <Button Name="selectImage" Margin="5" Click="OnSelectImageClick" IsEnabled="False">Select image</Button>
+                        <CheckBox Name="taskEnabled" Checked="OnEnableTask" Unchecked="OnDisableTask" IsEnabled="False">
+                            Enabled
+                            <CheckBox.ToolTip>
+                                <ToolTip>
+                                    Switches the task
+                                </ToolTip>
+                            </CheckBox.ToolTip>
+                        </CheckBox>
+                        <Button Name="selectImage" Margin="5" Click="OnSelectImageClick" IsEnabled="False">
+                            Select image
+                            <Button.ToolTip>
+                                <ToolTip>
+                                    Opens file Explorer to select an image
+                                </ToolTip>
+                            </Button.ToolTip>
+                        </Button>
                         <DockPanel Margin="5">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -31,9 +58,23 @@
                                     <ColumnDefinition Width="26" />
                                 </Grid.ColumnDefinitions>
                                 <Label>x:</Label>
-                                <Button Grid.Column="1" Name="xDown" Width="26" Click="OnXDownClick">-</Button>
+                                <Button Grid.Column="1" Name="xDown" Width="26" Click="OnXDownClick">
+                                    -
+                                    <Button.ToolTip>
+                                        <ToolTip>
+                                            Decreases 1 of the coordinate
+                                        </ToolTip>
+                                    </Button.ToolTip>
+                                </Button>
                                 <TextBox Grid.Column="2" Name="x" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
-                                <Button Grid.Column="3" Name="xUp" Width="26" Click="OnXUpClick">+</Button>
+                                <Button Grid.Column="3" Name="xUp" Width="26" Click="OnXUpClick">
+                                    +
+                                    <Button.ToolTip>
+                                        <ToolTip>
+                                            Adds to the coordinate 1
+                                        </ToolTip>
+                                    </Button.ToolTip>
+                                </Button>
                             </Grid>
                         </DockPanel>
                         <DockPanel Margin="5">
@@ -45,14 +86,49 @@
                                     <ColumnDefinition Width="26" />
                                 </Grid.ColumnDefinitions>
                                 <Label>y:</Label>
-                                <Button Grid.Column="1" Name="ydown" Width="26" Click="OnYDownClick">-</Button>
+                                <Button Grid.Column="1" Name="ydown" Width="26" Click="OnYDownClick">
+                                    -
+                                    <Button.ToolTip>
+                                        <ToolTip>
+                                            Decreases 1 of the coordinate
+                                        </ToolTip>
+                                    </Button.ToolTip>
+                                </Button>
                                 <TextBox Grid.Column="2" Name="y" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
-                                <Button Grid.Column="3" Name="yUp" Width="26" Click="OnYUpClick">+</Button>
+                                <Button Grid.Column="3" Name="yUp" Width="26" Click="OnYUpClick">
+                                    +
+                                    <Button.ToolTip>
+                                        <ToolTip>
+                                            Adds to the coordinate 1
+                                        </ToolTip>
+                                    </Button.ToolTip>
+                                </Button>
                             </Grid>
                         </DockPanel>
-                        <CheckBox Margin="5" Name="dithering" LostFocus="OnBoxLostFocus" Checked="OnDitheringChange" Unchecked="OnDitheringChange" IsEnabled="False">Dithering</CheckBox>
-                        <CheckBox Margin="5" Name="loop" LostFocus="OnBoxLostFocus" Checked="OnKeepRepairingChange" Unchecked="OnKeepRepairingChange" IsEnabled="False">Keep repairing after completion</CheckBox>
-                        <Button Name="deleteThisTask" Margin="5" Click="OnDeleteTaskClick" IsEnabled="False">Delete this task</Button>
+                        <CheckBox Margin="5" Name="dithering" LostFocus="OnBoxLostFocus" Checked="OnDitheringChange" Unchecked="OnDitheringChange" IsEnabled="False">
+                            Dithering
+                            <CheckBox.ToolTip>
+                                <ToolTip>
+                                    Toggles the use of dithering for the image
+                                </ToolTip>
+                            </CheckBox.ToolTip>
+                        </CheckBox>
+                        <CheckBox Margin="5" Name="loop" LostFocus="OnBoxLostFocus" Checked="OnKeepRepairingChange" Unchecked="OnKeepRepairingChange" IsEnabled="False">
+                            Keep repairing after completion
+                            <CheckBox.ToolTip>
+                                <ToolTip>
+                                    Toggles the repair of the image on the canvas
+                                </ToolTip>
+                            </CheckBox.ToolTip>
+                        </CheckBox>
+                        <Button Name="deleteThisTask" Margin="5" Click="OnDeleteTaskClick" IsEnabled="False">
+                            Delete this task
+                            <Button.ToolTip>
+                                <ToolTip>
+                                    Removes a task from taskList
+                                </ToolTip>
+                            </Button.ToolTip>
+                        </Button>
                     </StackPanel>
                 </Expander>
                 <Expander Header="Task Preview" IsExpanded="True">
