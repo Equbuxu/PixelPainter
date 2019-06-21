@@ -8,17 +8,17 @@
         Title="BotWindow" Height="950" Width="1350">
     <Grid Name="mainGrid">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="240"  MinWidth="240" MaxWidth="500"/>
             <ColumnDefinition Width="5" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="5" />
-            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="250"  MinWidth="200" MaxWidth="350"/>
         </Grid.ColumnDefinitions>
 
         <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />
         <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" />
 
-        <ScrollViewer DockPanel.Dock="Left">
+        <ScrollViewer Grid.Column="0" DockPanel.Dock="Left">
             <StackPanel>
                 <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
                     <StackPanel Margin="5">
@@ -68,9 +68,9 @@
 
                 <local:TaskPanel x:Name="taskList"></local:TaskPanel>
 
-                <Canvas>
+                <Canvas MinWidth="130">
                     <WrapPanel>
-                        <Border BorderBrush="Gray" Margin="5" BorderThickness="1" MinHeight="25" MinWidth="60">
+                        <Border BorderBrush="Gray" Margin="5" BorderThickness="1" MinHeight="25" MinWidth="100">
                             <Border.ToolTip>
                                 <ToolTip>
                                     Speed of all users at the moment
