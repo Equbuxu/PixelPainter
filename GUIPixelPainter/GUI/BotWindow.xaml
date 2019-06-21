@@ -6,17 +6,31 @@
         xmlns:local="clr-namespace:GUIPixelPainter.GUI"
         mc:Ignorable="d"
         Title="BotWindow" Height="950" Width="1350">
-    <DockPanel Name="mainDockPanel">
+    <Grid Name="mainGrid">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="300" />
+        </Grid.ColumnDefinitions>
 
+        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />
+        <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" />
 
         <ScrollViewer DockPanel.Dock="Left">
-            <StackPanel Width="250">
+            <StackPanel>
                 <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
                     <StackPanel Margin="5">
-                        <DockPanel>
-                            <CheckBox VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="enabled" Margin="0,0,0,5">Enable bot</CheckBox>
-                            <CheckBox VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" HorizontalAlignment="Right" Name="superimpose" Margin="0,0,15,5">Overlay tasks</CheckBox>
-                        </DockPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="enabled" Margin="0,0,0,5">Enable bot
+                            </CheckBox>
+                            <CheckBox Grid.Column="2"  VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="superimpose" Margin="15,0,0,5">Overlay tasks</CheckBox>
+                        </Grid>
                         <DockPanel>
                             <Label>Canvas ID:</Label>
                             <TextBox Name="canvasId" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" LostFocus="OnGeneralSettingChange">7</TextBox>
@@ -36,32 +50,36 @@
             </StackPanel>
         </ScrollViewer>
 
-        <ScrollViewer DockPanel.Dock="Right">
-            <StackPanel Width="250">
+        <ScrollViewer Name="rightColumn" Grid.Column="4">
+            <StackPanel>
                 <local:UserPanel x:Name="usersPanel"></local:UserPanel>
 
                 <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
                     <StackPanel Margin="5">
                         <Label FontWeight="Black">Chat</Label>
                         <Border BorderBrush="Gray" Margin="5" BorderThickness="1">
-                            <ScrollViewer Name="chatScroll" Width="220" Height="230" >
+                            <ScrollViewer Name="chatScroll" Width="auto" Height="230" >
                                 <StackPanel Name="chat">
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>
-                        <DockPanel Margin="5">
-                            <TextBox Width="170" Name="chatTextBox" VerticalContentAlignment="Center" KeyUp="OnChatTextBoxKeyUp"></TextBox>
-                            <Button Click="OnChatSend">Send</Button>
-                        </DockPanel>
+                        <Grid Margin="5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="31" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Name="chatTextBox" VerticalContentAlignment="Center" KeyUp="OnChatTextBoxKeyUp"/>
+                            <Button Grid.Column="1" HorizontalAlignment="Right" Click="OnChatSend">Send</Button>
+                        </Grid>
                     </StackPanel>
                 </Border>
             </StackPanel>
         </ScrollViewer>
 
-        <StackPanel>
-            <Border BorderBrush="LightGray" BorderThickness="2" Height="{Binding ElementName=mainDockPanel, Path=ActualHeight}">
+        <StackPanel Grid.Column="2">
+            <Border BorderBrush="LightGray" BorderThickness="2" Height="{Binding ElementName=mainGrid, Path=ActualHeight}">
                 <local:PixelCanvas x:Name="pixelCanvas" Margin="0,2,0,-2"/>
             </Border>
         </StackPanel>
-    </DockPanel>
+    </Grid>
 </Window>
