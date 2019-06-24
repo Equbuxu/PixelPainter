@@ -338,6 +338,12 @@ namespace GUIPixelPainter
             try
             {
                 tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content), false));
+                Console.Write("Sent {0} pixels", pixels.Count);
+                foreach (IdPixel px in pixels)
+                {
+                    Console.Write("[{0},{1}]", px.X, px.Y);
+                }
+                Console.Write("\n");
             }
             catch (HttpRequestException)
             {

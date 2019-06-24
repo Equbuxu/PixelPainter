@@ -39,6 +39,19 @@ namespace GUIPixelPainter
         public string Proxy { get; }
     }
 
+    public class UsefulPixel
+    {
+        public UsefulPixel(int x, int y, Color color)
+        {
+            X = x;
+            Y = y;
+            Color = color;
+        }
+        public int X { get; }
+        public int Y { get; }
+        public Color Color { get; }
+    }
+
     public class UsefulDataRepresentation
     {
         private List<UsefulTask> tasks = new List<UsefulTask>();
@@ -59,6 +72,15 @@ namespace GUIPixelPainter
             }
         }
 
+        private List<UsefulPixel> manualPixels = new List<UsefulPixel>();
+        public List<UsefulPixel> ManualPixels
+        {
+            get
+            {
+                lock (manualPixels) { return manualPixels.Select((a) => a).ToList(); }
+            }
+        }
+
         public int CanvasId { get; private set; } = -1;
 
         private GUIDataExchange dataExchange;
@@ -71,6 +93,19 @@ namespace GUIPixelPainter
         public void UpdateCanvasId()
         {
             CanvasId = dataExchange.CanvasId;
+        }
+
+        public void UpdateManualTask()
+        {
+            lock (manualPixels)
+            {
+                manualPixels.Clear();
+                foreach (GUIPixel pixel in dataExchange.ManualTask)
+                {
+                    UsefulPixel newPixel = new UsefulPixel(pixel.X, pixel.Y, pixel.Color);
+                    manualPixels.Add(newPixel);
+                }
+            }
         }
 
         public void UpdateTasks()
