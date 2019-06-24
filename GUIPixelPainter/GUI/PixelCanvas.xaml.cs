@@ -21,6 +21,13 @@ namespace GUIPixelPainter.GUI
     /// </summary>
     public partial class PixelCanvas : UserControl
     {
+        class Pixel
+        {
+            public Color c;
+            public int x;
+            public int y;
+        }
+
         private ScaleTransform scale = new ScaleTransform();
         private TranslateTransform translate = new TranslateTransform();
         private Point mouseDownPoint = new Point();
@@ -33,6 +40,8 @@ namespace GUIPixelPainter.GUI
 
         private WriteableBitmap bitmap;
         private int canvasId = -1;
+
+        private List<Pixel> manualTask = new List<Pixel>();
 
         private GUIHelper helper;
         public GUIHelper Helper { get { return helper; } set { helper = value; CreatePalette(); } }
@@ -187,7 +196,7 @@ namespace GUIPixelPainter.GUI
             if (!MainCanvas.IsMouseCaptured)
                 return;
 
-            if (!drawing)
+            if (!drawing || e.LeftButton != MouseButtonState.Pressed)
             {
                 Point curPosition = e.GetPosition((UIElement)MainCanvas.Parent);
                 translate.X = curPosition.X - mouseDownPoint.X;
@@ -196,6 +205,11 @@ namespace GUIPixelPainter.GUI
             else
             {
                 //TODO drawing code
+                if (bitmap.GetPixel((int)mouseCoords.X, (int)mouseCoords.Y) != selectedColor)
+                {
+                    DataExchange.CreateManualPixel(new GUIPixel((int)mouseCoords.X, (int)mouseCoords.Y, System.Drawing.Color.FromArgb(selectedColor.A, selectedColor.R, selectedColor.G, selectedColor.B)));
+                    //I was writing manual drawing.
+                }
             }
         }
 

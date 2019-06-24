@@ -217,8 +217,27 @@ namespace GUIPixelPainter
 
         private List<IdPixel> BuildQueue(int userNum, int totalUser)
         {
-
             List<IdPixel> queue = new List<IdPixel>();
+
+            //manual task
+            var pixels = guiData.ManualPixels;
+            for (int i = userNum; i < pixels.Count; i += totalUser)
+            {
+                UsefulPixel reqPixel = pixels[i];
+                var canvasPixel = canvas.GetPixel(reqPixel.X, reqPixel.Y);
+                if (canvasPixel.R == 204 && canvasPixel.G == 204 && canvasPixel.B == 204)
+                    continue;
+                if (canvasPixel == reqPixel.Color)
+                    continue;
+                if (!invPalette[curCanvas].ContainsKey(reqPixel.Color))
+                    continue;
+                IdPixel pixel = new IdPixel(invPalette[curCanvas][reqPixel.Color], reqPixel.X, reqPixel.Y);
+                queue.Add(pixel);
+                if (queue.Count > 99)
+                    goto end;
+            }
+
+            //regular tasks
             foreach (UsefulTask task in guiData.Tasks)
             {
                 bool completed = true;
@@ -253,7 +272,7 @@ namespace GUIPixelPainter
             //    test.SetPixel(pixel.position.X - task.x, pixel.position.Y - task.y, pixel.color);
             //}
             //test.Save("test.png");
-
+            Console.WriteLine("Made a queue of {0} pixels", queue.Count);
             return queue;
         }
 
