@@ -69,18 +69,21 @@
                 <local:TaskPanel x:Name="taskList"></local:TaskPanel>
 
                 <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
-                    <Canvas Name="speedCannvas" MinWidth="130" Margin="5,0,5,5" Height="{Binding ElementName=speedPanelGrid, Path=ActualHeight}">
-                        <Grid Width="{Binding ElementName=speedCannvas, Path=ActualWidth}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="30"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1" MinHeight="25" MinWidth="100">
-                                <Border.ToolTip>
-                                    <ToolTip>
-                                        Speed of all users at the moment
-                                    </ToolTip>
-                                </Border.ToolTip>
+                    <Expander Header="Speed" IsExpanded="True">
+                        <StackPanel Margin="5,0,5,5">
+                            
+                            <DockPanel Margin="5,0,5,5">
+                                <Label VerticalAlignment="Bottom">Refresh speed</Label>
+                                <Button Content="↻" Margin="0,5" HorizontalAlignment="Right" VerticalAlignment="Top" Width="20" Height="20" Click="OnSpeedRefresh">
+                                    <Button.ToolTip>
+                                        <ToolTip>
+                                            Speed refresh
+                                        </ToolTip>
+                                    </Button.ToolTip>
+                                </Button>
+                            </DockPanel>
+
+                            <Border Name="speedCannvas"  BorderBrush="Gray" BorderThickness="1" MinWidth="130" MinHeight="30">
                                 <Grid Name="speedPanelGrid">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -92,6 +95,38 @@
                                     </StackPanel>
                                 </Grid>
                             </Border>
+                        </StackPanel>
+                    </Expander>
+                </Border>
+
+                <!--<Border Margin="5" BorderBrush="Gray" BorderThickness="1">
+                    <Canvas Name="speedCannvas" MinWidth="130" Margin="5,0,5,5" Height="{Binding ElementName=speedStackPanel, Path=ActualHeight}">
+                        <Grid Width="{Binding ElementName=speedCannvas, Path=ActualWidth}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="30"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Name="speedStackPanel">
+                                <Label FontWeight="Black">Speed</Label>
+                                <Border BorderBrush="Gray" BorderThickness="1" MinHeight="25" MinWidth="100">
+                                    <Border.ToolTip>
+                                        <ToolTip>
+                                            Speed of all users at the moment
+                                        </ToolTip>
+                                    </Border.ToolTip>
+                                    <Grid Name="speedPanelGrid">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*" MinWidth="30"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Name="speedPanelName">
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Name="speedPanelSpeed">
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                           
                             <Button Grid.Column="1" Content="↻" Margin="0,5" HorizontalAlignment="Right" VerticalAlignment="Top" Width="20" Height="20" Click="OnSpeedRefresh">
                                 <Button.ToolTip>
                                     <ToolTip>
@@ -101,7 +136,7 @@
                             </Button>
                         </Grid>
                     </Canvas>
-                </Border>
+                </Border>-->
             </StackPanel>
         </ScrollViewer>
 

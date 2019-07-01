@@ -58,7 +58,7 @@
                                     <ColumnDefinition Width="26" />
                                 </Grid.ColumnDefinitions>
                                 <Label>x:</Label>
-                                <Button Grid.Column="1" Name="xDown" Width="26" Click="OnXDownClick">
+                                <Button Focusable="False" Grid.Column="1" Name="xDown" Width="26" Click="OnXDownClick">
                                     -
                                     <Button.ToolTip>
                                         <ToolTip>
@@ -67,7 +67,7 @@
                                     </Button.ToolTip>
                                 </Button>
                                 <TextBox Grid.Column="2" Name="x" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
-                                <Button Grid.Column="3" Name="xUp" Width="26" Click="OnXUpClick">
+                                <Button Focusable="False" Grid.Column="3" Name="xUp" Width="26" Click="OnXUpClick">
                                     +
                                     <Button.ToolTip>
                                         <ToolTip>
@@ -86,7 +86,7 @@
                                     <ColumnDefinition Width="26" />
                                 </Grid.ColumnDefinitions>
                                 <Label>y:</Label>
-                                <Button Grid.Column="1" Name="ydown" Width="26" Click="OnYDownClick">
+                                <Button Grid.Column="1" Focusable="False" Name="ydown" Width="26" Click="OnYDownClick">
                                     -
                                     <Button.ToolTip>
                                         <ToolTip>
@@ -95,7 +95,7 @@
                                     </Button.ToolTip>
                                 </Button>
                                 <TextBox Grid.Column="2" Name="y" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
-                                <Button Grid.Column="3" Name="yUp" Width="26" Click="OnYUpClick">
+                                <Button Grid.Column="3" Focusable="False" Name="yUp" Width="26" Click="OnYUpClick">
                                     +
                                     <Button.ToolTip>
                                         <ToolTip>
@@ -132,7 +132,7 @@
                     </StackPanel>
                 </Expander>
                 <Expander Header="Task Preview" IsExpanded="True">
-                    <Image Name="preview" RenderOptions.BitmapScalingMode="NearestNeighbor"></Image>
+                    <Image Name="preview" Focusable="False" RenderOptions.BitmapScalingMode="NearestNeighbor"></Image>
                 </Expander>
             </StackPanel>
         </Border>
