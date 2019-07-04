@@ -56,6 +56,10 @@ namespace GUIPixelPainter.GUI
             updateTimer.Elapsed += (a, b) => Dispatcher.Invoke(() => DataExchange.CreateUpdate()); //TODO exception on close: task cancelled
             updateTimer.Start();
 
+            ignoreEvents = true;
+            canvasId.Text = "7";
+            ignoreEvents = false;
+
             DataExchange.UpdateGeneralSettingsFromGUI();
 
             //TODO Should wait for taskpanel conversion thread to finish on close

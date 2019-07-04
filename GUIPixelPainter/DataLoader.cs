@@ -73,14 +73,30 @@ namespace GUIPixelPainter
             return img;
         }
 
+        private void ClearDirectory(string path)
+        {
+            System.IO.DirectoryInfo di = new DirectoryInfo(path);
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
+            }
+            foreach (DirectoryInfo dir in di.GetDirectories())
+            {
+                dir.Delete(true);
+            }
+        }
+
         public void Save()
         {
-            if (Directory.Exists(folderPath))
-                Directory.Delete(folderPath, true);
             Directory.CreateDirectory(folderPath);
             Directory.CreateDirectory(Path.Combine(folderPath, "original"));
             Directory.CreateDirectory(Path.Combine(folderPath, "converted"));
             Directory.CreateDirectory(Path.Combine(folderPath, "dithered"));
+
+            //Delete old images
+            ClearDirectory(Path.Combine(folderPath, "original"));
+            ClearDirectory(Path.Combine(folderPath, "converted"));
+            ClearDirectory(Path.Combine(folderPath, "dithered"));
 
             using (StreamWriter file = new StreamWriter(File.Create(configPath)))
             {
