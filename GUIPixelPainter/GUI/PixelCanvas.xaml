@@ -50,7 +50,7 @@
                     0,0
                     <TextBlock.ToolTip>
                         <ToolTip>
-                            Coordinatss
+                            Mouse position
                         </ToolTip>
                     </TextBlock.ToolTip>
                 </TextBlock>
@@ -60,7 +60,7 @@
                     ↻
                     <TextBlock.ToolTip>
                         <ToolTip>
-                            Resets the position of the canvas
+                            Reset the position of the canvas
                         </ToolTip>
                     </TextBlock.ToolTip>
                 </TextBlock>

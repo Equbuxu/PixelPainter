@@ -35,7 +35,7 @@
                                     </ToolTip>
                                 </CheckBox.ToolTip>
                             </CheckBox>
-                            <CheckBox Grid.Column="2"  VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="superimpose" Margin="15,0,0,5">
+                            <CheckBox Grid.Column="2"  VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="overlay" Margin="15,0,0,5">
                                 Overlay tasks
                                 <CheckBox.ToolTip>
                                     <ToolTip>
@@ -54,7 +54,7 @@
                             <TextBox Name="canvasId" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" LostFocus="OnGeneralSettingChange">7</TextBox>
                         </DockPanel>
                         <DockPanel Margin="5">
-                            <Button Click="save">
+                            <Button Click="OnSaveClick">
                                 Save all
                                 <Button.ToolTip>
                                     <ToolTip>

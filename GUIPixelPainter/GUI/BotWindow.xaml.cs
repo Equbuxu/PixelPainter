@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -29,16 +30,18 @@ namespace GUIPixelPainter.GUI
 
         DropShadowEffect textShadow = new DropShadowEffect();
 
-        private GUIDataExchange dataExchange;
-        public GUIDataExchange DataExchange { get { return dataExchange; } set { dataExchange = value; dataExchange.UpdateGeneralSettingsFromGUI(); } }
-        private Launcher laucher = new Launcher();
+        public GUIDataExchange DataExchange { get; set; }
         public GUIHelper Helper { get; set; }
+        public Launcher Launcher { get; set; }
 
         public BotWindow()
         {
             InitializeComponent();
+        }
 
-            laucher.Launch(this);
+        public void Run()
+        {
+            Debug.Assert(DataExchange != null && Helper != null && Launcher != null);
 
             speedPanelGrid.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
 
@@ -52,8 +55,11 @@ namespace GUIPixelPainter.GUI
             updateTimer.Elapsed += (a, b) => Dispatcher.Invoke(() => DataExchange.CreateUpdate()); //TODO exception on close: task cancelled
             updateTimer.Start();
 
-            Closed += (a, b) => laucher.Save(); //TODO Should wait for taskpanel conversion thread to finish
+            DataExchange.UpdateGeneralSettingsFromGUI();
 
+            //Closed += (a, b) => laucher.Save(); 
+            //TODO Should wait for taskpanel conversion thread to finish
+            //TODO move to launcher
         }
 
         public bool IsBotEnabled()
@@ -61,15 +67,16 @@ namespace GUIPixelPainter.GUI
             return enabled.IsChecked == true;
         }
 
-        public bool IsSuperimpositionEnabled()
+        public bool IsOverlayEnabled()
         {
-            return superimpose.IsChecked == true;
+            return overlay.IsChecked == true;
         }
 
-        public void SetSetings(bool superimposeTasks, int canvasId)
+        public void SetSettings(bool overlayTasks, int canvasId)
         {
-            superimpose.IsChecked = superimposeTasks;
+            overlay.IsChecked = overlayTasks;
             this.canvasId.Text = canvasId.ToString();
+            //TODO must update GUIDataExchange
         }
 
         public int GetCanvasId()
@@ -172,9 +179,9 @@ namespace GUIPixelPainter.GUI
                 chatTextBox.Text = "";
         }
 
-        private void save(object sender, RoutedEventArgs e)
+        private void OnSaveClick(object sender, RoutedEventArgs e)
         {
-            laucher.Save();
+            Launcher.Save();
         }
 
 

@@ -80,7 +80,7 @@ namespace GUIPixelPainter
         //GUI element states
         public bool BotEnabled { get; private set; }
 
-        public bool SuperimposeTasks { get; private set; }
+        public bool OverlayTasks { get; private set; }
 
         public int CanvasId { get; private set; }
 
@@ -131,18 +131,18 @@ namespace GUIPixelPainter
 
         public void UpdateTasksFromGUI()
         {
-            SuperimposeTasks = botWindow.IsSuperimpositionEnabled();
+            OverlayTasks = botWindow.IsOverlayEnabled();
             guiTasks = taskPanel.GetTasks();
             UsefulData.UpdateTasks();
             Updater.Update();
-            if (SuperimposeTasks && guiTasks.ContainsKey(CanvasId))
+            if (OverlayTasks && guiTasks.ContainsKey(CanvasId))
                 pixelCanvas.OverlayTasks(guiTasks[CanvasId].Where((a) => a.Enabled).ToList());
         }
 
         public void UpdateGeneralSettingsFromGUI()
         {
             BotEnabled = botWindow.IsBotEnabled();
-            SuperimposeTasks = botWindow.IsSuperimpositionEnabled();
+            OverlayTasks = botWindow.IsOverlayEnabled();
 
             int canvasId = botWindow.GetCanvasId();
             if (canvasId != CanvasId)
@@ -155,7 +155,7 @@ namespace GUIPixelPainter
                 UsefulData.UpdateCanvasId();
             }
 
-            if (SuperimposeTasks && guiTasks.ContainsKey(canvasId))
+            if (OverlayTasks && guiTasks.ContainsKey(canvasId))
                 pixelCanvas.OverlayTasks(guiTasks[CanvasId].Where((a) => a.Enabled).ToList());
             else
                 pixelCanvas.OverlayTasks(new List<GUITask>());
@@ -244,10 +244,10 @@ namespace GUIPixelPainter
             userPanel.AddNewUser(user);
         }
 
-        public void PushSettings(bool superimposeTasks, int canvasId)
+        public void PushSettings(bool overlayTasks, int canvasId)
         {
-            SuperimposeTasks = superimposeTasks;
-            botWindow.SetSetings(superimposeTasks, canvasId);
+            OverlayTasks = overlayTasks; //TODO GUIDataExchange properties must not be set inside "push" methods, as stated above.
+            botWindow.SetSettings(overlayTasks, canvasId);
             if (canvasId != CanvasId)
             {
                 CanvasId = canvasId;
