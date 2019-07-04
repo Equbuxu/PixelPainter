@@ -386,7 +386,7 @@ namespace GUIPixelPainter.GUI
                     ShowPreview();
                 });
             });
-
+            converterThread.IsBackground = true;
             converterThread.Start();
         }
 

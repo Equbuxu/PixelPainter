@@ -53,7 +53,7 @@ namespace GUIPixelPainter.GUI
             textShadow.BlurRadius = 0.5;
 
             var updateTimer = new Timer(500);
-            updateTimer.Elapsed += (a, b) => Dispatcher.Invoke(() => DataExchange.CreateUpdate()); //TODO exception on close: task cancelled
+            updateTimer.Elapsed += (a, b) => { try { Dispatcher.Invoke(() => DataExchange.CreateUpdate()); } catch (TaskCanceledException) { } }; //TODO exception on close: task cancelled
             updateTimer.Start();
 
             ignoreEvents = true;
@@ -61,8 +61,6 @@ namespace GUIPixelPainter.GUI
             ignoreEvents = false;
 
             DataExchange.UpdateGeneralSettingsFromGUI();
-
-            //TODO Should wait for taskpanel conversion thread to finish on close
         }
 
         public bool IsBotEnabled()
