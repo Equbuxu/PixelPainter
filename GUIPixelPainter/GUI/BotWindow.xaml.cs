@@ -53,7 +53,7 @@ namespace GUIPixelPainter.GUI
             textShadow.BlurRadius = 0.5;
 
             var updateTimer = new Timer(500);
-            updateTimer.Elapsed += (a, b) => { try { Dispatcher.Invoke(() => DataExchange.CreateUpdate()); } catch (TaskCanceledException) { } }; //TODO exception on close: task cancelled
+            updateTimer.Elapsed += (a, b) => { try { Dispatcher.Invoke(() => DataExchange.CreateUpdate()); } catch (TaskCanceledException) { } };
             updateTimer.Start();
 
             ignoreEvents = true;

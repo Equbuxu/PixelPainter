@@ -365,7 +365,7 @@ namespace GUIPixelPainter.GUI
             Task task = GetSelectedTask();
             Bitmap image = task.originalImage;
 
-            ImageConverter noDither = new ImageConverter(image, Helper.Palette[7], false); //TODO write properly
+            ImageConverter noDither = new ImageConverter(image, Helper.Palette[7], false);
             ImageConverter dither = new ImageConverter(image, Helper.Palette[7], true);
 
             convertingTask = task.internalId;
