@@ -62,6 +62,7 @@ namespace GUIPixelPainter.GUI
         public void ReloadCanvas(int id)
         {
             canvasId = id;
+            Console.WriteLine("loading canvas {0}", id);
             try
             {
                 System.Net.WebRequest request = System.Net.WebRequest.Create("https://pixelplace.io/canvas/" + id.ToString() + ".png");

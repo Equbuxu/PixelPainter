@@ -26,6 +26,7 @@ namespace GUIPixelPainter.GUI
         private Dictionary<int, LinkedList<long>> lastUserPlaceTimes = new Dictionary<int, LinkedList<long>>();
         private Dictionary<int, Label> nicksLabel = new Dictionary<int, Label>();
         private Dictionary<int, Label> speedsLabel = new Dictionary<int, Label>();
+        private bool ignoreEvents = false;
         long lastUpdateTime = -1;
 
         DropShadowEffect textShadow = new DropShadowEffect();
@@ -57,9 +58,7 @@ namespace GUIPixelPainter.GUI
 
             DataExchange.UpdateGeneralSettingsFromGUI();
 
-            //Closed += (a, b) => laucher.Save(); 
-            //TODO Should wait for taskpanel conversion thread to finish
-            //TODO move to launcher
+            //TODO Should wait for taskpanel conversion thread to finish on close
         }
 
         public bool IsBotEnabled()
@@ -74,9 +73,10 @@ namespace GUIPixelPainter.GUI
 
         public void SetSettings(bool overlayTasks, int canvasId)
         {
+            ignoreEvents = true;
             overlay.IsChecked = overlayTasks;
             this.canvasId.Text = canvasId.ToString();
-            //TODO must update GUIDataExchange
+            ignoreEvents = false;
         }
 
         public int GetCanvasId()
@@ -165,28 +165,37 @@ namespace GUIPixelPainter.GUI
 
         private void OnGeneralSettingChange(object sender, RoutedEventArgs e)
         {
+            if (ignoreEvents)
+                return;
             DataExchange.UpdateGeneralSettingsFromGUI();
         }
 
         private void OnTextBoxGotFocus(object sender, RoutedEventArgs e)
         {
+            if (ignoreEvents)
+                return;
             canvasId.SelectAll();
         }
 
         private void OnChatSend(object sender, RoutedEventArgs e)
         {
+            if (ignoreEvents)
+                return;
             if (DataExchange.CreateChatMessage(chatTextBox.Text, 0))
                 chatTextBox.Text = "";
         }
 
         private void OnSaveClick(object sender, RoutedEventArgs e)
         {
+            if (ignoreEvents)
+                return;
             Launcher.Save();
         }
 
-
         private void OnChatTextBoxKeyUp(object sender, KeyEventArgs e)
         {
+            if (ignoreEvents)
+                return;
             if (e.Key != Key.Enter)
                 return;
             OnChatSend(null, null);
@@ -194,6 +203,8 @@ namespace GUIPixelPainter.GUI
 
         private void OnSpeedRefresh(object sender, RoutedEventArgs e)
         {
+            if (ignoreEvents)
+                return;
             foreach (KeyValuePair<int, LinkedList<long>> pair in lastUserPlaceTimes)
             {
                 long last = pair.Value.Last.Value;

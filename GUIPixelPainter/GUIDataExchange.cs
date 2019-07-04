@@ -246,7 +246,6 @@ namespace GUIPixelPainter
 
         public void PushSettings(bool overlayTasks, int canvasId)
         {
-            OverlayTasks = overlayTasks; //TODO GUIDataExchange properties must not be set inside "push" methods, as stated above.
             botWindow.SetSettings(overlayTasks, canvasId);
             if (canvasId != CanvasId)
             {

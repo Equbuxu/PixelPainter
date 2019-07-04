@@ -51,7 +51,7 @@
                                 </ToolTip>
                             </DockPanel.ToolTip>
                             <Label>Canvas ID:</Label>
-                            <TextBox Name="canvasId" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" LostFocus="OnGeneralSettingChange">7</TextBox>
+                            <TextBox Name="canvasId" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" LostFocus="OnGeneralSettingChange"></TextBox>
                         </DockPanel>
                         <DockPanel Margin="5">
                             <Button Click="OnSaveClick">
@@ -71,7 +71,7 @@
                 <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
                     <Expander Header="Speed" IsExpanded="True">
                         <StackPanel Margin="5,0,5,5">
-                            
+
                             <DockPanel Margin="5,0,5,5">
                                 <Label VerticalAlignment="Bottom">Refresh speed</Label>
                                 <Button Content="↻" Margin="0,5" HorizontalAlignment="Right" VerticalAlignment="Top" Width="20" Height="20" Click="OnSpeedRefresh">
