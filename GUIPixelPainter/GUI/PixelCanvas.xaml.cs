@@ -204,11 +204,9 @@ namespace GUIPixelPainter.GUI
             }
             else
             {
-                //TODO drawing code
                 if (bitmap.GetPixel((int)mouseCoords.X, (int)mouseCoords.Y) != selectedColor)
                 {
                     DataExchange.CreateManualPixel(new GUIPixel((int)mouseCoords.X, (int)mouseCoords.Y, System.Drawing.Color.FromArgb(selectedColor.A, selectedColor.R, selectedColor.G, selectedColor.B)));
-                    //I was writing manual drawing.
                 }
             }
         }
@@ -240,6 +238,9 @@ namespace GUIPixelPainter.GUI
 
             translate.X -= newPos.X - curPosition.X;
             translate.Y -= newPos.Y - curPosition.Y;
+
+            mouseDownPoint.X *= factor;
+            mouseDownPoint.Y *= factor;
         }
 
         private void MainCanvas_MouseEnter(object sender, MouseEventArgs e)
