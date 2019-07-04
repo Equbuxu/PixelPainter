@@ -71,7 +71,7 @@
                 <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
                     <Expander Header="Speed" IsExpanded="True">
                         <StackPanel Margin="5,0,5,5">
-                            
+
                             <DockPanel Margin="5,0,5,5">
                                 <Label VerticalAlignment="Bottom">Refresh speed</Label>
                                 <Button Content="↻" Margin="0,5" HorizontalAlignment="Right" VerticalAlignment="Top" Width="20" Height="20" Click="OnSpeedRefresh">
@@ -95,11 +95,11 @@
                                     </StackPanel>
                                 </Grid>
                             </Border>
-                            
+
                         </StackPanel>
                     </Expander>
                 </Border>
-                
+
             </StackPanel>
         </ScrollViewer>
 
@@ -126,7 +126,10 @@
                                 Send
                                 <Button.ToolTip>
                                     <ToolTip>
-                                        Sends a message to the General chat
+                                        <StackPanel>
+                                            <TextBlock>Sends a message to the General chat</TextBlock>
+                                            <TextBlock>(you must select a user from userList)</TextBlock>
+                                        </StackPanel>
                                     </ToolTip>
                                 </Button.ToolTip>
                             </Button>
