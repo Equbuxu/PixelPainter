@@ -27,40 +27,20 @@
                                 <ColumnDefinition Width="auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="enabled" Margin="0,0,0,5">
+                            <CheckBox VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="enabled" Margin="0,0,0,5" ToolTip="Enable bot">
                                 Enable bot
-                                <CheckBox.ToolTip>
-                                    <ToolTip>
-                                        Switch the bot
-                                    </ToolTip>
-                                </CheckBox.ToolTip>
                             </CheckBox>
-                            <CheckBox Grid.Column="2"  VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="overlay" Margin="15,0,0,5">
+                            <CheckBox Grid.Column="2"  VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="overlay" Margin="15,0,0,5" ToolTip="Display preview of enabled tasks over the canvas">
                                 Overlay tasks
-                                <CheckBox.ToolTip>
-                                    <ToolTip>
-                                        Enables the display of enabled tasks on the canvas
-                                    </ToolTip>
-                                </CheckBox.ToolTip>
                             </CheckBox>
                         </Grid>
-                        <DockPanel>
-                            <DockPanel.ToolTip>
-                                <ToolTip>
-                                    ID of the Canvas
-                                </ToolTip>
-                            </DockPanel.ToolTip>
+                        <DockPanel ToolTip="ID of the Canvas, as displayed in address bar (7 - default)">
                             <Label>Canvas ID:</Label>
                             <TextBox Name="canvasId" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" LostFocus="OnGeneralSettingChange"></TextBox>
                         </DockPanel>
                         <DockPanel Margin="5">
-                            <Button Click="OnSaveClick">
+                            <Button Click="OnSaveClick" ToolTip="Save all setting">
                                 Save all
-                                <Button.ToolTip>
-                                    <ToolTip>
-                                        Save all setting
-                                    </ToolTip>
-                                </Button.ToolTip>
                             </Button>
                         </DockPanel>
                     </StackPanel>
@@ -73,13 +53,8 @@
                         <StackPanel Margin="5,0,5,5">
 
                             <DockPanel Margin="5,0,5,5">
-                                <Label VerticalAlignment="Bottom">Refresh speed</Label>
+                                <Label VerticalAlignment="Bottom">Reset speed counters</Label>
                                 <Button Content="↻" Margin="0,5" HorizontalAlignment="Right" VerticalAlignment="Top" Width="20" Height="20" Click="OnSpeedRefresh">
-                                    <Button.ToolTip>
-                                        <ToolTip>
-                                            Speed refresh
-                                        </ToolTip>
-                                    </Button.ToolTip>
                                 </Button>
                             </DockPanel>
 

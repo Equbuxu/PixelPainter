@@ -90,6 +90,7 @@
     <Compile Include="GUI\UserPanel.xaml.cs">
       <DependentUpon>UserPanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TopDownPlacementBehaviour.cs" />
     <Compile Include="UsefulDataRepresentation.cs" />
     <Compile Include="UserManager.cs" />
     <Compile Include="UserSession.cs" />
