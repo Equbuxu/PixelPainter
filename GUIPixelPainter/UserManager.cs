@@ -359,7 +359,10 @@ namespace GUIPixelPainter
 
         private void CreateEventToDispatch(string type, EventArgs data)
         {
-            eventsToDispatch.Add(new Tuple<string, EventArgs>(type, data));
+            lock (eventsToDispatch)
+            {
+                eventsToDispatch.Add(new Tuple<string, EventArgs>(type, data));
+            }
         }
 
         private void OnSocketEvent(string type, EventArgs args, Guid user)

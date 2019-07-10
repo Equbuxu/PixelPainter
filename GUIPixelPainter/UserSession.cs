@@ -17,7 +17,7 @@ namespace GUIPixelPainter
         private Thread drawThread;
 
         int packetSize = 28;
-        int packetDelay = 2500;
+        int packetDelay = 2600;
         long lastPacketTime = -1;
 
         private LinkedList<IdPixel> queue = new LinkedList<IdPixel>();
