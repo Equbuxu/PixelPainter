@@ -117,6 +117,7 @@ namespace GUIPixelPainter
             //TODO write managequeues
             var total = users.Where((a) => a.Client.GetStatus() == Status.OPEN).ToList();
             var completedTasksForEachUser = new List<List<UsefulTask>>();
+
             foreach (Connection conn in total)
             {
                 if (conn.Client.GetStatus() != Status.OPEN)
@@ -127,7 +128,7 @@ namespace GUIPixelPainter
                 //var queue = BuildQueue(total.IndexOf(conn), total.Count);
                 var completedTasks = new List<UsefulTask>();
                 if (placementBehaviour == null)
-                    return;
+                    break;
                 var queue = placementBehaviour.BuildQueue(total.IndexOf(conn), total.Count, completedTasks);
                 completedTasksForEachUser.Add(completedTasks);
 
@@ -138,16 +139,27 @@ namespace GUIPixelPainter
             }
 
             //Disable tasks which were completed by every user
-            if (completedTasksForEachUser.Count == 0)
-                return;
-            var commonCompletedTasks = completedTasksForEachUser.First();
-
-            for (int i = 1; i < completedTasksForEachUser.Count; i++)
-                commonCompletedTasks = commonCompletedTasks.Intersect(completedTasksForEachUser[i]).ToList();
-
-            foreach (UsefulTask task in commonCompletedTasks)
+            if (completedTasksForEachUser.Count > 0)
             {
-                CreateEventToDispatch("manager.taskenable", new TaskEnableStateData(task.Id, false));
+                var commonCompletedTasks = completedTasksForEachUser.First();
+
+                for (int i = 1; i < completedTasksForEachUser.Count; i++)
+                    commonCompletedTasks = commonCompletedTasks.Intersect(completedTasksForEachUser[i]).ToList();
+
+                foreach (UsefulTask task in commonCompletedTasks)
+                {
+                    CreateEventToDispatch("manager.taskenable", new TaskEnableStateData(task.Id, false));
+                }
+            }
+
+            //Clear queues on bot disable
+            if (guiData.Tasks.Count == 0 && guiData.ManualPixels.Count == 0)
+            {
+                Console.WriteLine("clear all queues");
+                foreach (Connection conn in total)
+                {
+                    conn.Session.ClearQueue();
+                }
             }
         }
 

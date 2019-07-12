@@ -100,6 +100,8 @@ namespace GUIPixelPainter
             lock (manualPixels)
             {
                 manualPixels.Clear();
+                if (!dataExchange.BotEnabled)
+                    return;
                 foreach (GUIPixel pixel in dataExchange.ManualTask)
                 {
                     UsefulPixel newPixel = new UsefulPixel(pixel.X, pixel.Y, pixel.Color);

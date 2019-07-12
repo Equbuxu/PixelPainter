@@ -45,6 +45,8 @@ namespace GUIPixelPainter
             foreach (UsefulTask task in guiData.Tasks)
             {
                 bool completed = true;
+                Color queueColor = Color.Transparent;
+                bool queueColorChosen = false;
                 for (int j = 0; j < task.Image.Height; j++)
                 {
                     for (int i = userNumber; i < task.Image.Width; i += totalUsers)
@@ -59,6 +61,13 @@ namespace GUIPixelPainter
                         if (canvasPixel == reqPixel)
                             continue;
                         if (!curCanvasInvPalette.ContainsKey(reqPixel))
+                            continue;
+                        if (!queueColorChosen)
+                        {
+                            queueColor = reqPixel;
+                            queueColorChosen = true;
+                        }
+                        if (reqPixel != queueColor)
                             continue;
                         completed = false;
 
