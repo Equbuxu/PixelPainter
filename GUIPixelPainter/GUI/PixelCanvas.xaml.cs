@@ -56,6 +56,7 @@ namespace GUIPixelPainter.GUI
             group.Children.Add(translate);
             MainCanvas.RenderTransform = group;
 
+
             OnMoveToolClick(null, null);
         }
 
@@ -235,6 +236,12 @@ namespace GUIPixelPainter.GUI
             double factor = Math.Pow(1.5, e.Delta / 120);
             scale.ScaleX *= factor;
             scale.ScaleY *= factor;
+
+            if (scale.ScaleX < 1)
+                RenderOptions.SetBitmapScalingMode(MainImage, BitmapScalingMode.HighQuality);
+            else
+                RenderOptions.SetBitmapScalingMode(MainImage, BitmapScalingMode.NearestNeighbor);
+
             Point newPos = new Point(curPosition.X * factor, curPosition.Y * factor);
 
             translate.X -= newPos.X - curPosition.X;

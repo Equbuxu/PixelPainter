@@ -120,17 +120,19 @@ namespace GUIPixelPainter
 
             foreach (Connection conn in total)
             {
+                var completedTasks = new List<UsefulTask>();
+                completedTasksForEachUser.Add(completedTasks);
+
                 if (conn.Client.GetStatus() != Status.OPEN)
                     continue;
                 if (conn.Session.QueueLength() > 200)
                     continue;
 
                 //var queue = BuildQueue(total.IndexOf(conn), total.Count);
-                var completedTasks = new List<UsefulTask>();
                 if (placementBehaviour == null)
                     break;
                 var queue = placementBehaviour.BuildQueue(total.IndexOf(conn), total.Count, completedTasks);
-                completedTasksForEachUser.Add(completedTasks);
+
 
                 foreach (IdPixel pixel in queue)
                 {

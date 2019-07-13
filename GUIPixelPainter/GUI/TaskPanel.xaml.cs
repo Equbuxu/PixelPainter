@@ -409,6 +409,11 @@ namespace GUIPixelPainter.GUI
                 else
                     preview.Source = Helper.Convert(task.convertedImage);
             }
+
+            if (preview.Source.Width > preview.ActualWidth)
+                RenderOptions.SetBitmapScalingMode(preview, BitmapScalingMode.HighQuality);
+            else
+                RenderOptions.SetBitmapScalingMode(preview, BitmapScalingMode.NearestNeighbor);
         }
 
         private void OnSelectImageClick(object sender, RoutedEventArgs e)
