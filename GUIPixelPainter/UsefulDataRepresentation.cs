@@ -83,6 +83,8 @@ namespace GUIPixelPainter
 
         public int CanvasId { get; private set; } = -1;
 
+        public PlacementMode PlacementMode { get; private set; }
+
         private GUIDataExchange dataExchange;
 
         public UsefulDataRepresentation(GUIDataExchange dataExchange)
@@ -108,6 +110,11 @@ namespace GUIPixelPainter
                     manualPixels.Add(newPixel);
                 }
             }
+        }
+
+        public void UpdatePlacementMode()
+        {
+            PlacementMode = dataExchange.PlacementMode;
         }
 
         public void UpdateTasks()

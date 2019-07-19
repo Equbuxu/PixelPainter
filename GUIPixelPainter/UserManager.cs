@@ -70,7 +70,7 @@ namespace GUIPixelPainter
         private Dictionary<int, Dictionary<System.Drawing.Color, int>> invPalette;
 
         UsefulDataRepresentation guiData;
-        TopDownPlacementBehaviour placementBehaviour;
+        PlacementBehaviour placementBehaviour;
 
         public UserManager(UsefulDataRepresentation representation, Dictionary<int, Dictionary<int, System.Drawing.Color>> palette)
         {
@@ -108,7 +108,10 @@ namespace GUIPixelPainter
                 ManageQueues();
                 ProcessGUIEvents();
                 ProcessEvents();
-                ChangeCanvas();
+                if (curCanvas != guiData.CanvasId)
+                    ChangeCanvas();
+                if ((placementBehaviour == null || placementBehaviour.GetMode() != guiData.PlacementMode) && curCanvas != -1) //HACK curCanvas check is kinda hacky (it is there to avoid crah on start)
+                    ChangePlacementBehaviour();
             }
         }
 
@@ -250,71 +253,8 @@ namespace GUIPixelPainter
             }
         }
 
-        private List<IdPixel> BuildQueue(int userNum, int totalUser)
-        {
-            List<IdPixel> queue = new List<IdPixel>();
-
-            //manual task
-            var pixels = guiData.ManualPixels;
-            for (int i = userNum; i < pixels.Count; i += totalUser)
-            {
-                UsefulPixel reqPixel = pixels[i];
-                var canvasPixel = canvas.GetPixel(reqPixel.X, reqPixel.Y);
-                if (canvasPixel.R == 204 && canvasPixel.G == 204 && canvasPixel.B == 204)
-                    continue;
-                if (canvasPixel == reqPixel.Color)
-                    continue;
-                if (!invPalette[curCanvas].ContainsKey(reqPixel.Color))
-                    continue;
-                IdPixel pixel = new IdPixel(invPalette[curCanvas][reqPixel.Color], reqPixel.X, reqPixel.Y);
-                queue.Add(pixel);
-                if (queue.Count > 99)
-                    goto end;
-            }
-
-            //regular tasks
-            foreach (UsefulTask task in guiData.Tasks)
-            {
-                bool completed = true;
-                //for (int j = 0; j < task.Image.Height; j++)
-                for (int j = task.Image.Height - 1; j >= 0; j--)
-                {
-                    for (int i = userNum; i < task.Image.Width; i += totalUser)
-                    {
-                        var canvasPixel = canvas.GetPixel(task.X + i, task.Y + j);
-                        if (canvasPixel.R == 204 && canvasPixel.G == 204 && canvasPixel.B == 204)
-                            continue;
-                        var reqPixel = task.Image.GetPixel(i, j);
-                        if (canvasPixel == reqPixel)
-                            continue;
-                        if (!invPalette[curCanvas].ContainsKey(reqPixel))
-                            continue;
-                        completed = false;
-                        IdPixel pixel = new IdPixel(invPalette[curCanvas][reqPixel], task.X + i, task.Y + j);
-                        queue.Add(pixel);
-                        if (queue.Count > 99)
-                            goto end;
-                    }
-                }
-                if (completed && !task.KeepRepairing)
-                    CreateEventToDispatch("manager.taskenable", new TaskEnableStateData(task.Id, false));
-            }
-
-        end:
-            //Bitmap test = new Bitmap(task.image.Width, task.image.Height);
-            //foreach (Pixel pixel in queue)
-            //{
-            //    test.SetPixel(pixel.position.X - task.x, pixel.position.Y - task.y, pixel.color);
-            //}
-            //test.Save("test.png");
-            Console.WriteLine("Made a queue of {0} pixels", queue.Count);
-            return queue;
-        }
-
         private void ChangeCanvas()
         {
-            if (curCanvas == guiData.CanvasId)
-                return;
             curCanvas = guiData.CanvasId;
 
             //Disconnect everyone
@@ -361,7 +301,24 @@ namespace GUIPixelPainter
 
             //Remake placement behavior
             //TODO use inheritance
-            placementBehaviour = new TopDownPlacementBehaviour(guiData, canvas, invPalette[curCanvas]);
+            ChangePlacementBehaviour();
+        }
+
+        private void ChangePlacementBehaviour()
+        {
+            switch (guiData.PlacementMode)
+            {
+                case PlacementMode.TOPDOWN:
+                    placementBehaviour = new TopDownPlacementBehaviour(guiData, canvas, invPalette[curCanvas]);
+                    break;
+                case PlacementMode.DENOISE:
+                    placementBehaviour = new DenoisePlacementBehaviour(guiData, canvas, invPalette[curCanvas]);
+                    break;
+            }
+            foreach (Connection conn in users)
+            {
+                conn.Session.ClearQueue();
+            }
         }
 
         private SocketIO CreateSocketIO(UsefulUser user)

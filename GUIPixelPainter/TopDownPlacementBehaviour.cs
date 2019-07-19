@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace GUIPixelPainter
 {
-    public class TopDownPlacementBehaviour
+    public class TopDownPlacementBehaviour : PlacementBehaviour
     {
         private UsefulDataRepresentation guiData;
         private Bitmap canvas;
@@ -25,7 +25,12 @@ namespace GUIPixelPainter
             lastUpdateIterCount = new int[canvas.Width, canvas.Height];
         }
 
-        public List<IdPixel> BuildQueue(int userNumber, int totalUsers, List<UsefulTask> completedTasksToFill)
+        public override PlacementMode GetMode()
+        {
+            return PlacementMode.TOPDOWN;
+        }
+
+        public override List<IdPixel> BuildQueue(int userNumber, int totalUsers, List<UsefulTask> completedTasksToFill)
         {
             List<IdPixel> queue = new List<IdPixel>();
             AddManual(queue, userNumber, totalUsers);

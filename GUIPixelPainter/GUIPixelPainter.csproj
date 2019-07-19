@@ -72,6 +72,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="DataLoader.cs" />
+    <Compile Include="DenoisePlacementBehaviour.cs" />
     <Compile Include="GUIHelper.cs" />
     <Compile Include="GUIDataExchange.cs" />
     <Compile Include="GUIUpdater.cs" />
@@ -83,6 +84,7 @@
     <Compile Include="GUI\PixelCanvas.xaml.cs">
       <DependentUpon>PixelCanvas.xaml</DependentUpon>
     </Compile>
+    <Compile Include="PlacementBehaviour.cs" />
     <Compile Include="SocketIO.cs" />
     <Compile Include="GUI\TaskPanel.xaml.cs">
       <DependentUpon>TaskPanel.xaml</DependentUpon>

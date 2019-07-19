@@ -26,7 +26,7 @@ namespace GUIPixelPainter.GUI
         private Dictionary<int, LinkedList<long>> lastUserPlaceTimes = new Dictionary<int, LinkedList<long>>();
         private Dictionary<int, Label> nicksLabel = new Dictionary<int, Label>();
         private Dictionary<int, Label> speedsLabel = new Dictionary<int, Label>();
-        private bool ignoreEvents = false;
+        private bool ignoreEvents = true;
         long lastUpdateTime = -1;
 
         DropShadowEffect textShadow = new DropShadowEffect();
@@ -71,6 +71,18 @@ namespace GUIPixelPainter.GUI
         public bool IsOverlayEnabled()
         {
             return overlay.IsChecked == true;
+        }
+
+        public PlacementMode GetPlacementMode()
+        {
+            switch (placementMode.SelectedIndex)
+            {
+                default:
+                case 0:
+                    return PlacementMode.TOPDOWN;
+                case 1:
+                    return PlacementMode.DENOISE;
+            }
         }
 
         public void SetSettings(bool overlayTasks, int canvasId)
@@ -214,5 +226,6 @@ namespace GUIPixelPainter.GUI
                 pair.Value.AddLast(last);
             }
         }
+
     }
 }

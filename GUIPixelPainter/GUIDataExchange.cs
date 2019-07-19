@@ -8,6 +8,12 @@ using System.Threading.Tasks;
 
 namespace GUIPixelPainter
 {
+    public enum PlacementMode
+    {
+        TOPDOWN,
+        DENOISE
+    }
+
     public class GUIUser
     {
         public GUIUser(Guid internalId, string name, string proxy, string authKey, string authToken, Status status, bool enabled)
@@ -84,6 +90,8 @@ namespace GUIPixelPainter
 
         public int CanvasId { get; private set; }
 
+        public PlacementMode PlacementMode { get; private set; }
+
         private Dictionary<int, List<GUITask>> guiTasks = new Dictionary<int, List<GUITask>>();
         //public IReadOnlyDictionary<int, IReadOnlyList<GUITask>> GUITasks => (IReadOnlyDictionary<int, IReadOnlyList<GUITask>>)guiTasks;
         public IReadOnlyDictionary<int, IReadOnlyList<GUITask>> GUITasks => guiTasks.ToDictionary((a) => a.Key, (a) => (IReadOnlyList<GUITask>)a.Value.AsReadOnly());
@@ -143,6 +151,7 @@ namespace GUIPixelPainter
         {
             BotEnabled = botWindow.IsBotEnabled();
             OverlayTasks = botWindow.IsOverlayEnabled();
+            PlacementMode = botWindow.GetPlacementMode();
 
             int canvasId = botWindow.GetCanvasId();
             if (canvasId != CanvasId)
@@ -160,6 +169,7 @@ namespace GUIPixelPainter
             else
                 pixelCanvas.OverlayTasks(new List<GUITask>());
 
+            UsefulData.UpdatePlacementMode();
             UsefulData.UpdateTasks();
             Updater.Update();
         }

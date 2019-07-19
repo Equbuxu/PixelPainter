@@ -425,7 +425,13 @@ namespace GUIPixelPainter.GUI
             dialog.Filter = "Images |*.png;*.jpg;*.jpeg";
             if (dialog.ShowDialog() != true)
                 return;
-            GetSelectedTask().originalImage = new Bitmap(dialog.FileName);
+
+            using (Bitmap image = new Bitmap(dialog.FileName))
+            {
+                Bitmap copy = new Bitmap(image); //Converts to correct format and unlock the file
+                GetSelectedTask().originalImage = copy;
+            }
+
             ConvertImages();
         }
 

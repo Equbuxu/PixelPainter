@@ -38,6 +38,11 @@
                             <Label>Canvas ID:</Label>
                             <TextBox Name="canvasId" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" LostFocus="OnGeneralSettingChange"></TextBox>
                         </DockPanel>
+                        <TextBlock Margin="5,5,5,0">Placement mode</TextBlock>
+                        <ComboBox Name="placementMode" SelectedIndex="0" Margin="5" SelectionChanged="OnGeneralSettingChange">
+                            <TextBlock>Top-down</TextBlock>
+                            <TextBlock>Denoise</TextBlock>
+                        </ComboBox>
                         <DockPanel Margin="5">
                             <Button Click="OnSaveClick" ToolTip="Save all setting">
                                 Save all

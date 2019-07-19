@@ -23,9 +23,9 @@ namespace GUIPixelPainter.GUI
     {
         class Pixel
         {
-            public Color c;
-            public int x;
-            public int y;
+            public Color c = new Color();
+            public int x = 0;
+            public int y = 0;
         }
 
         private ScaleTransform scale = new ScaleTransform();
