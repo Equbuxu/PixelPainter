@@ -11,15 +11,17 @@ namespace GUIPixelPainter
     {
         private UsefulDataRepresentation guiData;
         private Bitmap canvas;
+        private Bitmap borders;
         private const int maxQueueSize = 200;
         private Dictionary<System.Drawing.Color, int> curCanvasInvPalette;
         Random random = new Random();
         private Dictionary<Guid, List<IdPixel>> taskQueues = new Dictionary<Guid, List<IdPixel>>();
 
-        public DenoisePlacementBehaviour(UsefulDataRepresentation guiData, Bitmap canvas, Dictionary<System.Drawing.Color, int> curCanvasInvPalette)
+        public DenoisePlacementBehaviour(UsefulDataRepresentation guiData, Bitmap canvas, Bitmap borders, Dictionary<System.Drawing.Color, int> curCanvasInvPalette)
         {
             this.guiData = guiData;
             this.canvas = canvas;
+            this.borders = borders;
             this.curCanvasInvPalette = curCanvasInvPalette;
         }
 
@@ -75,15 +77,17 @@ namespace GUIPixelPainter
                 for (int i = 0; i < task.Image.Width; i++)
                 {
                     Color canvasPixel;
+                    Color bordersPixel;
                     try
                     {
                         canvasPixel = canvas.GetPixel(task.X + i, task.Y + j);
+                        bordersPixel = borders.GetPixel(task.X + i, task.Y + j);
                     }
                     catch (ArgumentOutOfRangeException)
                     {
                         continue;
                     }
-                    if (canvasPixel.R == 204 && canvasPixel.G == 204 && canvasPixel.B == 204)
+                    if (bordersPixel.R == 204 && bordersPixel.G == 204 && bordersPixel.B == 204)
                         continue;
                     var taskPixel = task.Image.GetPixel(i, j);
                     if (taskPixel.A == 0)

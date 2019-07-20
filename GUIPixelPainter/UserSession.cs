@@ -20,6 +20,9 @@ namespace GUIPixelPainter
         int packetDelay = 2600;
         long lastPacketTime = -1;
 
+        bool stalled = false;
+        int stallDelay = 0;
+
         private LinkedList<IdPixel> queue = new LinkedList<IdPixel>();
         private SocketIO server;
 
@@ -30,6 +33,12 @@ namespace GUIPixelPainter
             drawThread = new Thread(DrawLoop);
             drawThread.IsBackground = true;
             drawThread.Start();
+        }
+
+        public void Stall(int ms)
+        {
+            stallDelay = ms;
+            stalled = true;
         }
 
         public List<IdPixel> Close()
@@ -127,6 +136,12 @@ namespace GUIPixelPainter
                 Thread.Sleep((int)(packetDelay - (time - lastPacketTime)));
             }
             lastPacketTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+
+            if (stalled)
+            {
+                Thread.Sleep(stallDelay);
+                stalled = false;
+            }
 
             if (server.GetStatus() == Status.OPEN)
                 server.SendPixels(toPlace);

@@ -11,16 +11,18 @@ namespace GUIPixelPainter
     {
         private UsefulDataRepresentation guiData;
         private Bitmap canvas;
+        private Bitmap borders;
         private int[,] lastUpdateIterCount;
         private const int maxQueueSize = 200;
         private const int pixelResendDelay = 15;
         int iterCount = 0;
         private Dictionary<System.Drawing.Color, int> curCanvasInvPalette;
 
-        public TopDownPlacementBehaviour(UsefulDataRepresentation guiData, Bitmap canvas, Dictionary<System.Drawing.Color, int> curCanvasInvPalette)
+        public TopDownPlacementBehaviour(UsefulDataRepresentation guiData, Bitmap canvas, Bitmap borders, Dictionary<System.Drawing.Color, int> curCanvasInvPalette)
         {
             this.guiData = guiData;
             this.canvas = canvas;
+            this.borders = borders;
             this.curCanvasInvPalette = curCanvasInvPalette;
             lastUpdateIterCount = new int[canvas.Width, canvas.Height];
         }
@@ -60,7 +62,8 @@ namespace GUIPixelPainter
                             return;
 
                         var canvasPixel = canvas.GetPixel(task.X + i, task.Y + j);
-                        if (canvasPixel.R == 204 && canvasPixel.G == 204 && canvasPixel.B == 204)
+                        var bordersPixel = borders.GetPixel(task.X + i, task.Y + j);
+                        if (bordersPixel.R == 204 && bordersPixel.G == 204 && bordersPixel.B == 204)
                             continue;
                         var reqPixel = task.Image.GetPixel(i, j);
                         if (canvasPixel == reqPixel)

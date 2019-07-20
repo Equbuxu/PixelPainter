@@ -293,6 +293,9 @@ namespace GUIPixelPainter
                 System.IO.Stream responseStream2 = response2.GetResponseStream();
                 borders = new Bitmap(responseStream2);
                 responseStream2.Dispose();
+
+                //if (guiData.CanvasId == 7)
+                //    borders.SetPixel(1029, 895, Color.FromArgb(204, 204, 204)); //cursed pixel
             }
             catch (System.Net.WebException)
             {
@@ -309,10 +312,10 @@ namespace GUIPixelPainter
             switch (guiData.PlacementMode)
             {
                 case PlacementMode.TOPDOWN:
-                    placementBehaviour = new TopDownPlacementBehaviour(guiData, canvas, invPalette[curCanvas]);
+                    placementBehaviour = new TopDownPlacementBehaviour(guiData, canvas, borders, invPalette[curCanvas]);
                     break;
                 case PlacementMode.DENOISE:
-                    placementBehaviour = new DenoisePlacementBehaviour(guiData, canvas, invPalette[curCanvas]);
+                    placementBehaviour = new DenoisePlacementBehaviour(guiData, canvas, borders, invPalette[curCanvas]);
                     break;
             }
             foreach (Connection conn in users)
@@ -338,6 +341,13 @@ namespace GUIPixelPainter
 
         private void OnSocketEvent(string type, EventArgs args, Guid user)
         {
+
+            if (type == "throw.error")
+            {
+                users.Where((a) => a.Id == user).FirstOrDefault()?.Session.Stall(1000);
+                Console.WriteLine("stall");
+            }
+
             if (user != currentActiveUser)
             {
                 var curactive = users.Where((a) => a.Id == currentActiveUser).ToList();
