@@ -103,15 +103,20 @@ namespace GUIPixelPainter
             {
                 resetEvent.WaitOne();
 
-                //TODO remake queues on update (or maybe not?)
-                RefreshConnections();
-                ManageQueues();
-                ProcessGUIEvents();
-                ProcessEvents();
                 if (curCanvas != guiData.CanvasId)
                     ChangeCanvas();
-                if ((placementBehaviour == null || placementBehaviour.GetMode() != guiData.PlacementMode) && curCanvas != -1) //HACK curCanvas check is kinda hacky (it is there to avoid crah on start)
-                    ChangePlacementBehaviour();
+
+                if (curCanvas != -1) //HACK things should fire in a different order in a way that will allow curCanvas to be set before first resetEvent.
+                {
+                    if ((placementBehaviour == null || placementBehaviour.GetMode() != guiData.PlacementMode) && curCanvas != -1) //HACK curCanvas check is kinda hacky (it is there to avoid crah on start)
+                        ChangePlacementBehaviour();
+
+                    //TODO remake queues on update (or maybe not?)
+                    RefreshConnections();
+                    ManageQueues();
+                    ProcessGUIEvents();
+                    ProcessEvents();
+                }
             }
         }
 
@@ -192,7 +197,7 @@ namespace GUIPixelPainter
                     break;
                 if (users.Find((a) => a.Id == user.Id) == null)
                 {
-                    Console.WriteLine("user connection created");
+                    Console.WriteLine("user connection created, there was {0} users in total", users.Count);
                     SocketIO server = CreateSocketIO(user);
                     server.Connect();
                     UserSession newUser = new UserSession(server);

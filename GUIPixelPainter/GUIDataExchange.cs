@@ -31,6 +31,7 @@ namespace GUIPixelPainter
         public string Proxy { get; }
         public string AuthKey { get; }
         public string AuthToken { get; }
+        [JsonIgnore]
         public Status Status { get; }
         public bool Enabled { get; }
     }
