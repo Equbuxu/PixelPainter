@@ -338,6 +338,7 @@ namespace GUIPixelPainter.GUI
             if (sender.Equals(taskName))
                 UpdateTaskList();
         }
+
         private void ChangePosY(int yPos, object sender)
         {
             Task selectedTask = GetSelectedTask();
@@ -409,6 +410,8 @@ namespace GUIPixelPainter.GUI
                 else
                     preview.Source = Helper.Convert(task.convertedImage);
             }
+
+            preview.UpdateLayout();
 
             if (preview.Source.Width > preview.ActualWidth)
                 RenderOptions.SetBitmapScalingMode(preview, BitmapScalingMode.HighQuality);
