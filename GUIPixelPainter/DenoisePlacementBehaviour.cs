@@ -71,6 +71,8 @@ namespace GUIPixelPainter
 
         private List<IdPixel> GenerateTaskQueue(UsefulTask task)
         {
+            Console.WriteLine("Im the lag");
+
             List<IdPixel> queue = new List<IdPixel>();
             for (int j = 0; j < task.Image.Height; j++)
             {
@@ -78,21 +80,20 @@ namespace GUIPixelPainter
                 {
                     Color canvasPixel;
                     Color bordersPixel;
-                    try
-                    {
-                        canvasPixel = canvas.GetPixel(task.X + i, task.Y + j);
-                        bordersPixel = borders.GetPixel(task.X + i, task.Y + j);
-                    }
-                    catch (ArgumentOutOfRangeException)
-                    {
+
+                    int canvasX = task.X + i;
+                    int canvasY = task.Y + j;
+                    if (canvasX < 0 || canvasY < 0 || canvasX >= canvas.Width || canvasY >= canvas.Height)
                         continue;
-                    }
+                    canvasPixel = canvas.GetPixel(canvasX, canvasY);
+                    bordersPixel = borders.GetPixel(canvasX, canvasY);
+
                     if (bordersPixel.R == 204 && bordersPixel.G == 204 && bordersPixel.B == 204)
                         continue;
                     var taskPixel = task.Image.GetPixel(i, j);
                     if (taskPixel.A == 0)
                         continue;
-                    var reqPixel = GetAntidotColor(task.X + i, task.Y + j); //TODO temp
+                    var reqPixel = GetAntidotColor(canvasX, canvasY);
                     if (canvasPixel == reqPixel)
                         continue;
                     if (!curCanvasInvPalette.ContainsKey(reqPixel))

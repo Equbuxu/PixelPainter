@@ -31,6 +31,7 @@ namespace GUIPixelPainter
             this.server = server;
 
             drawThread = new Thread(DrawLoop);
+            drawThread.Name = "User draw loop";
             drawThread.IsBackground = true;
             drawThread.Start();
         }

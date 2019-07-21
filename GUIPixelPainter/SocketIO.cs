@@ -175,6 +175,7 @@ namespace GUIPixelPainter
                 return;
 
             thread = new Thread(ConnectLoop);
+            thread.Name = "SocketIO polling";
             thread.IsBackground = true;
             thread.Start();
         }

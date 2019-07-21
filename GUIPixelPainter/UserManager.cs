@@ -80,6 +80,7 @@ namespace GUIPixelPainter
             this.invPalette = palette.Select((a) => new KeyValuePair<int, Dictionary<System.Drawing.Color, int>>(a.Key, a.Value.Select((b) => new KeyValuePair<Color, int>(b.Value, b.Key)).ToDictionary((b) => b.Key, (b) => b.Value))).ToDictionary((a) => a.Key, (a) => a.Value);
 
             loopThread = new Thread(Loop);
+            loopThread.Name = "UserManager loop";
             loopThread.IsBackground = true;
             loopThread.Start();
         }

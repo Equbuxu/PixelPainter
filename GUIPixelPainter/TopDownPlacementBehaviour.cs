@@ -61,8 +61,13 @@ namespace GUIPixelPainter
                         if (queue.Count >= maxQueueSize)
                             return;
 
-                        var canvasPixel = canvas.GetPixel(task.X + i, task.Y + j);
-                        var bordersPixel = borders.GetPixel(task.X + i, task.Y + j);
+                        int canvasX = task.X + i;
+                        int canvasY = task.Y + j;
+                        if (canvasX < 0 || canvasY < 0 || canvasX >= canvas.Width || canvasY >= canvas.Height)
+                            continue;
+
+                        var canvasPixel = canvas.GetPixel(canvasX, canvasY);
+                        var bordersPixel = borders.GetPixel(canvasX, canvasY);
                         if (bordersPixel.R == 204 && bordersPixel.G == 204 && bordersPixel.B == 204)
                             continue;
                         var reqPixel = task.Image.GetPixel(i, j);
@@ -79,12 +84,12 @@ namespace GUIPixelPainter
                             continue;
                         completed = false;
 
-                        if (iterCount - lastUpdateIterCount[task.X + i, task.Y + j] < 6) //avoid spamming the same place
+                        if (iterCount - lastUpdateIterCount[canvasX, canvasY] < 6) //avoid spamming the same place
                             continue;
 
-                        IdPixel pixel = new IdPixel(curCanvasInvPalette[reqPixel], task.X + i, task.Y + j);
+                        IdPixel pixel = new IdPixel(curCanvasInvPalette[reqPixel], canvasX, canvasY);
                         queue.Add(pixel);
-                        lastUpdateIterCount[task.X + i, task.Y + j] = iterCount;
+                        lastUpdateIterCount[canvasX, canvasY] = iterCount;
                     }
                 }
                 if (completed && !task.KeepRepairing)

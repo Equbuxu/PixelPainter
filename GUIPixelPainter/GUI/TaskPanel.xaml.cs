@@ -387,6 +387,7 @@ namespace GUIPixelPainter.GUI
                     ShowPreview();
                 });
             });
+            converterThread.Name = "TaskPanel conversion";
             converterThread.IsBackground = true;
             converterThread.Start();
         }
