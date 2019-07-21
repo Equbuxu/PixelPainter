@@ -135,13 +135,13 @@ namespace GUIPixelPainter
             {
                 Thread.Sleep((int)(packetDelay - (time - lastPacketTime)));
             }
-            lastPacketTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
 
             if (stalled)
             {
                 Thread.Sleep(stallDelay);
                 stalled = false;
             }
+            lastPacketTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
 
             if (server.GetStatus() == Status.OPEN)
                 server.SendPixels(toPlace);

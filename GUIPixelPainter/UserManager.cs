@@ -342,7 +342,7 @@ namespace GUIPixelPainter
         private void OnSocketEvent(string type, EventArgs args, Guid user)
         {
 
-            if (type == "throw.error")
+            if (type == "throw.error" && (args as ErrorPacket).id == 11)
             {
                 users.Where((a) => a.Id == user).FirstOrDefault()?.Session.Stall(1000);
                 Console.WriteLine("stall");
