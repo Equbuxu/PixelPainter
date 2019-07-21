@@ -33,6 +33,7 @@ namespace GUIPixelPainter.GUI
         private Point mouseDownPoint = new Point();
         private bool drawing = false;
         private Color selectedColor = Color.FromArgb(0, 1, 2, 3);
+        private int scalingPower = 0;
 
         private Dictionary<int, Border> nameLabels = new Dictionary<int, Border>();
         private Dictionary<int, long> userPlaceTime = new Dictionary<int, long>();
@@ -232,16 +233,30 @@ namespace GUIPixelPainter.GUI
             curPosition.X -= translate.X;
             curPosition.Y -= translate.Y;
 
+            scalingPower += e.Delta / 120;
 
+            if (scalingPower < -6)
+                scalingPower = -6;
+            else if (scalingPower > 15)
+                scalingPower = 15;
+
+            double oldScale = scale.ScaleX;
+            double newScale = Math.Pow(1.4, scalingPower);
+
+            scale.ScaleX = newScale;
+            scale.ScaleY = newScale;
+
+            /*
             double factor = Math.Pow(1.5, e.Delta / 120);
             scale.ScaleX *= factor;
-            scale.ScaleY *= factor;
+            scale.ScaleY *= factor;*/
 
-            if (scale.ScaleX < 1)
+            if (scalingPower < 0)
                 RenderOptions.SetBitmapScalingMode(MainImage, BitmapScalingMode.HighQuality);
             else
                 RenderOptions.SetBitmapScalingMode(MainImage, BitmapScalingMode.NearestNeighbor);
 
+            double factor = newScale / oldScale;
             Point newPos = new Point(curPosition.X * factor, curPosition.Y * factor);
 
             translate.X -= newPos.X - curPosition.X;
