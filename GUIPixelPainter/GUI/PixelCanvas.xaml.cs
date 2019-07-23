@@ -23,9 +23,9 @@ namespace GUIPixelPainter.GUI
     {
         class Pixel
         {
-            public Color c;
-            public int x;
-            public int y;
+            public Color c = new Color();
+            public int x = 0;
+            public int y = 0;
         }
 
         private ScaleTransform scale = new ScaleTransform();
@@ -33,6 +33,7 @@ namespace GUIPixelPainter.GUI
         private Point mouseDownPoint = new Point();
         private bool drawing = false;
         private Color selectedColor = Color.FromArgb(0, 1, 2, 3);
+        private int scalingPower = 0;
 
         private Dictionary<int, Border> nameLabels = new Dictionary<int, Border>();
         private Dictionary<int, long> userPlaceTime = new Dictionary<int, long>();
@@ -56,12 +57,14 @@ namespace GUIPixelPainter.GUI
             group.Children.Add(translate);
             MainCanvas.RenderTransform = group;
 
+
             OnMoveToolClick(null, null);
         }
 
         public void ReloadCanvas(int id)
         {
             canvasId = id;
+            Console.WriteLine("loading canvas {0}", id);
             try
             {
                 System.Net.WebRequest request = System.Net.WebRequest.Create("https://pixelplace.io/canvas/" + id.ToString() + ".png");
@@ -204,17 +207,17 @@ namespace GUIPixelPainter.GUI
             }
             else
             {
-                //TODO drawing code
                 if (bitmap.GetPixel((int)mouseCoords.X, (int)mouseCoords.Y) != selectedColor)
                 {
                     DataExchange.CreateManualPixel(new GUIPixel((int)mouseCoords.X, (int)mouseCoords.Y, System.Drawing.Color.FromArgb(selectedColor.A, selectedColor.R, selectedColor.G, selectedColor.B)));
-                    //I was writing manual drawing.
                 }
             }
         }
 
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            Keyboard.Focus(MainCanvas);
+
             mouseDownPoint = e.GetPosition((UIElement)MainCanvas.Parent);
             mouseDownPoint.X -= translate.X;
             mouseDownPoint.Y -= translate.Y;
@@ -232,14 +235,37 @@ namespace GUIPixelPainter.GUI
             curPosition.X -= translate.X;
             curPosition.Y -= translate.Y;
 
+            scalingPower += e.Delta / 120;
 
+            if (scalingPower < -6)
+                scalingPower = -6;
+            else if (scalingPower > 15)
+                scalingPower = 15;
+
+            double oldScale = scale.ScaleX;
+            double newScale = Math.Pow(1.4, scalingPower);
+
+            scale.ScaleX = newScale;
+            scale.ScaleY = newScale;
+
+            /*
             double factor = Math.Pow(1.5, e.Delta / 120);
             scale.ScaleX *= factor;
-            scale.ScaleY *= factor;
+            scale.ScaleY *= factor;*/
+
+            if (scalingPower < 0)
+                RenderOptions.SetBitmapScalingMode(MainImage, BitmapScalingMode.HighQuality);
+            else
+                RenderOptions.SetBitmapScalingMode(MainImage, BitmapScalingMode.NearestNeighbor);
+
+            double factor = newScale / oldScale;
             Point newPos = new Point(curPosition.X * factor, curPosition.Y * factor);
 
             translate.X -= newPos.X - curPosition.X;
             translate.Y -= newPos.Y - curPosition.Y;
+
+            mouseDownPoint.X *= factor;
+            mouseDownPoint.Y *= factor;
         }
 
         private void MainCanvas_MouseEnter(object sender, MouseEventArgs e)
@@ -272,6 +298,22 @@ namespace GUIPixelPainter.GUI
             translate.Y = 0;
             scale.ScaleX = 1;
             scale.ScaleY = 1;
+        }
+
+        private void MainCanvas_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.P)
+            {
+                var mousePos = Mouse.GetPosition(MainCanvas);
+
+                //mousePos.X /= scale.ScaleX;
+                //mousePos.Y /= scale.ScaleY;
+
+                //mousePos.X -= translate.X;
+                //mousePos.Y -= translate.Y;
+
+                DataExchange.PushTaskPosition((int)mousePos.X, (int)mousePos.Y);
+            }
         }
     }
 }

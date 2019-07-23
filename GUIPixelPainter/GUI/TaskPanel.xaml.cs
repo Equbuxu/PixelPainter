@@ -123,6 +123,18 @@ namespace GUIPixelPainter.GUI
             UpdateTaskList();
         }
 
+        public void MoveCurrentTask(int xpos, int ypos)
+        {
+            if (taskList.SelectedIndex == -1)
+                return;
+            var selectedTask = GetSelectedTask();
+            x.Text = (xpos).ToString();
+            y.Text = (ypos).ToString();
+            selectedTask.x = xpos;
+            selectedTask.y = ypos;
+            DataExchange.UpdateTasksFromGUI();
+        }
+
         private Task GetSelectedTask()
         {
             return GetTask(Guid.Parse(((taskList.SelectedItem as StackPanel).Children[1] as TextBlock).Text));
@@ -338,6 +350,7 @@ namespace GUIPixelPainter.GUI
             if (sender.Equals(taskName))
                 UpdateTaskList();
         }
+
         private void ChangePosY(int yPos, object sender)
         {
             Task selectedTask = GetSelectedTask();
@@ -365,7 +378,7 @@ namespace GUIPixelPainter.GUI
             Task task = GetSelectedTask();
             Bitmap image = task.originalImage;
 
-            ImageConverter noDither = new ImageConverter(image, Helper.Palette[7], false); //TODO write properly
+            ImageConverter noDither = new ImageConverter(image, Helper.Palette[7], false);
             ImageConverter dither = new ImageConverter(image, Helper.Palette[7], true);
 
             convertingTask = task.internalId;
@@ -386,7 +399,8 @@ namespace GUIPixelPainter.GUI
                     ShowPreview();
                 });
             });
-
+            converterThread.Name = "TaskPanel conversion";
+            converterThread.IsBackground = true;
             converterThread.Start();
         }
 
@@ -409,6 +423,13 @@ namespace GUIPixelPainter.GUI
                 else
                     preview.Source = Helper.Convert(task.convertedImage);
             }
+
+            preview.UpdateLayout();
+
+            if (preview.Source.Width > preview.ActualWidth)
+                RenderOptions.SetBitmapScalingMode(preview, BitmapScalingMode.HighQuality);
+            else
+                RenderOptions.SetBitmapScalingMode(preview, BitmapScalingMode.NearestNeighbor);
         }
 
         private void OnSelectImageClick(object sender, RoutedEventArgs e)
@@ -420,7 +441,13 @@ namespace GUIPixelPainter.GUI
             dialog.Filter = "Images |*.png;*.jpg;*.jpeg";
             if (dialog.ShowDialog() != true)
                 return;
-            GetSelectedTask().originalImage = new Bitmap(dialog.FileName);
+
+            using (Bitmap image = new Bitmap(dialog.FileName))
+            {
+                Bitmap copy = new Bitmap(image); //Converts to correct format and unlock the file
+                GetSelectedTask().originalImage = copy;
+            }
+
             ConvertImages();
         }
 

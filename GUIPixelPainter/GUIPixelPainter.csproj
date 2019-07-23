@@ -37,7 +37,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject />
+    <StartupObject>GUIPixelPainter.Launcher</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -72,6 +72,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="DataLoader.cs" />
+    <Compile Include="DenoisePlacementBehaviour.cs" />
     <Compile Include="GUIHelper.cs" />
     <Compile Include="GUIDataExchange.cs" />
     <Compile Include="GUIUpdater.cs" />
@@ -83,6 +84,7 @@
     <Compile Include="GUI\PixelCanvas.xaml.cs">
       <DependentUpon>PixelCanvas.xaml</DependentUpon>
     </Compile>
+    <Compile Include="PlacementBehaviour.cs" />
     <Compile Include="SocketIO.cs" />
     <Compile Include="GUI\TaskPanel.xaml.cs">
       <DependentUpon>TaskPanel.xaml</DependentUpon>
@@ -90,6 +92,7 @@
     <Compile Include="GUI\UserPanel.xaml.cs">
       <DependentUpon>UserPanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TopDownPlacementBehaviour.cs" />
     <Compile Include="UsefulDataRepresentation.cs" />
     <Compile Include="UserManager.cs" />
     <Compile Include="UserSession.cs" />

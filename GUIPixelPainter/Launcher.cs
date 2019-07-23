@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace GUIPixelPainter
 {
-    class Launcher
+    public class Launcher
     {
+        App app;
+
         GUI.BotWindow window;
         GUIDataExchange dataExchange;
         GUIHelper helper;
@@ -17,10 +19,25 @@ namespace GUIPixelPainter
         UserManager manager;
         DataLoader loader;
 
-        public void Launch(GUI.BotWindow window)
+        private static Launcher launcher;
+        [STAThread]
+        public static void Main()
         {
-            this.window = window;
+            launcher = new Launcher();
+        }
 
+        public Launcher()
+        {
+            app = new App();
+            app.InitializeComponent();
+            app.Dispatcher.InvokeAsync(() => app.MainWindow.Loaded += Startup);
+            app.Run();
+            Save();
+        }
+
+        private void Startup(object sender, System.Windows.RoutedEventArgs e)
+        {
+            //Create palettes
             var palette = new Dictionary<int, Dictionary<int, System.Drawing.Color>>()
             {
                 {
@@ -74,78 +91,51 @@ namespace GUIPixelPainter
                     }
                 }
             };
-
             Dictionary<int, List<System.Drawing.Color>> GUIPalette = palette.Select((a) =>
             {
                 return new KeyValuePair<int, List<System.Drawing.Color>>(a.Key, a.Value.Select((b) => b.Value).ToList());
             }).ToDictionary((a) => a.Key, (a) => a.Value);
             GUIPalette[7].RemoveRange(27, 2); //dont show premium color in UI
 
+            //Create or get everything
+            window = app.Windows[0] as GUI.BotWindow;
             helper = new GUIHelper(GUIPalette);
+            dataExchange = new GUIDataExchange(window.usersPanel, window.taskList, window.pixelCanvas, window);
+            representation = new UsefulDataRepresentation(dataExchange);
+            manager = new UserManager(representation, palette);
+            updater = new GUIUpdater(palette);
+            loader = new DataLoader(dataExchange);
+
+            //Set window properties
             window.Helper = helper;
             window.taskList.Helper = helper;
             window.pixelCanvas.Helper = helper;
+            window.DataExchange = dataExchange;
+            window.Launcher = this;
 
-            dataExchange = new GUIDataExchange(window.usersPanel, window.taskList, window.pixelCanvas, window);
-
+            //Set window children properties
             window.taskList.DataExchange = dataExchange;
             window.usersPanel.DataExchange = dataExchange;
             window.pixelCanvas.DataExchange = dataExchange;
 
-            ServicePointManager.DefaultConnectionLimit = 10;
-
-            representation = new UsefulDataRepresentation(dataExchange);
-            manager = new UserManager(representation, palette);
-
-            updater = new GUIUpdater(palette);
+            //Set updater properties
             updater.DataExchange = dataExchange;
             updater.Manager = manager;
 
+            //Set dataexchange properties
             dataExchange.UsefulData = representation;
             dataExchange.Updater = updater;
 
-            window.DataExchange = dataExchange;
-
-            loader = new DataLoader(dataExchange);
+            //Load saved data
             loader.Load();
 
-            //Test();
+            //Start loading data
+            window.Run();
         }
 
         public void Save()
         {
             loader.Save();
-        }
-
-        public void Test()
-        {
-            /*SocketIO socketIO = new SocketIO(
-                "ljmltf44s38t906gfe0ohqquzuu9je34xppq4uvxx3q74xojco8tfyofsjocxshuh7lm1gjzja6n7u7jjfdze2e7l3jjv0dd7zz9fj8zufn1auluayto18vnbf67gkknjkxz36yxllzwgkqqjkfktb75rec7ywvhgsgkzfhl0hhg187ltn6mzdsqr4xq1s7ilo2l3k641nk3wsopfuce854092qbvythnw2qh8uiwfms8ain5v2d07da94l53fm",
-                "z6z8z92taue1oyqt0htajrozfmcgi3biaaraku4uoivchm5i3zsnqhm64zmm3x5d8xosrsngbiss5ya9x3wokjuojhbmfh0neog5h3msmelrdw1bzxzkhu80bknq1nefculuy7mkm7cz4da3bans4wtfhg6i4kyhfkbdryye5beapod0z1t3ynjf4qx9awqqg138z2m5e0f3pt4ovxstlc8p26yd2o3jq7rqaewoebr45wt0ultfy24183fbsiu",
-                7);*/
-
-            /*SocketIO socketIO = new SocketIO(
-                "jmltf44s38t906gfe0ohqquzuu9je34xppq4uvxx3q74xojco8tfyofsjocxshuh7lm1gjzja6n7u7jjfdze2e7l3jjv0dd7zz9fj8zufn1auluayto18vnbf67gkknjkxz36yxllzwgkqqjkfktb75rec7ywvhgsgkzfhl0hhg187ltn6mzdsqr4xq1s7ilo2l3k641nk3wsopfuce854092qbvythnw2qh8uiwfms8ain5v2d07da94l53fm",
-                "gzvv6cwds86j2hlu0iupx4fi4srwyd5ed1ajd7x5f4phlbcmu6brbq9fj1bhfhwsi6cwd92tdsbz3nlxuwp5nyl70xofel8xrku5txy7p97sxtqrqfxdejleh9uwv2tmmosglrna1v2yosqe7osl8d0pnuliwe5i3yzopmyqi1p6ugl25dodro2fjnxf23y51xtqksh3t79nnvps9e5028flvd1yg03hxx8iqplkwv8kqyczci0eqg0mt1l91pr",
-                7);*/
-
-            /*socketIO.Connect();
-
-             UserSession session = new UserSession(socketIO);
-
-             int x = 1084;
-             int y = 704;
-             for (int i = 0; i < 20; i++)
-             {
-                 for (int j = 0; j < 20; j++)
-                 {
-                     if (i % 2 == j % 2)
-                         session.Enqueue(new IdPixel(5, x + i, y + j));
-                     else
-                         session.Enqueue(new IdPixel(21, x + i, y + j));
-                 }
-             }
-             */
         }
     }
 }

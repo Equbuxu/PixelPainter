@@ -14,13 +14,8 @@
                         <ListView Name="userList" SelectionChanged="OnUserSelection" Margin="5" Height="200">
 
                         </ListView>
-                        <Button Margin="5" Click="OnNewUserClick">
+                        <Button Margin="5" Click="OnNewUserClick" ToolTip="Create new user">
                             New user
-                            <Button.ToolTip>
-                                <ToolTip>
-                                    Adds a user to userList
-                                </ToolTip>
-                            </Button.ToolTip>
                         </Button>
 
                         <Label FontWeight="Bold">User settings</Label>
@@ -43,19 +38,9 @@
                         <Label Margin="5" Name="userStatus">Status:</Label>
                         <CheckBox Margin="5" Name="enableUser" Checked="OnEnableUser" Unchecked="OnDisableUser" IsEnabled="False">
                             Enabled
-                            <CheckBox.ToolTip>
-                                <ToolTip>
-                                    Toggles the activeness of the user
-                                </ToolTip>
-                            </CheckBox.ToolTip>
                         </CheckBox>
                         <Button Margin="5" Name="deleteUser" Click="OnDeleteUserClick" IsEnabled="False">
                             Delete
-                            <Button.ToolTip>
-                                <ToolTip>
-                                    Removes a user from userList
-                                </ToolTip>
-                            </Button.ToolTip>
                         </Button>
                     </StackPanel>
                 </Expander>

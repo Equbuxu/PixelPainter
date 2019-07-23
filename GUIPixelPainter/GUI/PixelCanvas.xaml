@@ -8,7 +8,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Border ClipToBounds="True">
         <Canvas>
-            <Canvas Name="MainCanvas" MouseDown="Canvas_MouseDown"  MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp" MouseWheel="MainCanvas_MouseWheel" MouseEnter="MainCanvas_MouseEnter" MouseLeave="MainCanvas_MouseLeave">
+            <Canvas Name="MainCanvas" MouseDown="Canvas_MouseDown" Focusable="True" KeyDown="MainCanvas_KeyDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp" MouseWheel="MainCanvas_MouseWheel" MouseEnter="MainCanvas_MouseEnter" MouseLeave="MainCanvas_MouseLeave">
                 <Border BorderBrush="Black" BorderThickness="2" Canvas.Left="-2" Canvas.Top="-2">
                     <Image Name="MainImage" RenderOptions.BitmapScalingMode="NearestNeighbor"></Image>
                 </Border>
@@ -26,43 +26,23 @@
             </StackPanel>
 
             <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="15" Canvas.Top="15" Height="25" Width="25" MouseDown="OnMoveToolClick" Name="moveTool">
-                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" ToolTip="Move tool">
                     ☩
-                    <TextBlock.ToolTip>
-                        <ToolTip>
-                            Switch to the move mode on canvas
-                        </ToolTip>
-                    </TextBlock.ToolTip>
                 </TextBlock>
             </Border>
             <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="55" Canvas.Top="15" Height="25" Width="25" MouseDown="OnDrawToolClick" Name="drawTool">
-                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Draw tool">
                     ✎
-                    <TextBlock.ToolTip>
-                        <ToolTip>
-                            Switch to the drawing mode in the canvas
-                        </ToolTip>
-                    </TextBlock.ToolTip>
                 </TextBlock>
             </Border>
             <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Right="15" Canvas.Top="15" Height="25" Width="{Binding ElementName=coordsLabel, Path=ActualWidth}">
-                <TextBlock Name="coordsLabel" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5,0,5,0">
+                <TextBlock Name="coordsLabel" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5,0,5,0" ToolTip="Mouse position">
                     0,0
-                    <TextBlock.ToolTip>
-                        <ToolTip>
-                            Coordinatss
-                        </ToolTip>
-                    </TextBlock.ToolTip>
                 </TextBlock>
             </Border>
             <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Right="15" Canvas.Top="55" Height="25" Width="25">
-                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5,0,5,0" FontSize="16" MouseUp="OnResetPosition">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5,0,5,0" FontSize="16" MouseUp="OnResetPosition" ToolTip="Reset canvas' position">
                     ↻
-                    <TextBlock.ToolTip>
-                        <ToolTip>
-                            Resets the position of the canvas
-                        </ToolTip>
-                    </TextBlock.ToolTip>
                 </TextBlock>
             </Border>
         </Canvas>

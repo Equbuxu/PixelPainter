@@ -29,14 +29,14 @@ namespace GUIPixelPainter
 
     class ChatMessagePacket : EventArgs
     {
-        public string username;
-        public int color;
-        public string guild;
-        public string message;
-        public bool admin;
-        public bool mod;
-        public bool premium;
-        public int boardId;
+        public string username = null;
+        public int color = 0;
+        public string guild = null;
+        public string message = null;
+        public bool admin = false;
+        public bool mod = false;
+        public bool premium = false;
+        public int boardId = 0;
 
         public override int GetHashCode()
         {
@@ -71,14 +71,14 @@ namespace GUIPixelPainter
 
     class PixelPacket : EventArgs
     {
-        public int x;
-        public int y;
+        public int x = 0;
+        public int y = 0;
         [JsonProperty(PropertyName = "c")]
-        public int color;
+        public int color = 0;
         [JsonProperty(PropertyName = "u")]
-        public int userId;
+        public int userId = 0;
         [JsonProperty(PropertyName = "b")]
-        public int boardId;
+        public int boardId = 0;
 
         public override int GetHashCode()
         {
@@ -112,10 +112,10 @@ namespace GUIPixelPainter
     {
         class IdResponce
         {
-            public string sid;
-            public string[] upgrades;
-            public int pingInterval;
-            public int pingTimeout;
+            public string sid = null;
+            public string[] upgrades = null;
+            public int pingInterval = 0;
+            public int pingTimeout = 0;
         }
 
         private static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -175,6 +175,7 @@ namespace GUIPixelPainter
                 return;
 
             thread = new Thread(ConnectLoop);
+            thread.Name = "SocketIO polling";
             thread.IsBackground = true;
             thread.Start();
         }

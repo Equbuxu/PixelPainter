@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -25,20 +26,23 @@ namespace GUIPixelPainter.GUI
         private Dictionary<int, LinkedList<long>> lastUserPlaceTimes = new Dictionary<int, LinkedList<long>>();
         private Dictionary<int, Label> nicksLabel = new Dictionary<int, Label>();
         private Dictionary<int, Label> speedsLabel = new Dictionary<int, Label>();
+        private bool ignoreEvents = true;
         long lastUpdateTime = -1;
 
         DropShadowEffect textShadow = new DropShadowEffect();
 
-        private GUIDataExchange dataExchange;
-        public GUIDataExchange DataExchange { get { return dataExchange; } set { dataExchange = value; dataExchange.UpdateGeneralSettingsFromGUI(); } }
-        private Launcher laucher = new Launcher();
+        public GUIDataExchange DataExchange { get; set; }
         public GUIHelper Helper { get; set; }
+        public Launcher Launcher { get; set; }
 
         public BotWindow()
         {
             InitializeComponent();
+        }
 
-            laucher.Launch(this);
+        public void Run()
+        {
+            Debug.Assert(DataExchange != null && Helper != null && Launcher != null);
 
             speedPanelGrid.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
 
@@ -49,11 +53,14 @@ namespace GUIPixelPainter.GUI
             textShadow.BlurRadius = 0.5;
 
             var updateTimer = new Timer(500);
-            updateTimer.Elapsed += (a, b) => Dispatcher.Invoke(() => DataExchange.CreateUpdate()); //TODO exception on close: task cancelled
+            updateTimer.Elapsed += (a, b) => { try { Dispatcher.Invoke(() => DataExchange.CreateUpdate()); } catch (TaskCanceledException) { } };
             updateTimer.Start();
 
-            Closed += (a, b) => laucher.Save(); //TODO Should wait for taskpanel conversion thread to finish
+            ignoreEvents = true;
+            canvasId.Text = "7";
+            ignoreEvents = false;
 
+            DataExchange.UpdateGeneralSettingsFromGUI();
         }
 
         public bool IsBotEnabled()
@@ -61,15 +68,29 @@ namespace GUIPixelPainter.GUI
             return enabled.IsChecked == true;
         }
 
-        public bool IsSuperimpositionEnabled()
+        public bool IsOverlayEnabled()
         {
-            return superimpose.IsChecked == true;
+            return overlay.IsChecked == true;
         }
 
-        public void SetSetings(bool superimposeTasks, int canvasId)
+        public PlacementMode GetPlacementMode()
         {
-            superimpose.IsChecked = superimposeTasks;
+            switch (placementMode.SelectedIndex)
+            {
+                default:
+                case 0:
+                    return PlacementMode.TOPDOWN;
+                case 1:
+                    return PlacementMode.DENOISE;
+            }
+        }
+
+        public void SetSettings(bool overlayTasks, int canvasId)
+        {
+            ignoreEvents = true;
+            overlay.IsChecked = overlayTasks;
             this.canvasId.Text = canvasId.ToString();
+            ignoreEvents = false;
         }
 
         public int GetCanvasId()
@@ -158,28 +179,37 @@ namespace GUIPixelPainter.GUI
 
         private void OnGeneralSettingChange(object sender, RoutedEventArgs e)
         {
+            if (ignoreEvents)
+                return;
             DataExchange.UpdateGeneralSettingsFromGUI();
         }
 
         private void OnTextBoxGotFocus(object sender, RoutedEventArgs e)
         {
+            if (ignoreEvents)
+                return;
             canvasId.SelectAll();
         }
 
         private void OnChatSend(object sender, RoutedEventArgs e)
         {
+            if (ignoreEvents)
+                return;
             if (DataExchange.CreateChatMessage(chatTextBox.Text, 0))
                 chatTextBox.Text = "";
         }
 
-        private void save(object sender, RoutedEventArgs e)
+        private void OnSaveClick(object sender, RoutedEventArgs e)
         {
-            laucher.Save();
+            if (ignoreEvents)
+                return;
+            Launcher.Save();
         }
-
 
         private void OnChatTextBoxKeyUp(object sender, KeyEventArgs e)
         {
+            if (ignoreEvents)
+                return;
             if (e.Key != Key.Enter)
                 return;
             OnChatSend(null, null);
@@ -187,6 +217,8 @@ namespace GUIPixelPainter.GUI
 
         private void OnSpeedRefresh(object sender, RoutedEventArgs e)
         {
+            if (ignoreEvents)
+                return;
             foreach (KeyValuePair<int, LinkedList<long>> pair in lastUserPlaceTimes)
             {
                 long last = pair.Value.Last.Value;
@@ -194,5 +226,6 @@ namespace GUIPixelPainter.GUI
                 pair.Value.AddLast(last);
             }
         }
+
     }
 }

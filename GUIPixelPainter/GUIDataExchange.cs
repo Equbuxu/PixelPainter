@@ -8,6 +8,12 @@ using System.Threading.Tasks;
 
 namespace GUIPixelPainter
 {
+    public enum PlacementMode
+    {
+        TOPDOWN,
+        DENOISE
+    }
+
     public class GUIUser
     {
         public GUIUser(Guid internalId, string name, string proxy, string authKey, string authToken, Status status, bool enabled)
@@ -25,6 +31,7 @@ namespace GUIPixelPainter
         public string Proxy { get; }
         public string AuthKey { get; }
         public string AuthToken { get; }
+        [JsonIgnore]
         public Status Status { get; }
         public bool Enabled { get; }
     }
@@ -80,9 +87,11 @@ namespace GUIPixelPainter
         //GUI element states
         public bool BotEnabled { get; private set; }
 
-        public bool SuperimposeTasks { get; private set; }
+        public bool OverlayTasks { get; private set; }
 
         public int CanvasId { get; private set; }
+
+        public PlacementMode PlacementMode { get; private set; }
 
         private Dictionary<int, List<GUITask>> guiTasks = new Dictionary<int, List<GUITask>>();
         //public IReadOnlyDictionary<int, IReadOnlyList<GUITask>> GUITasks => (IReadOnlyDictionary<int, IReadOnlyList<GUITask>>)guiTasks;
@@ -131,18 +140,19 @@ namespace GUIPixelPainter
 
         public void UpdateTasksFromGUI()
         {
-            SuperimposeTasks = botWindow.IsSuperimpositionEnabled();
+            OverlayTasks = botWindow.IsOverlayEnabled();
             guiTasks = taskPanel.GetTasks();
             UsefulData.UpdateTasks();
             Updater.Update();
-            if (SuperimposeTasks && guiTasks.ContainsKey(CanvasId))
+            if (OverlayTasks && guiTasks.ContainsKey(CanvasId))
                 pixelCanvas.OverlayTasks(guiTasks[CanvasId].Where((a) => a.Enabled).ToList());
         }
 
         public void UpdateGeneralSettingsFromGUI()
         {
             BotEnabled = botWindow.IsBotEnabled();
-            SuperimposeTasks = botWindow.IsSuperimpositionEnabled();
+            OverlayTasks = botWindow.IsOverlayEnabled();
+            PlacementMode = botWindow.GetPlacementMode();
 
             int canvasId = botWindow.GetCanvasId();
             if (canvasId != CanvasId)
@@ -155,11 +165,12 @@ namespace GUIPixelPainter
                 UsefulData.UpdateCanvasId();
             }
 
-            if (SuperimposeTasks && guiTasks.ContainsKey(canvasId))
+            if (OverlayTasks && guiTasks.ContainsKey(canvasId))
                 pixelCanvas.OverlayTasks(guiTasks[CanvasId].Where((a) => a.Enabled).ToList());
             else
                 pixelCanvas.OverlayTasks(new List<GUITask>());
 
+            UsefulData.UpdatePlacementMode();
             UsefulData.UpdateTasks();
             Updater.Update();
         }
@@ -244,10 +255,11 @@ namespace GUIPixelPainter
             userPanel.AddNewUser(user);
         }
 
-        public void PushSettings(bool superimposeTasks, int canvasId)
+        public void PushSettings(bool overlayTasks, int canvasId)
         {
-            SuperimposeTasks = superimposeTasks;
-            botWindow.SetSetings(superimposeTasks, canvasId);
+            botWindow.SetSettings(overlayTasks, canvasId);
+
+            //TODO Why the fuck is this here??
             if (canvasId != CanvasId)
             {
                 CanvasId = canvasId;
@@ -257,6 +269,11 @@ namespace GUIPixelPainter
 
                 UsefulData.UpdateCanvasId();
             }
+        }
+
+        public void PushTaskPosition(int x, int y)
+        {
+            taskPanel.MoveCurrentTask(x, y);
         }
     }
 }

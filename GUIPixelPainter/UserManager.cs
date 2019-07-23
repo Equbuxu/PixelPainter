@@ -70,6 +70,7 @@ namespace GUIPixelPainter
         private Dictionary<int, Dictionary<System.Drawing.Color, int>> invPalette;
 
         UsefulDataRepresentation guiData;
+        PlacementBehaviour placementBehaviour;
 
         public UserManager(UsefulDataRepresentation representation, Dictionary<int, Dictionary<int, System.Drawing.Color>> palette)
         {
@@ -79,6 +80,7 @@ namespace GUIPixelPainter
             this.invPalette = palette.Select((a) => new KeyValuePair<int, Dictionary<System.Drawing.Color, int>>(a.Key, a.Value.Select((b) => new KeyValuePair<Color, int>(b.Value, b.Key)).ToDictionary((b) => b.Key, (b) => b.Value))).ToDictionary((a) => a.Key, (a) => a.Value);
 
             loopThread = new Thread(Loop);
+            loopThread.Name = "UserManager loop";
             loopThread.IsBackground = true;
             loopThread.Start();
         }
@@ -102,12 +104,20 @@ namespace GUIPixelPainter
             {
                 resetEvent.WaitOne();
 
-                //TODO remake queues on update (or maybe not?)
-                RefreshConnections();
-                ManageQueues();
-                ProcessGUIEvents();
-                ProcessEvents();
-                ChangeCanvas();
+                if (curCanvas != guiData.CanvasId)
+                    ChangeCanvas();
+
+                if (curCanvas != -1) //HACK things should fire in a different order in a way that will allow curCanvas to be set before first resetEvent.
+                {
+                    if ((placementBehaviour == null || placementBehaviour.GetMode() != guiData.PlacementMode) && curCanvas != -1) //HACK curCanvas check is kinda hacky (it is there to avoid crah on start)
+                        ChangePlacementBehaviour();
+
+                    //TODO remake queues on update (or maybe not?)
+                    RefreshConnections();
+                    ManageQueues();
+                    ProcessGUIEvents();
+                    ProcessEvents();
+                }
             }
         }
 
@@ -115,17 +125,51 @@ namespace GUIPixelPainter
         {
             //TODO write managequeues
             var total = users.Where((a) => a.Client.GetStatus() == Status.OPEN).ToList();
+            var completedTasksForEachUser = new List<List<UsefulTask>>();
+
             foreach (Connection conn in total)
             {
+                var completedTasks = new List<UsefulTask>();
+                completedTasksForEachUser.Add(completedTasks);
+
                 if (conn.Client.GetStatus() != Status.OPEN)
                     continue;
-                if (conn.Session.QueueLength() > 50)
+                if (conn.Session.QueueLength() > 200)
                     continue;
 
-                var queue = BuildQueue(total.IndexOf(conn), total.Count);
+                //var queue = BuildQueue(total.IndexOf(conn), total.Count);
+                if (placementBehaviour == null)
+                    break;
+                var queue = placementBehaviour.BuildQueue(total.IndexOf(conn), total.Count, completedTasks);
+
+
                 foreach (IdPixel pixel in queue)
                 {
                     conn.Session.Enqueue(pixel);
+                }
+            }
+
+            //Disable tasks which were completed by every user
+            if (completedTasksForEachUser.Count > 0)
+            {
+                var commonCompletedTasks = completedTasksForEachUser.First();
+
+                for (int i = 1; i < completedTasksForEachUser.Count; i++)
+                    commonCompletedTasks = commonCompletedTasks.Intersect(completedTasksForEachUser[i]).ToList();
+
+                foreach (UsefulTask task in commonCompletedTasks)
+                {
+                    CreateEventToDispatch("manager.taskenable", new TaskEnableStateData(task.Id, false));
+                }
+            }
+
+            //Clear queues on bot disable
+            if (guiData.Tasks.Count == 0 && guiData.ManualPixels.Count == 0)
+            {
+                Console.WriteLine("clear all queues");
+                foreach (Connection conn in total)
+                {
+                    conn.Session.ClearQueue();
                 }
             }
         }
@@ -154,7 +198,7 @@ namespace GUIPixelPainter
                     break;
                 if (users.Find((a) => a.Id == user.Id) == null)
                 {
-                    Console.WriteLine("user connection created");
+                    Console.WriteLine("user connection created, there was {0} users in total", users.Count);
                     SocketIO server = CreateSocketIO(user);
                     server.Connect();
                     UserSession newUser = new UserSession(server);
@@ -215,71 +259,8 @@ namespace GUIPixelPainter
             }
         }
 
-        private List<IdPixel> BuildQueue(int userNum, int totalUser)
-        {
-            List<IdPixel> queue = new List<IdPixel>();
-
-            //manual task
-            var pixels = guiData.ManualPixels;
-            for (int i = userNum; i < pixels.Count; i += totalUser)
-            {
-                UsefulPixel reqPixel = pixels[i];
-                var canvasPixel = canvas.GetPixel(reqPixel.X, reqPixel.Y);
-                if (canvasPixel.R == 204 && canvasPixel.G == 204 && canvasPixel.B == 204)
-                    continue;
-                if (canvasPixel == reqPixel.Color)
-                    continue;
-                if (!invPalette[curCanvas].ContainsKey(reqPixel.Color))
-                    continue;
-                IdPixel pixel = new IdPixel(invPalette[curCanvas][reqPixel.Color], reqPixel.X, reqPixel.Y);
-                queue.Add(pixel);
-                if (queue.Count > 99)
-                    goto end;
-            }
-
-            //regular tasks
-            foreach (UsefulTask task in guiData.Tasks)
-            {
-                bool completed = true;
-                //for (int j = 0; j < task.Image.Height; j++)
-                for (int j = task.Image.Height - 1; j >= 0; j--)
-                {
-                    for (int i = userNum; i < task.Image.Width; i += totalUser)
-                    {
-                        var canvasPixel = canvas.GetPixel(task.X + i, task.Y + j);
-                        if (canvasPixel.R == 204 && canvasPixel.G == 204 && canvasPixel.B == 204)
-                            continue;
-                        var reqPixel = task.Image.GetPixel(i, j);
-                        if (canvasPixel == reqPixel)
-                            continue;
-                        if (!invPalette[curCanvas].ContainsKey(reqPixel))
-                            continue;
-                        completed = false;
-                        IdPixel pixel = new IdPixel(invPalette[curCanvas][reqPixel], task.X + i, task.Y + j);
-                        queue.Add(pixel);
-                        if (queue.Count > 99)
-                            goto end;
-                    }
-                }
-                if (completed && !task.KeepRepairing)
-                    CreateEventToDispatch("manager.taskenable", new TaskEnableStateData(task.Id, false));
-            }
-
-        end:
-            //Bitmap test = new Bitmap(task.image.Width, task.image.Height);
-            //foreach (Pixel pixel in queue)
-            //{
-            //    test.SetPixel(pixel.position.X - task.x, pixel.position.Y - task.y, pixel.color);
-            //}
-            //test.Save("test.png");
-            Console.WriteLine("Made a queue of {0} pixels", queue.Count);
-            return queue;
-        }
-
         private void ChangeCanvas()
         {
-            if (curCanvas == guiData.CanvasId)
-                return;
             curCanvas = guiData.CanvasId;
 
             //Disconnect everyone
@@ -318,10 +299,34 @@ namespace GUIPixelPainter
                 System.IO.Stream responseStream2 = response2.GetResponseStream();
                 borders = new Bitmap(responseStream2);
                 responseStream2.Dispose();
+
+                //if (guiData.CanvasId == 7)
+                //    borders.SetPixel(1029, 895, Color.FromArgb(204, 204, 204)); //cursed pixel
             }
             catch (System.Net.WebException)
             {
                 borders = new Bitmap(canvas.Width, canvas.Height);
+            }
+
+            //Remake placement behavior
+            //TODO use inheritance
+            ChangePlacementBehaviour();
+        }
+
+        private void ChangePlacementBehaviour()
+        {
+            switch (guiData.PlacementMode)
+            {
+                case PlacementMode.TOPDOWN:
+                    placementBehaviour = new TopDownPlacementBehaviour(guiData, canvas, borders, invPalette[curCanvas]);
+                    break;
+                case PlacementMode.DENOISE:
+                    placementBehaviour = new DenoisePlacementBehaviour(guiData, canvas, borders, invPalette[curCanvas]);
+                    break;
+            }
+            foreach (Connection conn in users)
+            {
+                conn.Session.ClearQueue();
             }
         }
 
@@ -334,11 +339,21 @@ namespace GUIPixelPainter
 
         private void CreateEventToDispatch(string type, EventArgs data)
         {
-            eventsToDispatch.Add(new Tuple<string, EventArgs>(type, data));
+            lock (eventsToDispatch)
+            {
+                eventsToDispatch.Add(new Tuple<string, EventArgs>(type, data));
+            }
         }
 
         private void OnSocketEvent(string type, EventArgs args, Guid user)
         {
+
+            if (type == "throw.error" && (args as ErrorPacket).id == 11)
+            {
+                users.Where((a) => a.Id == user).FirstOrDefault()?.Session.Stall(1000);
+                Console.WriteLine("stall");
+            }
+
             if (user != currentActiveUser)
             {
                 var curactive = users.Where((a) => a.Id == currentActiveUser).ToList();

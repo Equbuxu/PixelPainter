@@ -32,7 +32,7 @@ namespace GUIPixelPainter
 
                 var tasks = data.Item1;
                 var users = data.Item2;
-                bool superimposeTasks = data.Item3;
+                bool overlayTasks = data.Item3;
                 int canvasId = data.Item4;
 
                 //load images and push tasks
@@ -61,7 +61,7 @@ namespace GUIPixelPainter
                 {
                     dataExchange.PushNewUser(user);
                 }
-                dataExchange.PushSettings(superimposeTasks, canvasId);
+                dataExchange.PushSettings(overlayTasks, canvasId);
             }
         }
 
@@ -73,23 +73,39 @@ namespace GUIPixelPainter
             return img;
         }
 
+        private void ClearDirectory(string path)
+        {
+            System.IO.DirectoryInfo di = new DirectoryInfo(path);
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
+            }
+            foreach (DirectoryInfo dir in di.GetDirectories())
+            {
+                dir.Delete(true);
+            }
+        }
+
         public void Save()
         {
-            if (Directory.Exists(folderPath))
-                Directory.Delete(folderPath, true);
             Directory.CreateDirectory(folderPath);
             Directory.CreateDirectory(Path.Combine(folderPath, "original"));
             Directory.CreateDirectory(Path.Combine(folderPath, "converted"));
             Directory.CreateDirectory(Path.Combine(folderPath, "dithered"));
+
+            //Delete old images
+            ClearDirectory(Path.Combine(folderPath, "original"));
+            ClearDirectory(Path.Combine(folderPath, "converted"));
+            ClearDirectory(Path.Combine(folderPath, "dithered"));
 
             using (StreamWriter file = new StreamWriter(File.Create(configPath)))
             {
                 JsonSerializer serializer = new JsonSerializer();
                 Dictionary<int, List<GUITask>> tasks = dataExchange.GUITasks.Select((a) => a).ToDictionary((a) => a.Key, (a) => a.Value.Select((b) => b).ToList());
                 List<GUIUser> users = dataExchange.GUIUsers.Select((a) => a).ToList();
-                bool superimposeTasks = dataExchange.SuperimposeTasks;
+                bool overlayTasks = dataExchange.OverlayTasks;
                 int canvasId = dataExchange.CanvasId;
-                serializer.Serialize(file, new Tuple<Dictionary<int, List<GUITask>>, List<GUIUser>, bool, int>(tasks, users, superimposeTasks, canvasId));
+                serializer.Serialize(file, new Tuple<Dictionary<int, List<GUITask>>, List<GUIUser>, bool, int>(tasks, users, overlayTasks, canvasId));
 
                 //save images
                 foreach (KeyValuePair<int, List<GUITask>> pair in tasks)

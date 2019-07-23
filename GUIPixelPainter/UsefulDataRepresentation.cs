@@ -83,6 +83,8 @@ namespace GUIPixelPainter
 
         public int CanvasId { get; private set; } = -1;
 
+        public PlacementMode PlacementMode { get; private set; }
+
         private GUIDataExchange dataExchange;
 
         public UsefulDataRepresentation(GUIDataExchange dataExchange)
@@ -100,12 +102,19 @@ namespace GUIPixelPainter
             lock (manualPixels)
             {
                 manualPixels.Clear();
+                if (!dataExchange.BotEnabled)
+                    return;
                 foreach (GUIPixel pixel in dataExchange.ManualTask)
                 {
                     UsefulPixel newPixel = new UsefulPixel(pixel.X, pixel.Y, pixel.Color);
                     manualPixels.Add(newPixel);
                 }
             }
+        }
+
+        public void UpdatePlacementMode()
+        {
+            PlacementMode = dataExchange.PlacementMode;
         }
 
         public void UpdateTasks()
