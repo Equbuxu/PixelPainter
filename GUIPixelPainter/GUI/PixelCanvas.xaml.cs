@@ -216,6 +216,8 @@ namespace GUIPixelPainter.GUI
 
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            Keyboard.Focus(MainCanvas);
+
             mouseDownPoint = e.GetPosition((UIElement)MainCanvas.Parent);
             mouseDownPoint.X -= translate.X;
             mouseDownPoint.Y -= translate.Y;
@@ -296,6 +298,22 @@ namespace GUIPixelPainter.GUI
             translate.Y = 0;
             scale.ScaleX = 1;
             scale.ScaleY = 1;
+        }
+
+        private void MainCanvas_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.P)
+            {
+                var mousePos = Mouse.GetPosition(MainCanvas);
+
+                //mousePos.X /= scale.ScaleX;
+                //mousePos.Y /= scale.ScaleY;
+
+                //mousePos.X -= translate.X;
+                //mousePos.Y -= translate.Y;
+
+                DataExchange.PushTaskPosition((int)mousePos.X, (int)mousePos.Y);
+            }
         }
     }
 }

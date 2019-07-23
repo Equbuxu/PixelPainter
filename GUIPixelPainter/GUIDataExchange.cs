@@ -258,6 +258,8 @@ namespace GUIPixelPainter
         public void PushSettings(bool overlayTasks, int canvasId)
         {
             botWindow.SetSettings(overlayTasks, canvasId);
+
+            //TODO Why the fuck is this here??
             if (canvasId != CanvasId)
             {
                 CanvasId = canvasId;
@@ -267,6 +269,11 @@ namespace GUIPixelPainter
 
                 UsefulData.UpdateCanvasId();
             }
+        }
+
+        public void PushTaskPosition(int x, int y)
+        {
+            taskPanel.MoveCurrentTask(x, y);
         }
     }
 }

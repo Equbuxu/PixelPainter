@@ -8,7 +8,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Border ClipToBounds="True">
         <Canvas>
-            <Canvas Name="MainCanvas" MouseDown="Canvas_MouseDown"  MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp" MouseWheel="MainCanvas_MouseWheel" MouseEnter="MainCanvas_MouseEnter" MouseLeave="MainCanvas_MouseLeave">
+            <Canvas Name="MainCanvas" MouseDown="Canvas_MouseDown" Focusable="True" KeyDown="MainCanvas_KeyDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp" MouseWheel="MainCanvas_MouseWheel" MouseEnter="MainCanvas_MouseEnter" MouseLeave="MainCanvas_MouseLeave">
                 <Border BorderBrush="Black" BorderThickness="2" Canvas.Left="-2" Canvas.Top="-2">
                     <Image Name="MainImage" RenderOptions.BitmapScalingMode="NearestNeighbor"></Image>
                 </Border>

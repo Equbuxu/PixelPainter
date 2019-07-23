@@ -85,6 +85,7 @@
                                 </Button>
                             </Grid>
                         </DockPanel>
+                        <TextBlock Margin="5,0,0,0">P - move task to mouse pos</TextBlock>
                         <CheckBox Margin="5" Name="dithering" LostFocus="OnBoxLostFocus" Checked="OnDitheringChange" Unchecked="OnDitheringChange" IsEnabled="False" ToolTip="Smooth out the image">
                             Dithering
                         </CheckBox>

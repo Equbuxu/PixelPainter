@@ -123,6 +123,18 @@ namespace GUIPixelPainter.GUI
             UpdateTaskList();
         }
 
+        public void MoveCurrentTask(int xpos, int ypos)
+        {
+            if (taskList.SelectedIndex == -1)
+                return;
+            var selectedTask = GetSelectedTask();
+            x.Text = (xpos).ToString();
+            y.Text = (ypos).ToString();
+            selectedTask.x = xpos;
+            selectedTask.y = ypos;
+            DataExchange.UpdateTasksFromGUI();
+        }
+
         private Task GetSelectedTask()
         {
             return GetTask(Guid.Parse(((taskList.SelectedItem as StackPanel).Children[1] as TextBlock).Text));
