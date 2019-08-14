@@ -1,7 +1,11 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -431,6 +435,23 @@ namespace GUIPixelPainter.GUI
         {
             pixelHighlight.Visibility = Visibility.Hidden;
             brushHighlight.Visibility = Visibility.Hidden;
+        }
+
+        private void OnSaveMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            var time = DateTime.Now;
+            saveFileDialog.FileName = String.Format("pixeplace.io-{0}-{1}-{2:00}-{3:00}-{4:00}-{5:00}-{6:00}.png", canvasId, time.Year, time.Month, time.Day, time.Hour, time.Minute, time.Second);
+            saveFileDialog.Filter = "Image|*.png";
+            if (saveFileDialog.ShowDialog() != true)
+                return;
+
+            using (var file = File.Create(saveFileDialog.FileName))
+            {
+                BitmapEncoder encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                encoder.Save(file);
+            }
         }
     }
 }
