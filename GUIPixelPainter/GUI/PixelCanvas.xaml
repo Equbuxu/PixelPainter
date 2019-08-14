@@ -8,11 +8,21 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Border ClipToBounds="True">
         <Canvas>
+
             <Canvas Name="MainCanvas" MouseDown="Canvas_MouseDown" Focusable="True" KeyDown="MainCanvas_KeyDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp" MouseWheel="MainCanvas_MouseWheel" MouseEnter="MainCanvas_MouseEnter" MouseLeave="MainCanvas_MouseLeave">
                 <Border BorderBrush="Black" BorderThickness="2" Canvas.Left="-2" Canvas.Top="-2">
-                    <Image Name="MainImage" RenderOptions.BitmapScalingMode="NearestNeighbor"></Image>
+                    <Image Name="MainImage" RenderOptions.BitmapScalingMode="NearestNeighbor" Visibility="Visible"></Image>
                 </Border>
-                <Rectangle Width="1" Height="1" Fill="Transparent" StrokeThickness="0.1" Name="pixelHighlight" Visibility="Hidden">
+                <Rectangle Width="5" Height="5" Fill="Transparent" Name="brushHighlight" StrokeThickness="0.1" Visibility="Hidden">
+                    <Rectangle.Stroke>
+                        <RadialGradientBrush Center="0.5, 0.5" RadiusX="1" RadiusY="1" ColorInterpolationMode="SRgbLinearInterpolation">
+                            <GradientStop Offset="0" Color="White" />
+                            <GradientStop Offset="0.8" Color="Black"/>
+                        </RadialGradientBrush>
+                    </Rectangle.Stroke>
+                </Rectangle>
+
+                <Rectangle Width="1" Height="1" StrokeThickness="0.1" Name="pixelHighlight" Visibility="Hidden">
                     <Rectangle.Stroke>
                         <RadialGradientBrush Center="0.5, 0.5" RadiusX="1" RadiusY="1" ColorInterpolationMode="SRgbLinearInterpolation">
                             <GradientStop Offset="0" Color="White" />
@@ -25,14 +35,19 @@
             <StackPanel Orientation="Horizontal" Canvas.Bottom="15" Canvas.Left="15" Name="palettePanel">
             </StackPanel>
 
-            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="15" Canvas.Top="15" Height="25" Width="25" MouseDown="OnMoveToolClick" Name="moveTool">
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="15" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="moveTool">
                 <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" ToolTip="Move tool">
                     ☩
                 </TextBlock>
             </Border>
-            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="55" Canvas.Top="15" Height="25" Width="25" MouseDown="OnDrawToolClick" Name="drawTool">
-                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Draw tool">
-                    ✎
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="55" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="drawTool">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Pencil">
+                    •
+                </TextBlock>
+            </Border>
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="95" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="brushTool">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Brush">
+                    ⚫
                 </TextBlock>
             </Border>
             <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Right="15" Canvas.Top="15" Height="25" Width="{Binding ElementName=coordsLabel, Path=ActualWidth}">

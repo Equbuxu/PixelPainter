@@ -21,6 +21,13 @@ namespace GUIPixelPainter.GUI
     /// </summary>
     public partial class PixelCanvas : UserControl
     {
+        enum Tools
+        {
+            MOVE,
+            PENCIL,
+            BRUSH
+        }
+
         class Pixel
         {
             public Color c = new Color();
@@ -31,7 +38,10 @@ namespace GUIPixelPainter.GUI
         private ScaleTransform scale = new ScaleTransform();
         private TranslateTransform translate = new TranslateTransform();
         private Point mouseDownPoint = new Point();
-        private bool drawing = false;
+        private bool shiftDirectionDeterm = false;
+        private bool shiftDirHor = false;
+
+        private Tools tool = Tools.MOVE;
         private Color selectedColor = Color.FromArgb(0, 1, 2, 3);
         private int scalingPower = 0;
 
@@ -58,7 +68,7 @@ namespace GUIPixelPainter.GUI
             MainCanvas.RenderTransform = group;
 
 
-            OnMoveToolClick(null, null);
+            OnToolClick(moveTool, null);
         }
 
         public void ReloadCanvas(int id)
@@ -85,7 +95,12 @@ namespace GUIPixelPainter.GUI
 
         public void OverlayTasks(List<GUITask> tasks)
         {
-            MainCanvas.Children.RemoveRange(2, MainCanvas.Children.Count - 2);
+            for (int i = MainCanvas.Children.Count - 1; i >= 0; i--)
+            {
+                FrameworkElement elem = MainCanvas.Children[i] as FrameworkElement;
+                if ((string)elem.Tag == "taskOverlay")
+                    MainCanvas.Children.Remove(elem);
+            }
             foreach (GUITask task in tasks)
             {
                 Image image = new Image();
@@ -94,6 +109,7 @@ namespace GUIPixelPainter.GUI
                 image.Opacity = 0.5;
                 Canvas.SetLeft(image, task.X);
                 Canvas.SetTop(image, task.Y);
+                image.Tag = "taskOverlay";
                 MainCanvas.Children.Add(image);
             }
         }
@@ -193,25 +209,92 @@ namespace GUIPixelPainter.GUI
         {
             var mouseCoords = e.GetPosition(MainCanvas);
             coordsLabel.Text = String.Format("{0},{1}", (int)mouseCoords.X, (int)mouseCoords.Y);
-            Canvas.SetLeft(pixelHighlight, Math.Floor(mouseCoords.X));
-            Canvas.SetTop(pixelHighlight, Math.Floor(mouseCoords.Y));
+
+            //Process shift key
+            if (Keyboard.IsKeyDown(Key.LeftShift) && e.LeftButton == MouseButtonState.Pressed && tool != Tools.MOVE)
+            {
+                Point curPosition = e.GetPosition((UIElement)MainCanvas.Parent);
+                curPosition.X -= translate.X;
+                curPosition.Y -= translate.Y;
+
+                int dx = (int)((mouseDownPoint.X - curPosition.X) / scale.ScaleX);
+                int dy = (int)((mouseDownPoint.Y - curPosition.Y) / scale.ScaleY);
+
+                if (!shiftDirectionDeterm)
+                {
+                    if (Math.Abs(dx) > Math.Abs(dy))
+                    {
+                        shiftDirHor = true;
+                        shiftDirectionDeterm = true;
+                    }
+                    else if (Math.Abs(dx) < Math.Abs(dy))
+                    {
+                        shiftDirHor = false;
+                        shiftDirectionDeterm = true;
+                    }
+                    //unable to determine of cursor has yet to move more than a pixel
+                }
+
+                if (shiftDirectionDeterm)
+                {
+                    if (shiftDirHor)
+                    {
+                        Canvas.SetLeft(brushHighlight, Math.Floor(mouseCoords.X - 2));
+                        Canvas.SetLeft(pixelHighlight, Math.Floor(mouseCoords.X));
+                    }
+                    else
+                    {
+                        Canvas.SetTop(brushHighlight, Math.Floor(mouseCoords.Y - 2));
+                        Canvas.SetTop(pixelHighlight, Math.Floor(mouseCoords.Y));
+                    }
+                }
+
+            }
+            else
+            {
+                shiftDirectionDeterm = false;
+
+                Canvas.SetLeft(brushHighlight, Math.Floor(mouseCoords.X - 2));
+                Canvas.SetTop(brushHighlight, Math.Floor(mouseCoords.Y - 2));
+
+                Canvas.SetLeft(pixelHighlight, Math.Floor(mouseCoords.X));
+                Canvas.SetTop(pixelHighlight, Math.Floor(mouseCoords.Y));
+            }
 
             if (!MainCanvas.IsMouseCaptured)
                 return;
 
-            if (!drawing || e.LeftButton != MouseButtonState.Pressed)
+            //Move or draw
+            int drawx = (int)Canvas.GetLeft(pixelHighlight);
+            int drawy = (int)Canvas.GetTop(pixelHighlight);
+
+            if (tool == Tools.MOVE || e.LeftButton != MouseButtonState.Pressed)
             {
                 Point curPosition = e.GetPosition((UIElement)MainCanvas.Parent);
                 translate.X = curPosition.X - mouseDownPoint.X;
                 translate.Y = curPosition.Y - mouseDownPoint.Y;
             }
-            else
+            else if (tool == Tools.PENCIL)
             {
-                if (bitmap.GetPixel((int)mouseCoords.X, (int)mouseCoords.Y) != selectedColor)
+                if (bitmap.GetPixel(drawx, drawy) != selectedColor)
                 {
-                    DataExchange.CreateManualPixel(new GUIPixel((int)mouseCoords.X, (int)mouseCoords.Y, System.Drawing.Color.FromArgb(selectedColor.A, selectedColor.R, selectedColor.G, selectedColor.B)));
+                    DataExchange.CreateManualPixel(new GUIPixel(drawx, drawy, System.Drawing.Color.FromArgb(selectedColor.A, selectedColor.R, selectedColor.G, selectedColor.B)));
                 }
             }
+            else if (tool == Tools.BRUSH)
+            {
+                for (int i = drawx - 2; i <= drawx + 2; i++)
+                {
+                    for (int j = drawy - 2; j <= drawy + 2; j++)
+                    {
+                        if (bitmap.GetPixel(i, j) != selectedColor)
+                        {
+                            DataExchange.CreateManualPixel(new GUIPixel(i, j, System.Drawing.Color.FromArgb(selectedColor.A, selectedColor.R, selectedColor.G, selectedColor.B)));
+                        }
+                    }
+                }
+            }
+
         }
 
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
@@ -270,26 +353,15 @@ namespace GUIPixelPainter.GUI
 
         private void MainCanvas_MouseEnter(object sender, MouseEventArgs e)
         {
-            pixelHighlight.Visibility = Visibility.Visible;
+            if (tool == Tools.BRUSH)
+                ShowBrush(true);
+            else
+                ShowBrush(false);
         }
 
         private void MainCanvas_MouseLeave(object sender, MouseEventArgs e)
         {
-            pixelHighlight.Visibility = Visibility.Hidden;
-        }
-
-        private void OnMoveToolClick(object sender, MouseButtonEventArgs e)
-        {
-            moveTool.Background = Brushes.DarkGray;
-            drawTool.Background = Brushes.Black;
-            drawing = false;
-        }
-
-        private void OnDrawToolClick(object sender, MouseButtonEventArgs e)
-        {
-            moveTool.Background = Brushes.Black;
-            drawTool.Background = Brushes.DarkGray;
-            drawing = true;
+            HideBrush();
         }
 
         private void OnResetPosition(object sender, MouseButtonEventArgs e)
@@ -314,6 +386,51 @@ namespace GUIPixelPainter.GUI
 
                 DataExchange.PushTaskPosition((int)mousePos.X, (int)mousePos.Y);
             }
+        }
+        private void OnToolClick(object sender, MouseButtonEventArgs e)
+        {
+            moveTool.Background = Brushes.Black;
+            brushTool.Background = Brushes.Black;
+            drawTool.Background = Brushes.Black;
+
+            (sender as Border).Background = Brushes.Gray;
+
+            if (sender == moveTool)
+            {
+
+                tool = Tools.MOVE;
+                ShowBrush(false);
+            }
+            else if (sender == brushTool)
+            {
+                tool = Tools.BRUSH;
+                ShowBrush(true);
+            }
+            else if (sender == drawTool)
+            {
+                tool = Tools.PENCIL;
+                ShowBrush(false);
+            }
+        }
+
+        private void ShowBrush(bool big)
+        {
+            if (big)
+            {
+                pixelHighlight.Visibility = Visibility.Hidden;
+                brushHighlight.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                pixelHighlight.Visibility = Visibility.Visible;
+                brushHighlight.Visibility = Visibility.Hidden;
+            }
+        }
+
+        private void HideBrush()
+        {
+            pixelHighlight.Visibility = Visibility.Hidden;
+            brushHighlight.Visibility = Visibility.Hidden;
         }
     }
 }
