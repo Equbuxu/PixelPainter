@@ -374,6 +374,7 @@ namespace GUIPixelPainter.GUI
             translate.Y = 0;
             scale.ScaleX = 1;
             scale.ScaleY = 1;
+            scalingPower = 0;
         }
 
         private void MainCanvas_KeyDown(object sender, KeyEventArgs e)
