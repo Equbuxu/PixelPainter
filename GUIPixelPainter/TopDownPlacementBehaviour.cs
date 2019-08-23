@@ -13,7 +13,7 @@ namespace GUIPixelPainter
         private Bitmap canvas;
         private Bitmap borders;
         private int[,] lastUpdateIterCount;
-        private const int maxQueueSize = 200;
+        private const int maxQueueSize = 50;
         private const int pixelResendDelay = 15;
         int iterCount = 0;
         private Dictionary<System.Drawing.Color, int> curCanvasInvPalette;
@@ -36,7 +36,7 @@ namespace GUIPixelPainter
         {
             List<IdPixel> queue = new List<IdPixel>();
             AddManual(queue, userNumber, totalUsers);
-            AddTasks(queue, userNumber, totalUsers, completedTasksToFill);
+            AddTasks(queue, completedTasksToFill);
 
             if (userNumber == 0)
             {
@@ -47,16 +47,14 @@ namespace GUIPixelPainter
             return queue;
         }
 
-        private void AddTasks(List<IdPixel> queue, int userNumber, int totalUsers, List<UsefulTask> completedTasksToFill)
+        private void AddTasks(List<IdPixel> queue, List<UsefulTask> completedTasksToFill)
         {
             foreach (UsefulTask task in guiData.Tasks)
             {
                 bool completed = true;
-                Color queueColor = Color.Transparent;
-                bool queueColorChosen = false;
                 for (int j = 0; j < task.Image.Height; j++)
                 {
-                    for (int i = userNumber; i < task.Image.Width; i += totalUsers)
+                    for (int i = 0; i < task.Image.Width; i++)
                     {
                         if (queue.Count >= maxQueueSize)
                             return;
@@ -75,16 +73,9 @@ namespace GUIPixelPainter
                             continue;
                         if (!curCanvasInvPalette.ContainsKey(reqPixel))
                             continue;
-                        if (!queueColorChosen)
-                        {
-                            queueColor = reqPixel;
-                            queueColorChosen = true;
-                        }
-                        if (reqPixel != queueColor)
-                            continue;
                         completed = false;
 
-                        if (iterCount - lastUpdateIterCount[canvasX, canvasY] < 6) //avoid spamming the same place
+                        if (iterCount - lastUpdateIterCount[canvasX, canvasY] < pixelResendDelay) //avoid spamming the same place
                             continue;
 
                         IdPixel pixel = new IdPixel(curCanvasInvPalette[reqPixel], canvasX, canvasY);
@@ -100,6 +91,7 @@ namespace GUIPixelPainter
         private void AddManual(List<IdPixel> queue, int userNumber, int totalUsers)
         {
             var pixels = guiData.ManualPixels;
+
             for (int i = userNumber; i < pixels.Count; i += totalUsers)
             {
                 if (queue.Count >= maxQueueSize)
@@ -118,7 +110,9 @@ namespace GUIPixelPainter
                 IdPixel pixel = new IdPixel(curCanvasInvPalette[reqPixel.Color], reqPixel.X, reqPixel.Y);
                 queue.Add(pixel);
                 lastUpdateIterCount[reqPixel.X, reqPixel.Y] = iterCount;
+
             }
+
         }
     }
 }
