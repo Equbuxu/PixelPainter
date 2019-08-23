@@ -29,7 +29,8 @@ namespace GUIPixelPainter.GUI
         {
             MOVE,
             PENCIL,
-            BRUSH
+            BRUSH,
+            HISTORYBRUSH
         }
 
         class Pixel
@@ -54,6 +55,7 @@ namespace GUIPixelPainter.GUI
         private long lastUpdateTime = -1;
 
         private WriteableBitmap bitmap;
+        private System.Drawing.Bitmap revertState;
         private int canvasId = -1;
 
         private List<Pixel> manualTask = new List<Pixel>();
@@ -95,6 +97,7 @@ namespace GUIPixelPainter.GUI
             {
                 Console.WriteLine("invalid canvas in pixelcanvas");
             }
+            OnSaveRevertStateClick(null, null);
         }
 
         public void OverlayTasks(List<GUITask> tasks)
@@ -298,6 +301,23 @@ namespace GUIPixelPainter.GUI
                     }
                 }
             }
+            else if (tool == Tools.HISTORYBRUSH)
+            {
+                for (int i = drawx - 2; i <= drawx + 2; i++)
+                {
+                    for (int j = drawy - 2; j <= drawy + 2; j++)
+                    {
+                        System.Drawing.Color revertPixel = revertState.GetPixel(i, j);
+                        Color curPixel = bitmap.GetPixel(i, j);
+                        if (curPixel.R == 204 && curPixel.G == 204 && curPixel.B == 204)
+                            continue;
+                        if (curPixel.R != revertPixel.R || curPixel.G != revertPixel.G || curPixel.B != revertPixel.B)
+                        {
+                            DataExchange.CreateManualPixel(new GUIPixel(i, j, System.Drawing.Color.FromArgb(revertPixel.A, revertPixel.R, revertPixel.G, revertPixel.B)));
+                        }
+                    }
+                }
+            }
 
         }
 
@@ -357,7 +377,7 @@ namespace GUIPixelPainter.GUI
 
         private void MainCanvas_MouseEnter(object sender, MouseEventArgs e)
         {
-            if (tool == Tools.BRUSH)
+            if (tool == Tools.BRUSH || tool == Tools.HISTORYBRUSH)
                 ShowBrush(true);
             else
                 ShowBrush(false);
@@ -382,27 +402,21 @@ namespace GUIPixelPainter.GUI
             if (e.Key == Key.P)
             {
                 var mousePos = Mouse.GetPosition(MainCanvas);
-
-                //mousePos.X /= scale.ScaleX;
-                //mousePos.Y /= scale.ScaleY;
-
-                //mousePos.X -= translate.X;
-                //mousePos.Y -= translate.Y;
-
                 DataExchange.PushTaskPosition((int)mousePos.X, (int)mousePos.Y);
             }
         }
+
         private void OnToolClick(object sender, MouseButtonEventArgs e)
         {
             moveTool.Background = Brushes.Black;
             brushTool.Background = Brushes.Black;
             drawTool.Background = Brushes.Black;
+            historyBrushTool.Background = Brushes.Black;
 
             (sender as Border).Background = Brushes.Gray;
 
             if (sender == moveTool)
             {
-
                 tool = Tools.MOVE;
                 ShowBrush(false);
             }
@@ -415,6 +429,11 @@ namespace GUIPixelPainter.GUI
             {
                 tool = Tools.PENCIL;
                 ShowBrush(false);
+            }
+            else if (sender == historyBrushTool)
+            {
+                tool = Tools.HISTORYBRUSH;
+                ShowBrush(true);
             }
         }
 
@@ -453,6 +472,37 @@ namespace GUIPixelPainter.GUI
                 encoder.Frames.Add(BitmapFrame.Create(bitmap));
                 encoder.Save(file);
             }
+        }
+
+        private void OnSaveRevertStateClick(object sender, MouseButtonEventArgs e)
+        {
+            revertState?.Dispose();
+
+            using (var stream = new MemoryStream())
+            {
+                BitmapEncoder encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                encoder.Save(stream);
+                revertState = new System.Drawing.Bitmap(stream);
+            }
+        }
+
+        private void OnLoadRevertStateClick(object sender, MouseButtonEventArgs e)
+        {
+            OpenFileDialog loadFileDialog = new OpenFileDialog();
+            loadFileDialog.Filter = "Image|*.png";
+            if (loadFileDialog.ShowDialog() != true)
+                return;
+
+            System.Drawing.Bitmap loaded = new System.Drawing.Bitmap(loadFileDialog.FileName);
+            if (loaded.Width != bitmap.Width || loaded.Height != bitmap.Height)
+            {
+                MessageBox.Show("Selected image is not a valid canvas state");
+                return;
+            }
+
+            revertState?.Dispose();
+            revertState = loaded;
         }
     }
 }

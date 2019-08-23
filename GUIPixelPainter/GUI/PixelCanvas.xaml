@@ -50,6 +50,22 @@
                     ⚫
                 </TextBlock>
             </Border>
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="135" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="historyBrushTool">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="History Brush">
+                    ↶
+                </TextBlock>
+            </Border>
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="135" Canvas.Top="45" Height="25" Width="25" MouseDown="OnSaveRevertStateClick" Name="historyBrushSaveButton">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Save Revert State">
+                    💾
+                </TextBlock>
+            </Border>
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="135" Canvas.Top="75" Height="25" Width="25" MouseDown="OnLoadRevertStateClick" Name="historyBrushLoadButton">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Load Revert State">
+                    📂
+                </TextBlock>
+            </Border>
+
             <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Right="15" Canvas.Top="15" Height="25" Width="{Binding ElementName=coordsLabel, Path=ActualWidth}">
                 <TextBlock Name="coordsLabel" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5,0,5,0" ToolTip="Mouse position">
                     0,0
