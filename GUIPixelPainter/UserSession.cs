@@ -105,31 +105,10 @@ namespace GUIPixelPainter
             }
 
             List<IdPixel> toPlace = new List<IdPixel>(packetSize);
-            //Collect pixels of a single color from the queue
-            lock (queue)
-            {
-                List<LinkedListNode<IdPixel>> toRemove = new List<LinkedListNode<IdPixel>>(packetSize);
-
-                int firstColor = -1;
-                for (LinkedListNode<IdPixel> node = queue.First; node != null; node = node.Next)
-                {
-                    IdPixel pixel = node.Value;
-                    if (firstColor == -1)
-                        firstColor = pixel.Color;
-                    else if (firstColor != pixel.Color)
-                        continue;
-                    toPlace.Add(pixel);
-                    toRemove.Add(node);
-
-                    if (toPlace.Count >= packetSize)
-                        break;
-                }
-
-                foreach (var node in toRemove)
-                {
-                    queue.Remove(node);
-                }
-            }
+            toPlace.AddRange(SelectOneColor());
+            //toPlace.AddRange(SelectOneColor());
+            if (toPlace.Count > packetSize)
+                toPlace.RemoveRange(packetSize, toPlace.Count - packetSize);
 
             long time = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
             if (time - lastPacketTime < packetDelay)
@@ -149,6 +128,36 @@ namespace GUIPixelPainter
             else
                 Console.WriteLine("Failed to send pixels");
             return true;
+        }
+
+        private List<IdPixel> SelectOneColor()
+        {
+            List<IdPixel> toPlace = new List<IdPixel>(packetSize);
+
+            lock (queue)
+            {
+                List<LinkedListNode<IdPixel>> toRemove = new List<LinkedListNode<IdPixel>>(packetSize);
+
+                int firstColor = -1;
+                for (LinkedListNode<IdPixel> node = queue.First; node != null; node = node.Next)
+                {
+                    IdPixel pixel = node.Value;
+                    if (firstColor == -1)
+                        firstColor = pixel.Color;
+                    else if (firstColor != pixel.Color)
+                        continue;
+                    if (toPlace.Count > packetSize)
+                        break;
+                    toPlace.Add(pixel);
+                    toRemove.Add(node);
+                }
+
+                foreach (var node in toRemove)
+                {
+                    queue.Remove(node);
+                }
+            }
+            return toPlace;
         }
     }
 

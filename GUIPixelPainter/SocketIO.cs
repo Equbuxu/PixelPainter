@@ -342,7 +342,7 @@ namespace GUIPixelPainter
                 Console.Write("Sent {0} pixels", pixels.Count);
                 foreach (IdPixel px in pixels)
                 {
-                    Console.Write("[{0},{1}]", px.X, px.Y);
+                    Console.Write("[{0}]", px.Color);
                 }
                 Console.Write("\n");
             }
