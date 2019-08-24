@@ -211,7 +211,7 @@ namespace GUIPixelPainter.GUI
         private void UpdateTaskSettingsPanel()
         {
             ignoreEvents = true;
-
+            disableAll.IsEnabled = tasks[canvasId].Where((a) => a.isEnabled == true).Count() != 0;
             if (taskList.SelectedItem == null)
             {
                 taskName.Text = string.Empty;
@@ -255,6 +255,7 @@ namespace GUIPixelPainter.GUI
 
             ignoreEvents = false;
             ShowPreview();
+
         }
 
         private void OnDeleteTaskClick(object sender, RoutedEventArgs e)
@@ -476,6 +477,8 @@ namespace GUIPixelPainter.GUI
             UpdateTaskList();
 
             DataExchange.UpdateTasksFromGUI();
+
+
         }
 
         private void OnDitheringChange(object sender, RoutedEventArgs e)
@@ -493,6 +496,12 @@ namespace GUIPixelPainter.GUI
                 return;
             GetSelectedTask().loop = loop.IsChecked == true;
             DataExchange.UpdateTasksFromGUI();
+        }
+
+        private void OnDisableAllClick(object sender, RoutedEventArgs e)
+        {
+            tasks[canvasId].ForEach((a) => a.isEnabled = false);
+            UpdateTaskList();
         }
     }
 }
