@@ -307,9 +307,7 @@ namespace GUIPixelPainter
             {
                 borders = new Bitmap(canvas.Width, canvas.Height);
             }
-
-            //Remake placement behavior
-            //TODO use inheritance
+            eventsToProcess.Clear();
             ChangePlacementBehaviour();
         }
 
@@ -318,16 +316,17 @@ namespace GUIPixelPainter
             switch (guiData.PlacementMode)
             {
                 case PlacementMode.TOPDOWN:
-                    placementBehaviour = new TopDownPlacementBehaviour(guiData, canvas, borders, invPalette[curCanvas]);
+                    placementBehaviour = new TopDownPlacementBehaviour(guiData, canvas, borders, invPalette.ContainsKey(curCanvas) ? invPalette[curCanvas] : invPalette[7]);
                     break;
                 case PlacementMode.DENOISE:
-                    placementBehaviour = new DenoisePlacementBehaviour(guiData, canvas, borders, invPalette[curCanvas]);
+                    placementBehaviour = new DenoisePlacementBehaviour(guiData, canvas, borders, invPalette.ContainsKey(curCanvas) ? invPalette[curCanvas] : invPalette[7]);
                     break;
             }
             foreach (Connection conn in users)
             {
                 conn.Session.ClearQueue();
             }
+
         }
 
         private SocketIO CreateSocketIO(UsefulUser user)

@@ -161,7 +161,7 @@ namespace GUIPixelPainter
 
                 taskPanel.SetCanvasId(canvasId);
                 pixelCanvas.ReloadCanvas(canvasId);
-
+                manualTask.Clear();
                 UsefulData.UpdateCanvasId();
             }
 
@@ -274,6 +274,11 @@ namespace GUIPixelPainter
         public void PushTaskPosition(int x, int y)
         {
             taskPanel.MoveCurrentTask(x, y);
+        }
+
+        public void PushLoadingState(bool loading)
+        {
+            botWindow.SetLoadingState(loading);
         }
     }
 }

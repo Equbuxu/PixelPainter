@@ -45,6 +45,7 @@ namespace GUIPixelPainter.GUI
         private Point mouseDownPoint = new Point();
         private bool shiftDirectionDeterm = false;
         private bool shiftDirHor = false;
+        private bool loading = false;
 
         private Tools tool = Tools.MOVE;
         private Color selectedColor = Color.FromArgb(0, 1, 2, 3);
@@ -79,25 +80,49 @@ namespace GUIPixelPainter.GUI
 
         public void ReloadCanvas(int id)
         {
-            canvasId = id;
-            Console.WriteLine("loading canvas {0}", id);
-            try
+            if (loading)
+                return;
+            Thread loadThread = new Thread(() =>
             {
-                System.Net.WebRequest request = System.Net.WebRequest.Create("https://pixelplace.io/canvas/" + id.ToString() + ".png");
-                System.Net.WebResponse response = request.GetResponse();
-                System.IO.Stream responseStream = response.GetResponseStream();
-                using (var loadedBitmap = new System.Drawing.Bitmap(responseStream))
+                loading = true;
+                Dispatcher.Invoke(() =>
                 {
-                    bitmap = new WriteableBitmap(Helper.Convert(loadedBitmap));
-                    MainImage.Source = bitmap;
+                    RemoveNameLabers();
+                    OnResetPosition(null, null);
+                    MainImageBorder.Visibility = Visibility.Hidden;
+                    bitmap = null;
+                    DataExchange.PushLoadingState(true);
                 }
-                CreatePalette();
-            }
-            catch (System.Net.WebException)
-            {
-                Console.WriteLine("invalid canvas in pixelcanvas");
-            }
-            OnSaveRevertStateClick(null, null);
+            );
+                canvasId = id;
+                Console.WriteLine("loading canvas {0}", id);
+                try
+                {
+                    System.Net.WebRequest request = System.Net.WebRequest.Create("https://pixelplace.io/canvas/" + id.ToString() + ".png");
+                    System.Net.WebResponse response = request.GetResponse();
+                    System.IO.Stream responseStream = response.GetResponseStream();
+                    using (var loadedBitmap = new System.Drawing.Bitmap(responseStream))
+                    {
+                        Dispatcher.Invoke(() => bitmap = new WriteableBitmap(Helper.Convert(loadedBitmap)));
+                        Dispatcher.Invoke(() => MainImage.Source = bitmap);
+                    }
+                    Dispatcher.Invoke(() => CreatePalette());
+                }
+                catch (System.Net.WebException)
+                {
+                    Console.WriteLine("invalid canvas in pixelcanvas");
+                }
+                Dispatcher.Invoke(() =>
+                {
+                    OnSaveRevertStateClick(null, null);
+                    DataExchange.PushLoadingState(false);
+                    MainImageBorder.Visibility = Visibility.Visible;
+                });
+                loading = false;
+            });
+            loadThread.Name = "canvas loading thread";
+            loadThread.IsBackground = true;
+            loadThread.Start();
         }
 
         public void OverlayTasks(List<GUITask> tasks)
@@ -125,6 +150,23 @@ namespace GUIPixelPainter.GUI
         {
             bitmap.SetPixel(x, y, color);
             UpdateNameLabel(x, y, color, userId);
+        }
+
+        private void RemoveNameLabers()
+        {
+            List<int> toDelete = new List<int>();
+
+            foreach (KeyValuePair<int, long> userTime in userPlaceTime)
+            {
+                toDelete.Add(userTime.Key);
+            }
+
+            foreach (int id in toDelete)
+            {
+                userPlaceTime.Remove(id);
+                MainCanvas.Children.Remove(nameLabels[id]);
+                nameLabels.Remove(id);
+            }
         }
 
         private void UpdateNameLabel(int x, int y, Color c, int userId)
@@ -214,6 +256,9 @@ namespace GUIPixelPainter.GUI
 
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
+            if (loading)
+                return;
+
             var mouseCoords = e.GetPosition(MainCanvas);
             coordsLabel.Text = String.Format("{0},{1}", (int)mouseCoords.X, (int)mouseCoords.Y);
 
@@ -323,6 +368,9 @@ namespace GUIPixelPainter.GUI
 
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            if (loading)
+                return;
+
             Keyboard.Focus(MainCanvas);
 
             mouseDownPoint = e.GetPosition((UIElement)MainCanvas.Parent);
@@ -333,11 +381,15 @@ namespace GUIPixelPainter.GUI
 
         private void Canvas_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            if (loading)
+                return;
             MainCanvas.ReleaseMouseCapture();
         }
 
         private void MainCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+            if (loading)
+                return;
             Point curPosition = e.GetPosition((UIElement)MainCanvas.Parent);
             curPosition.X -= translate.X;
             curPosition.Y -= translate.Y;
@@ -476,6 +528,9 @@ namespace GUIPixelPainter.GUI
 
         private void OnSaveRevertStateClick(object sender, MouseButtonEventArgs e)
         {
+            if (loading)
+                return;
+
             revertState?.Dispose();
 
             using (var stream = new MemoryStream())
@@ -489,6 +544,9 @@ namespace GUIPixelPainter.GUI
 
         private void OnLoadRevertStateClick(object sender, MouseButtonEventArgs e)
         {
+            if (loading)
+                return;
+
             OpenFileDialog loadFileDialog = new OpenFileDialog();
             loadFileDialog.Filter = "Image|*.png";
             if (loadFileDialog.ShowDialog() != true)

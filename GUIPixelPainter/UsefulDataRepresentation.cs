@@ -95,6 +95,8 @@ namespace GUIPixelPainter
         public void UpdateCanvasId()
         {
             CanvasId = dataExchange.CanvasId;
+            tasks.Clear();
+            manualPixels.Clear();
         }
 
         public void UpdateManualTask()
@@ -124,6 +126,11 @@ namespace GUIPixelPainter
                 tasks.Clear();
                 if (!dataExchange.BotEnabled)
                     return;
+                if (!dataExchange.GUITasks.ContainsKey(CanvasId))
+                {
+                    tasks.Clear();
+                    return;
+                }
                 foreach (GUITask task in dataExchange.GUITasks[CanvasId])
                 {
                     if (!task.Enabled)

@@ -177,6 +177,13 @@ namespace GUIPixelPainter.GUI
             }
         }
 
+        public void SetLoadingState(bool loading)
+        {
+            enabled.IsEnabled = !loading;
+            canvasId.IsEnabled = !loading;
+            enabled.IsChecked = loading ? false : enabled.IsChecked;
+        }
+
         private void OnGeneralSettingChange(object sender, RoutedEventArgs e)
         {
             if (ignoreEvents)
