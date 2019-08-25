@@ -17,6 +17,7 @@
   "3738": "FireBunny",
   "3914": "FetterCock",
   "4168": "Lexsayshi",
+  "4438": "Grerley",
   "4550": "DAM",
   "4855": "VitaminK",
   "5195": "TacoPaco88",
@@ -2306,5 +2307,8 @@
   "33673": "Bertoo",
   "33677": "Mapnrr",
   "33682": "JrLargvar",
-  "33686": "Straxe1"
+  "33686": "Straxe1",
+  "34131": "Banjo",
+  "34553": "Ganix",
+  "34815": "Hurestritch8"
 }

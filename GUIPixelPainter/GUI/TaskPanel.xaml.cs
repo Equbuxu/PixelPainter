@@ -500,8 +500,13 @@ namespace GUIPixelPainter.GUI
 
         private void OnDisableAllClick(object sender, RoutedEventArgs e)
         {
+            if (ignoreEvents)
+                return;
+
             tasks[canvasId].ForEach((a) => a.isEnabled = false);
             UpdateTaskList();
+
+            DataExchange.UpdateTasksFromGUI();
         }
     }
 }
