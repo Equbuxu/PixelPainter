@@ -112,13 +112,13 @@ namespace GUIPixelPainter.GUI
                 {
                     Console.WriteLine("invalid canvas in pixelcanvas");
                 }
+                loading = false;
                 Dispatcher.Invoke(() =>
                 {
                     OnSaveRevertStateClick(null, null);
                     DataExchange.PushLoadingState(false);
                     MainImageBorder.Visibility = Visibility.Visible;
                 });
-                loading = false;
             });
             loadThread.Name = "canvas loading thread";
             loadThread.IsBackground = true;
