@@ -63,7 +63,8 @@ namespace GUIPixelPainter
                         formatted = formatted.Insert(0, "[🔨]");
                     if (message.premium)
                         formatted = formatted.Insert(0, "[💎]");
-
+                    if (message.boardId != DataExchange.CanvasId)
+                        formatted = formatted.Insert(0, "[" + message.boardId.ToString() + "]");
 
                     int boardId = message.boardId;
                     if (!palette.ContainsKey(boardId))

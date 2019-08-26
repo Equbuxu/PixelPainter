@@ -37,7 +37,8 @@ namespace GUIPixelPainter
 
             AddTasks(queue, userNumber, totalUsers, completedTasksToFill);
 
-            Console.WriteLine("Made a queue of {0} pixels", queue.Count);
+            if (queue.Count != 0)
+                Console.WriteLine("Made a queue of {0} pixels", queue.Count);
             return queue;
         }
 

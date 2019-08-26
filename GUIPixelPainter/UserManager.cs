@@ -89,7 +89,6 @@ namespace GUIPixelPainter
         {
             latestGUIEvents = events.Select((a) => a).ToList();
             resetEvent.Set();
-            //Console.WriteLine("update");
             lock (eventsToDispatch)
             {
                 var copy = eventsToDispatch.Select((a) => a).ToList();
@@ -166,7 +165,6 @@ namespace GUIPixelPainter
             //Clear queues on bot disable
             if (guiData.Tasks.Count == 0 && guiData.ManualPixels.Count == 0)
             {
-                Console.WriteLine("clear all queues");
                 foreach (Connection conn in total)
                 {
                     conn.Session.ClearQueue();
