@@ -90,12 +90,13 @@ namespace GUIPixelPainter.GUI
                     RemoveNameLabers();
                     OnResetPosition(null, null);
                     MainImageBorder.Visibility = Visibility.Hidden;
+                    loadingSign.Visibility = Visibility.Visible;
                     bitmap = null;
                     DataExchange.PushLoadingState(true);
-                }
-            );
+                });
+
                 canvasId = id;
-                Console.WriteLine("loading canvas {0}", id);
+                Console.WriteLine("loading canvas {0} in PixelCanvas", id);
                 try
                 {
                     System.Net.WebRequest request = System.Net.WebRequest.Create("https://pixelplace.io/canvas/" + id.ToString() + ".png");
@@ -118,6 +119,7 @@ namespace GUIPixelPainter.GUI
                     OnSaveRevertStateClick(null, null);
                     DataExchange.PushLoadingState(false);
                     MainImageBorder.Visibility = Visibility.Visible;
+                    loadingSign.Visibility = Visibility.Hidden;
                 });
             });
             loadThread.Name = "canvas loading thread";
@@ -239,6 +241,8 @@ namespace GUIPixelPainter.GUI
                 rectangle.MouseDown += OnSelectColor;
                 palettePanel.Children.Add(rectangle);
             }
+
+            OnSelectColor(palettePanel.Children[0], null);
         }
 
         private void OnSelectColor(object sender, EventArgs args)
@@ -328,9 +332,13 @@ namespace GUIPixelPainter.GUI
             }
             else if (tool == Tools.PENCIL)
             {
-                if (bitmap.GetPixel(drawx, drawy) != selectedColor)
+                if (drawx >= 0 && drawy >= 0 && drawx < bitmap.Width && drawy < bitmap.Height)
                 {
-                    DataExchange.CreateManualPixel(new GUIPixel(drawx, drawy, System.Drawing.Color.FromArgb(selectedColor.A, selectedColor.R, selectedColor.G, selectedColor.B)));
+                    var pixel = bitmap.GetPixel(drawx, drawy);
+                    if (pixel != selectedColor && !(pixel.A == 0 && selectedColor.R == 255 && selectedColor.G == 255 && selectedColor.B == 255))
+                    {
+                        DataExchange.CreateManualPixel(new GUIPixel(drawx, drawy, System.Drawing.Color.FromArgb(selectedColor.A, selectedColor.R, selectedColor.G, selectedColor.B)));
+                    }
                 }
             }
             else if (tool == Tools.BRUSH)
@@ -339,7 +347,13 @@ namespace GUIPixelPainter.GUI
                 {
                     for (int j = drawy - 2; j <= drawy + 2; j++)
                     {
-                        if (bitmap.GetPixel(i, j) != selectedColor)
+                        if (!(i >= 0 && j >= 0 && i < bitmap.Width && j < bitmap.Height))
+                            continue;
+                        var pixel = bitmap.GetPixel(i, j);
+                        if (
+                            pixel != selectedColor &&
+                            !(pixel.A == 0 && selectedColor.R == 255 && selectedColor.G == 255 && selectedColor.B == 255)
+                            )
                         {
                             DataExchange.CreateManualPixel(new GUIPixel(i, j, System.Drawing.Color.FromArgb(selectedColor.A, selectedColor.R, selectedColor.G, selectedColor.B)));
                         }
@@ -352,6 +366,8 @@ namespace GUIPixelPainter.GUI
                 {
                     for (int j = drawy - 2; j <= drawy + 2; j++)
                     {
+                        if (!(i >= 0 && j >= 0 && i < bitmap.Width && j < bitmap.Height))
+                            continue;
                         System.Drawing.Color revertPixel = revertState.GetPixel(i, j);
                         Color curPixel = bitmap.GetPixel(i, j);
                         if (curPixel.R == 204 && curPixel.G == 204 && curPixel.B == 204)

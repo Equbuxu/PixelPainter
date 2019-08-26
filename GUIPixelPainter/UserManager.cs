@@ -262,6 +262,7 @@ namespace GUIPixelPainter
         private void ChangeCanvas()
         {
             curCanvas = guiData.CanvasId;
+            Console.WriteLine("loading canvas {0} in UserManager", curCanvas);
 
             //Disconnect everyone
             for (int i = users.Count - 1; i >= 0; i--)

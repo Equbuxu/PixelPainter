@@ -73,6 +73,8 @@ namespace GUIPixelPainter
                             continue;
                         if (!curCanvasInvPalette.ContainsKey(reqPixel))
                             continue;
+                        if (reqPixel.R == 255 && reqPixel.G == 255 && reqPixel.B == 255 && canvasPixel.A == 0)
+                            continue;
                         completed = false;
 
                         if (iterCount - lastUpdateIterCount[canvasX, canvasY] < pixelResendDelay) //avoid spamming the same place
@@ -105,6 +107,9 @@ namespace GUIPixelPainter
                     continue;
                 if (canvasPixel == reqPixel.Color)
                     continue;
+                if (reqPixel.Color.R == 255 && reqPixel.Color.G == 255 && reqPixel.Color.B == 255 && canvasPixel.A == 0)
+                    continue;
+
                 if (!curCanvasInvPalette.ContainsKey(reqPixel.Color))
                     continue;
                 IdPixel pixel = new IdPixel(curCanvasInvPalette[reqPixel.Color], reqPixel.X, reqPixel.Y);

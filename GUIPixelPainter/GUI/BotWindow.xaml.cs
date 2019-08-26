@@ -57,7 +57,8 @@ namespace GUIPixelPainter.GUI
             updateTimer.Start();
 
             ignoreEvents = true;
-            canvasId.Text = "7";
+            if (canvasId.Text.Length == 0)
+                canvasId.Text = "7";
             ignoreEvents = false;
 
             DataExchange.UpdateGeneralSettingsFromGUI();
@@ -91,6 +92,7 @@ namespace GUIPixelPainter.GUI
             overlay.IsChecked = overlayTasks;
             this.canvasId.Text = canvasId.ToString();
             ignoreEvents = false;
+            DataExchange.UpdateGeneralSettingsFromGUI();
         }
 
         public int GetCanvasId()

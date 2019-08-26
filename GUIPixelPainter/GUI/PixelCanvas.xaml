@@ -10,7 +10,7 @@
         <Canvas>
 
             <Canvas Name="MainCanvas" MouseDown="Canvas_MouseDown" Focusable="True" KeyDown="MainCanvas_KeyDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp" MouseWheel="MainCanvas_MouseWheel" MouseEnter="MainCanvas_MouseEnter" MouseLeave="MainCanvas_MouseLeave">
-                <Border BorderBrush="Black" BorderThickness="2" Canvas.Left="15" Canvas.Top="45">
+                <Border BorderBrush="Black" BorderThickness="2" Canvas.Left="15" Canvas.Top="45" Name="loadingSign">
                     <TextBlock FontSize="15">Loading canvas...</TextBlock>
                 </Border>
                 <Border Name="MainImageBorder" BorderBrush="Black" BorderThickness="2" Canvas.Left="-2" Canvas.Top="-2">
