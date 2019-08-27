@@ -359,7 +359,7 @@ namespace GUIPixelPainter
         {
             if (status != Status.OPEN)
             {
-                throw new Exception("not connected");
+                Console.WriteLine("Failed to send chat message: {0}", message);
             }
 
             string data = String.Format("42[\"chat.message\",{{\"message\":\"{0}\",\"color\":{1}}}]", message, color);

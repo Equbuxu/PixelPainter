@@ -58,7 +58,7 @@ namespace GUIPixelPainter
         private HashSet<Guid> activeUsers = new HashSet<Guid>();
 
         private AutoResetEvent resetEvent = new AutoResetEvent(false);
-        private List<GUIEvent> latestGUIEvents = null;
+        private List<GUIEvent> latestGUIEvents = new List<GUIEvent>();
 
         private Guid currentActiveUser = Guid.Empty;
         private Bitmap borders;
@@ -87,7 +87,7 @@ namespace GUIPixelPainter
 
         public List<Tuple<string, EventArgs>> Update(List<GUIEvent> events)
         {
-            latestGUIEvents = events.Select((a) => a).ToList();
+            latestGUIEvents.AddRange(events.Select((a) => a).ToList());
             resetEvent.Set();
             lock (eventsToDispatch)
             {
@@ -220,8 +220,9 @@ namespace GUIPixelPainter
 
         private void ProcessGUIEvents()
         {
-            foreach (GUIEvent @event in latestGUIEvents)
+            for (int i = latestGUIEvents.Count - 1; i >= 0; i--)
             {
+                var @event = latestGUIEvents[i];
                 if (@event is ChatMessageGUIEvent)
                 {
                     ChatMessageGUIEvent message = @event as ChatMessageGUIEvent;
@@ -229,6 +230,7 @@ namespace GUIPixelPainter
                     if (user.Count() == 0)
                         continue;
                     user.First().Client.SendChatMessage(message.Message, message.Color);
+                    latestGUIEvents.RemoveAt(i);
                 }
             }
         }
