@@ -397,7 +397,10 @@ namespace GUIPixelPainter.GUI
                             continue;
                         if (curPixel.R != revertPixel.R || curPixel.G != revertPixel.G || curPixel.B != revertPixel.B)
                         {
-                            DataExchange.CreateManualPixel(new GUIPixel(i, j, System.Drawing.Color.FromArgb(revertPixel.A, revertPixel.R, revertPixel.G, revertPixel.B)));
+                            if (revertPixel.A == 0) //Have never been painted
+                                DataExchange.CreateManualPixel(new GUIPixel(i, j, System.Drawing.Color.FromArgb(255, 255, 255, 255)));
+                            else
+                                DataExchange.CreateManualPixel(new GUIPixel(i, j, System.Drawing.Color.FromArgb(revertPixel.A, revertPixel.R, revertPixel.G, revertPixel.B)));
                         }
                     }
                 }

@@ -252,12 +252,14 @@ namespace GUIPixelPainter
                             continue;
                         if (tasks[i].Item1.IsFaulted)
                         {
+                            Console.WriteLine("Faulted task: {0}", tasks[i].Item1.Exception);
                             status = Status.CLOSEDDISCONNECT;
                             return;
                         }
                         string response = tasks[i].Item1.Result.Content.ReadAsStringAsync().Result;
                         if (response.Contains("Session ID unknown")) //HACK shouldnt be here
                         {
+                            Console.WriteLine("Session ID unknown err");
                             status = Status.CLOSEDDISCONNECT;
                             return;
                         }

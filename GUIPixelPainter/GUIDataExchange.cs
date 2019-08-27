@@ -202,7 +202,7 @@ namespace GUIPixelPainter
                 GUIPixel cur = manualTask[i];
                 if (cur.X == pixel.X && cur.Y == pixel.Y)
                 {
-                    if (cur.Color == pixel.Color)
+                    if (cur.Color.R == pixel.Color.R && cur.Color.G == pixel.Color.G && cur.Color.B == pixel.Color.B)
                         return;
                     else
                     {
