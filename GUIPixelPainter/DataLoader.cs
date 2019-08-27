@@ -101,6 +101,7 @@ namespace GUIPixelPainter
             using (StreamWriter file = new StreamWriter(File.Create(configPath)))
             {
                 JsonSerializer serializer = new JsonSerializer();
+                serializer.Formatting = Formatting.Indented;
                 Dictionary<int, List<GUITask>> tasks = dataExchange.GUITasks.Select((a) => a).ToDictionary((a) => a.Key, (a) => a.Value.Select((b) => b).ToList());
                 List<GUIUser> users = dataExchange.GUIUsers.Select((a) => a).ToList();
                 bool overlayTasks = dataExchange.OverlayTasks;
