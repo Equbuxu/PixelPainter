@@ -107,8 +107,8 @@ namespace GUIPixelPainter
             List<IdPixel> toPlace = new List<IdPixel>(packetSize);
             toPlace.AddRange(SelectOneColor());
             //toPlace.AddRange(SelectOneColor());
-            if (toPlace.Count > packetSize)
-                toPlace.RemoveRange(packetSize, toPlace.Count - packetSize);
+            //if (toPlace.Count > packetSize)
+            //    toPlace.RemoveRange(packetSize, toPlace.Count - packetSize);
 
             long time = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
             if (time - lastPacketTime < packetDelay)
@@ -146,7 +146,7 @@ namespace GUIPixelPainter
                         firstColor = pixel.Color;
                     else if (firstColor != pixel.Color)
                         continue;
-                    if (toPlace.Count > packetSize)
+                    if (toPlace.Count >= packetSize)
                         break;
                     toPlace.Add(pixel);
                     toRemove.Add(node);

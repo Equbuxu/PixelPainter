@@ -308,6 +308,8 @@ namespace GUIPixelPainter
             }
             eventsToProcess.Clear();
             ChangePlacementBehaviour();
+
+            Console.WriteLine("UserManager canvas loading finished", curCanvas);
         }
 
         private void ChangePlacementBehaviour()

@@ -72,8 +72,6 @@ namespace GUIPixelPainter
 
         private List<IdPixel> GenerateTaskQueue(UsefulTask task)
         {
-            Console.WriteLine("Im the lag");
-
             List<IdPixel> queue = new List<IdPixel>();
             for (int j = 0; j < task.Image.Height; j++)
             {

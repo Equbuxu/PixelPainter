@@ -14,8 +14,8 @@ namespace GUIPixelPainter
         private Bitmap borders;
         private int[,] lastUpdateIterCount;
         private const int maxQueueSize = 50;
-        private const int pixelResendDelay = 15;
-        int iterCount = 0;
+        private const int pixelResendDelay = 40;
+        int iterCount = pixelResendDelay;
         private Dictionary<System.Drawing.Color, int> curCanvasInvPalette;
 
         public TopDownPlacementBehaviour(UsefulDataRepresentation guiData, Bitmap canvas, Bitmap borders, Dictionary<System.Drawing.Color, int> curCanvasInvPalette)
