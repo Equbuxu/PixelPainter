@@ -46,6 +46,7 @@ namespace GUIPixelPainter.GUI
         private bool shiftDirectionDeterm = false;
         private bool shiftDirHor = false;
         private bool loading = false;
+        private bool tracking = false;
 
         private Tools tool = Tools.MOVE;
         private Color selectedColor = Color.FromArgb(0, 1, 2, 3);
@@ -58,6 +59,8 @@ namespace GUIPixelPainter.GUI
         private WriteableBitmap bitmap;
         private System.Drawing.Bitmap revertState;
         private int canvasId = -1;
+
+        private DropShadowEffect textShadow = new DropShadowEffect();
 
         private List<Pixel> manualTask = new List<Pixel>();
 
@@ -74,8 +77,14 @@ namespace GUIPixelPainter.GUI
             group.Children.Add(translate);
             MainCanvas.RenderTransform = group;
 
+            textShadow.Color = System.Windows.Media.Color.FromRgb(255, 255, 255);
+            textShadow.Direction = 320;
+            textShadow.ShadowDepth = 0.5;
+            textShadow.Opacity = 0.5;
+            textShadow.BlurRadius = 0;
 
             OnToolClick(moveTool, null);
+            SetNameLabelDisplay(false);
         }
 
         public void ReloadCanvas(int id)
@@ -154,6 +163,17 @@ namespace GUIPixelPainter.GUI
             UpdateNameLabel(x, y, color, userId);
         }
 
+        public void SetNameLabelDisplay(bool visible)
+        {
+            tracking = visible;
+            Visibility newVisib = visible ? Visibility.Visible : Visibility.Hidden;
+            MainImage.Opacity = visible ? 0.5 : 1.0;
+            foreach (KeyValuePair<int, long> userTime in userPlaceTime)
+            {
+                nameLabels[userTime.Key].Visibility = newVisib;
+            }
+        }
+
         private void RemoveNameLabers()
         {
             List<int> toDelete = new List<int>();
@@ -211,15 +231,18 @@ namespace GUIPixelPainter.GUI
             {
                 BorderBrush = Brushes.Black,
                 BorderThickness = new Thickness(0.0),
-                Background = new SolidColorBrush(Color.FromArgb(100, 100, 100, 100)),
-                Height = 16,
+                Background = new SolidColorBrush(Color.FromArgb(255, 40, 40, 40)),
+                Height = 24,
             };
+            border.Visibility = tracking ? Visibility.Visible : Visibility.Hidden;
             TextBlock nameLabel = new TextBlock()
             {
                 Text = Helper.GetUsernameById(name),
                 Foreground = new SolidColorBrush(color),
                 VerticalAlignment = VerticalAlignment.Center
             };
+            nameLabel.Effect = textShadow;
+            nameLabel.FontSize = 20;
             border.Child = nameLabel;
             Canvas.SetLeft(border, x + 1);
             Canvas.SetTop(border, y + 1);

@@ -34,7 +34,7 @@ namespace GUIPixelPainter
         {
             Exception ex = default(Exception);
             ex = (Exception)e.ExceptionObject;
-            File.WriteAllText("PixelPainterError.txt", ex.Message + "\n" + ex.StackTrace);
+            File.AppendAllText("PixelPainterError.txt", ex.Message + "\n" + ex.StackTrace + "\n");
         }
 
         public Launcher()

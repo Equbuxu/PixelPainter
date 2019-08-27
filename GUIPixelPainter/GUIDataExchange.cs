@@ -87,6 +87,8 @@ namespace GUIPixelPainter
         //GUI element states
         public bool BotEnabled { get; private set; }
 
+        public bool TrackingEnabled { get; private set; }
+
         public bool OverlayTasks { get; private set; }
 
         public int CanvasId { get; private set; }
@@ -153,6 +155,9 @@ namespace GUIPixelPainter
             BotEnabled = botWindow.IsBotEnabled();
             OverlayTasks = botWindow.IsOverlayEnabled();
             PlacementMode = botWindow.GetPlacementMode();
+            TrackingEnabled = botWindow.IsTrackingEnabled();
+
+            pixelCanvas.SetNameLabelDisplay(TrackingEnabled);
 
             int canvasId = botWindow.GetCanvasId();
             if (canvasId != CanvasId)

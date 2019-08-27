@@ -34,6 +34,9 @@
                                 Overlay tasks
                             </CheckBox>
                         </Grid>
+                        <CheckBox VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="trackUsers" Margin="0,0,0,5" ToolTip="User tracking">
+                            Track active users
+                        </CheckBox>
                         <DockPanel ToolTip="ID of the Canvas, as displayed in address bar (7 - default)">
                             <Label>Canvas ID:</Label>
                             <TextBox Name="canvasId" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" LostFocus="OnGeneralSettingChange"></TextBox>

@@ -74,6 +74,11 @@ namespace GUIPixelPainter.GUI
             return overlay.IsChecked == true;
         }
 
+        public bool IsTrackingEnabled()
+        {
+            return trackUsers.IsChecked == true;
+        }
+
         public PlacementMode GetPlacementMode()
         {
             switch (placementMode.SelectedIndex)
