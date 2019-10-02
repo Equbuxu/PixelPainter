@@ -76,6 +76,10 @@
     <Compile Include="GUI\BotWindow.xaml.cs">
       <DependentUpon>BotWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="GUI\ElementListView.xaml.cs">
+      <DependentUpon>ElementListView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\ElementListViewModel.cs" />
     <Compile Include="ImageConverter.cs" />
     <Compile Include="Launcher.cs" />
     <Compile Include="GUI\PixelCanvas.xaml.cs">
@@ -101,6 +105,10 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="GUI\ElementListView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="GUI\PixelCanvas.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
