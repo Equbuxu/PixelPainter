@@ -67,7 +67,40 @@
                         </StackPanel>
                     </Expander>
                 </Border>
+            </StackPanel>
+        </ScrollViewer>
 
+        <ScrollViewer Name="rightColumn" Grid.Column="4">
+            <StackPanel>
+                <local:UserPanel x:Name="usersPanel"></local:UserPanel>
+
+                <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
+                    <Expander Header="Chat" IsExpanded="True">
+                        <StackPanel Margin="5">
+                            <Border BorderBrush="Gray" Margin="5" BorderThickness="1">
+                                <ScrollViewer Name="chatScroll" Width="auto" Height="230" >
+                                    <StackPanel Name="chat">
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Border>
+                            <Grid Margin="5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="31" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" Name="chatTextBox" VerticalContentAlignment="Center" KeyUp="OnChatTextBoxKeyUp"/>
+                                <Button Grid.Column="1" HorizontalAlignment="Right" Click="OnChatSend">
+                                    Send
+                                    <Button.ToolTip>
+                                        <ToolTip>
+                                            Sends a message to the General chat
+                                        </ToolTip>
+                                    </Button.ToolTip>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Expander>
+                </Border>
                 <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
                     <Expander Header="Speed" IsExpanded="True">
                         <StackPanel Margin="5,0,5,5">
@@ -92,78 +125,6 @@
                             </Border>
                         </StackPanel>
                     </Expander>
-                </Border>
-
-                <!--<Border Margin="5" BorderBrush="Gray" BorderThickness="1">
-                    <Canvas Name="speedCannvas" MinWidth="130" Margin="5,0,5,5" Height="{Binding ElementName=speedStackPanel, Path=ActualHeight}">
-                        <Grid Width="{Binding ElementName=speedCannvas, Path=ActualWidth}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="30"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Name="speedStackPanel">
-                                <Label FontWeight="Black">Speed</Label>
-                                <Border BorderBrush="Gray" BorderThickness="1" MinHeight="25" MinWidth="100">
-                                    <Border.ToolTip>
-                                        <ToolTip>
-                                            Speed of all users at the moment
-                                        </ToolTip>
-                                    </Border.ToolTip>
-                                    <Grid Name="speedPanelGrid">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*" MinWidth="30"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" Name="speedPanelName">
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" Name="speedPanelSpeed">
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </StackPanel>
-                           
-                            <Button Grid.Column="1" Content="↻" Margin="0,5" HorizontalAlignment="Right" VerticalAlignment="Top" Width="20" Height="20" Click="OnSpeedRefresh">
-                                <Button.ToolTip>
-                                    <ToolTip>
-                                        Speed refresh
-                                    </ToolTip>
-                                </Button.ToolTip>
-                            </Button>
-                        </Grid>
-                    </Canvas>
-                </Border>-->
-            </StackPanel>
-        </ScrollViewer>
-
-        <ScrollViewer Name="rightColumn" Grid.Column="4">
-            <StackPanel>
-                <local:UserPanel x:Name="usersPanel"></local:UserPanel>
-
-                <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
-                    <StackPanel Margin="5">
-                        <Label FontWeight="Black">Chat</Label>
-                        <Border BorderBrush="Gray" Margin="5" BorderThickness="1">
-                            <ScrollViewer Name="chatScroll" Width="auto" Height="230" >
-                                <StackPanel Name="chat">
-                                </StackPanel>
-                            </ScrollViewer>
-                        </Border>
-                        <Grid Margin="5">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="31" />
-                            </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" Name="chatTextBox" VerticalContentAlignment="Center" KeyUp="OnChatTextBoxKeyUp"/>
-                            <Button Grid.Column="1" HorizontalAlignment="Right" Click="OnChatSend">
-                                Send
-                                <Button.ToolTip>
-                                    <ToolTip>
-                                        Sends a message to the General chat
-                                    </ToolTip>
-                                </Button.ToolTip>
-                            </Button>
-                        </Grid>
-                    </StackPanel>
                 </Border>
             </StackPanel>
         </ScrollViewer>
