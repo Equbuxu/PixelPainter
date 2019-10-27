@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
@@ -43,6 +44,8 @@ namespace GUIPixelPainter.GUI
         public void Run()
         {
             Debug.Assert(DataExchange != null && Helper != null && Launcher != null);
+
+            chat.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
 
             speedPanelGrid.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
 
@@ -107,13 +110,65 @@ namespace GUIPixelPainter.GUI
 
         public void AddChatText(string text, System.Windows.Media.Color c)
         {
-            chat.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
             TextBlock msgBlock = new TextBlock();
             msgBlock.Padding = new Thickness(5);
             msgBlock.TextWrapping = TextWrapping.Wrap;
-            msgBlock.Text = text;
             msgBlock.Foreground = new SolidColorBrush(c);
             msgBlock.Effect = textShadow;
+
+            //Highlight hyperlinks
+            Regex regex = new Regex(@"(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)");
+            MatchCollection matches = regex.Matches(text);
+
+            List<string> splitLinks = new List<string>();
+            int lastMatchEnd = 0;
+            foreach (Match match in matches)
+            {
+                string segment = text.Substring(lastMatchEnd, match.Index - lastMatchEnd);
+                splitLinks.Add(segment);
+                lastMatchEnd = match.Index + match.Length;
+            }
+            string finalSegment = text.Substring(lastMatchEnd, text.Length - lastMatchEnd);
+            splitLinks.Add(finalSegment);
+
+            int lastSegment = 0;
+            foreach (Match match in matches)
+            {
+                msgBlock.Inlines.Add(splitLinks[lastSegment]);
+                lastSegment++;
+                Hyperlink link;
+                try
+                {
+                    link = new Hyperlink(new Run(match.Value))
+                    {
+                        NavigateUri = new Uri(match.Value)
+                    };
+                }
+                catch (UriFormatException)
+                {
+                    try
+                    {
+                        string withhttp = "http://" + match.Value;
+                        link = new Hyperlink(new Run(match.Value))
+                        {
+                            NavigateUri = new Uri(withhttp),
+                        };
+                    }
+                    catch (UriFormatException)
+                    {
+                        link = new Hyperlink(new Run(match.Value));
+                    }
+                }
+                link.RequestNavigate += (sender, e) =>
+                {
+                    Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
+                    e.Handled = true;
+                };
+
+                msgBlock.Inlines.Add(link);
+            }
+
+            msgBlock.Inlines.Add(splitLinks[lastSegment]);
 
             chat.Children.Add(msgBlock);
             chatScroll.ScrollToBottom();
