@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -20,11 +21,107 @@ namespace GUIPixelPainter
         private string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PixelPainter");
         private string configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PixelPainter/config.json");
 
-        public void Load()
+        enum ConfigVersion
+        {
+            UNKNOWN,
+            LEGACY,
+            v0,
+        }
+
+        private ConfigVersion GetConfigVersion()
         {
             if (!File.Exists(configPath))
-                return;
+                return ConfigVersion.UNKNOWN;
+            JsonTextReader reader = new JsonTextReader(File.OpenText(configPath));
+            reader.Read(); //skip {
+            reader.Read(); //read version
 
+            if (reader.Value == null)
+                return ConfigVersion.UNKNOWN;
+            else if ((string)reader.Value == "Item1")
+                return ConfigVersion.LEGACY;
+            else if ((string)reader.Value == "version0")
+                return ConfigVersion.v0;
+
+            return ConfigVersion.UNKNOWN;
+        }
+
+        public void Load()
+        {
+            ConfigVersion version = GetConfigVersion();
+            if (version == ConfigVersion.UNKNOWN)
+                LoadNew();
+            else if (version == ConfigVersion.LEGACY)
+                LoadLegacy();
+            else if (version == ConfigVersion.v0)
+                LoadV0();
+        }
+
+        public void LoadNew()
+        {
+            dataExchange.PushSettings(true, false, false, 0.5, 7, PlacementMode.TOPDOWN);
+            dataExchange.PushWindowState(1350, 950, System.Windows.WindowState.Normal);
+
+        }
+
+        public void LoadV0()
+        {
+            using (StreamReader file = File.OpenText(configPath))
+            {
+                JsonSerializer serializer = new JsonSerializer();
+                List<object> data = serializer.Deserialize(file, typeof(List<object>)) as List<object>;
+
+                string version = data[0] as string;
+                Dictionary<int, List<GUITask>> tasks = (data[1] as JObject).ToObject(typeof(Dictionary<int, List<GUITask>>)) as Dictionary<int, List<GUITask>>;
+                List<GUIUser> users = (data[2] as JArray).ToObject(typeof(List<GUIUser>)) as List<GUIUser>; ;
+                Dictionary<string, string> dataExchangeData = (data[3] as JObject).ToObject(typeof(Dictionary<string, string>)) as Dictionary<string, string>;
+
+                //load images and push tasks
+                foreach (KeyValuePair<int, List<GUITask>> canvas in tasks)
+                {
+                    foreach (GUITask task in canvas.Value)
+                    {
+                        Bitmap original, converted, dithered;
+                        try
+                        {
+                            original = LoadBitmap(Path.Combine(folderPath, "original", task.InternalId + ".png"));
+                            converted = LoadBitmap(Path.Combine(folderPath, "converted", task.InternalId + ".png"));
+                            dithered = LoadBitmap(Path.Combine(folderPath, "dithered", task.InternalId + ".png"));
+                        }
+                        catch (FileNotFoundException)
+                        {
+                            return;
+                        }
+                        GUITask newTask = new GUITask(task.InternalId, task.Name, task.Enabled, task.X, task.Y, task.Dithering, task.KeepRepairing, original, converted, dithered);
+                        dataExchange.PushNewTask(newTask, canvas.Key);
+                    }
+                }
+
+                //push users
+                foreach (GUIUser user in users)
+                {
+                    dataExchange.PushNewUser(user);
+                }
+
+                //parse parameters
+                bool overlayTasks = bool.Parse(dataExchangeData["overlayTasks"]);
+                bool overlayAllTasks = bool.Parse(dataExchangeData["overlayAllTasks"]);
+                bool overlaySelectedTask = bool.Parse(dataExchangeData["overlaySelectedTasks"]);
+                double overlayTranslucency = double.Parse(dataExchangeData["overlayTranslucency"]);
+                int canvasId = int.Parse(dataExchangeData["canvasId"]);
+                PlacementMode placementMode = (PlacementMode)Enum.Parse(typeof(PlacementMode), dataExchangeData["placementMode"]);
+
+                double windowWidth = double.Parse(dataExchangeData["windowWidth"]);
+                double windowHeight = double.Parse(dataExchangeData["windowHeight"]);
+                System.Windows.WindowState windowState = (System.Windows.WindowState)Enum.Parse(typeof(System.Windows.WindowState), dataExchangeData["windowState"]);
+
+                dataExchange.PushSettings(overlayTasks, overlayAllTasks, overlaySelectedTask, overlayTranslucency, canvasId, placementMode);
+                dataExchange.PushWindowState(windowWidth, windowHeight, windowState);
+            }
+        }
+
+        public void LoadLegacy()
+        {
             using (StreamReader file = File.OpenText(configPath))
             {
                 JsonSerializer serializer = new JsonSerializer();
@@ -61,7 +158,9 @@ namespace GUIPixelPainter
                 {
                     dataExchange.PushNewUser(user);
                 }
-                dataExchange.PushSettings(overlayTasks, canvasId);
+
+                dataExchange.PushSettings(overlayTasks, false, false, 0.5, canvasId, PlacementMode.TOPDOWN);
+                dataExchange.PushWindowState(1350, 950, System.Windows.WindowState.Normal);
             }
         }
 
@@ -103,10 +202,27 @@ namespace GUIPixelPainter
                 JsonSerializer serializer = new JsonSerializer();
                 serializer.Formatting = Formatting.Indented;
                 Dictionary<int, List<GUITask>> tasks = dataExchange.GUITasks.Select((a) => a).ToDictionary((a) => a.Key, (a) => a.Value.Select((b) => b).ToList());
+                Dictionary<string, string> dataExchangeData = new Dictionary<string, string>()
+                {
+                    {"overlayTasks", dataExchange.OverlayTasks.ToString() },
+                    {"overlayAllTasks", dataExchange.OverlayAllTasks.ToString() },
+                    {"overlaySelectedTasks", dataExchange.OverlaySelectedTask.ToString() },
+                    {"overlayTranslucency", dataExchange.OverlayTranslucency.ToString() },
+                    {"canvasId", dataExchange.CanvasId.ToString() },
+                    {"placementMode", dataExchange.PlacementMode.ToString() },
+                    {"windowWidth", dataExchange.windowWidth.ToString() },
+                    {"windowHeight", dataExchange.windowHeight.ToString() },
+                    {"windowState", dataExchange.windowState.ToString() },
+                };
                 List<GUIUser> users = dataExchange.GUIUsers.Select((a) => a).ToList();
                 bool overlayTasks = dataExchange.OverlayTasks;
                 int canvasId = dataExchange.CanvasId;
-                serializer.Serialize(file, new Tuple<Dictionary<int, List<GUITask>>, List<GUIUser>, bool, int>(tasks, users, overlayTasks, canvasId));
+                serializer.Serialize(file, new List<object>() {
+                    "version0",
+                    tasks,
+                    users,
+                    dataExchangeData,
+                    });
 
                 //save images
                 foreach (KeyValuePair<int, List<GUITask>> pair in tasks)

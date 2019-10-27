@@ -77,9 +77,39 @@ namespace GUIPixelPainter.GUI
             return overlay.IsChecked == true;
         }
 
+        public bool IsOverlayAllEnabled()
+        {
+            return overlayAll.IsChecked == true;
+        }
+
+        public bool IsOverlaySelectedEnabled()
+        {
+            return overlaySelected.IsChecked == true;
+        }
+
         public bool IsTrackingEnabled()
         {
             return trackUsers.IsChecked == true;
+        }
+
+        public double GetOverlayTranslucency()
+        {
+            return overlayTranslucency.Value;
+        }
+
+        public double GetWindowWidth()
+        {
+            return Width;
+        }
+
+        public double GetWindowHeight()
+        {
+            return Height;
+        }
+
+        public WindowState GetWindowState()
+        {
+            return this.WindowState;
         }
 
         public PlacementMode GetPlacementMode()
@@ -94,11 +124,25 @@ namespace GUIPixelPainter.GUI
             }
         }
 
-        public void SetSettings(bool overlayTasks, int canvasId)
+        public void SetWindowState(double width, double height, WindowState state)
+        {
+            this.Width = width;
+            this.Height = height;
+            this.WindowState = state;
+            OnWindowSizeStateChange(null, null);
+        }
+
+        public void SetSettings(bool overlayTasks, bool overlayAllTasks, bool overlaySelectedTask, double overlayTranslucency, int canvasId, PlacementMode placementMode)
         {
             ignoreEvents = true;
             overlay.IsChecked = overlayTasks;
+            overlayAll.IsChecked = overlayAllTasks;
+            overlaySelected.IsChecked = overlaySelectedTask;
+            overlayNothing.IsChecked = !overlayTasks && !overlayAllTasks && !overlaySelectedTask;
+            this.overlayTranslucency.Value = overlayTranslucency;
             this.canvasId.Text = canvasId.ToString();
+            this.placementMode.SelectedIndex = placementMode == PlacementMode.DENOISE ? 1 : 0;
+
             ignoreEvents = false;
             DataExchange.UpdateGeneralSettingsFromGUI();
         }
@@ -296,5 +340,14 @@ namespace GUIPixelPainter.GUI
             }
         }
 
+        private void OnTranslucencyValueChange(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            DataExchange.UpdateTranslucencyFromGUI();
+        }
+
+        private void OnWindowSizeStateChange(object sender, EventArgs e)
+        {
+            DataExchange?.UpdateWindowStateFromUI();
+        }
     }
 }

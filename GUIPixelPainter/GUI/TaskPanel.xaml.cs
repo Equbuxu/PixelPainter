@@ -78,6 +78,11 @@ namespace GUIPixelPainter.GUI
             return converted;
         }
 
+        public int GetSelectedTaskIndex()
+        {
+            return taskList.SelectedIndex;
+        }
+
         public void SetCanvasId(int id)
         {
             canvasId = id;
@@ -273,7 +278,7 @@ namespace GUIPixelPainter.GUI
         {
             if (ignoreEvents)
                 return;
-
+            DataExchange.UpdateSelectedTaskFromGUI();
             if (taskList.Items.Count > 0)
                 UpdateTaskSettingsPanel();
         }

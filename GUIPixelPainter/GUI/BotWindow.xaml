@@ -5,7 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GUIPixelPainter.GUI"
         mc:Ignorable="d"
-        Title="BotWindow" Height="950" Width="1350">
+        Title="BotWindow" 
+        Height="950" 
+        Width="1350" 
+        SizeChanged="OnWindowSizeStateChange"
+        StateChanged="OnWindowSizeStateChange">
     <Grid Name="mainGrid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="240"  MinWidth="240" MaxWidth="500"/>
@@ -22,18 +26,9 @@
             <StackPanel>
                 <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
                     <StackPanel Margin="5">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <CheckBox VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="enabled" Margin="0,0,0,5" ToolTip="Enable bot">
-                                Enable bot
-                            </CheckBox>
-                            <CheckBox Grid.Column="2"  VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="overlay" Margin="15,0,0,5" ToolTip="Display preview of enabled tasks over the canvas">
-                                Overlay tasks
-                            </CheckBox>
-                        </Grid>
+                        <CheckBox VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="enabled" Margin="0,0,0,5" ToolTip="Enable bot">
+                            Enable bot
+                        </CheckBox>
                         <CheckBox VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="trackUsers" Margin="0,0,0,5" ToolTip="User tracking">
                             Track active users
                         </CheckBox>
@@ -42,7 +37,7 @@
                             <TextBox Name="canvasId" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" LostFocus="OnGeneralSettingChange"></TextBox>
                         </DockPanel>
                         <TextBlock Margin="5,5,5,0">Placement mode</TextBlock>
-                        <ComboBox Name="placementMode" SelectedIndex="0" Margin="5" SelectionChanged="OnGeneralSettingChange">
+                        <ComboBox Name="placementMode" Margin="5" SelectionChanged="OnGeneralSettingChange">
                             <TextBlock>Top-down</TextBlock>
                             <TextBlock>Denoise</TextBlock>
                         </ComboBox>
@@ -55,6 +50,23 @@
                 </Border>
 
                 <local:TaskPanel x:Name="taskList"></local:TaskPanel>
+
+                <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
+                    <Expander Header="Overlay" IsExpanded="True">
+                        <StackPanel Margin="5">
+                            <TextBlock>Overlay translucency</TextBlock>
+                            <Slider Minimum="0" Maximum="1" Margin="5,5,0,0" ValueChanged="OnTranslucencyValueChange" Name="overlayTranslucency"></Slider>
+                            <RadioButton GroupName="overlay" Checked="OnGeneralSettingChange" Name="overlayNothing" 
+                                         Margin="0,5,0,5" ToolTip="Disable task preview">Disable overlay</RadioButton>
+                            <RadioButton GroupName="overlay" Checked="OnGeneralSettingChange" Name="overlay" 
+                                         Margin="0,0,0,5" ToolTip="Display preview of enabled tasks on the canvas">Overlay enabled tasks</RadioButton>
+                            <RadioButton GroupName="overlay" Checked="OnGeneralSettingChange" Name="overlayAll" 
+                                         Margin="0,0,0,5" ToolTip="Display preview of all tasks on the canvas">Overlay all tasks</RadioButton>
+                            <RadioButton GroupName="overlay" Checked="OnGeneralSettingChange" Name="overlaySelected" 
+                                         Margin="0,0,0,5" ToolTip="Display preview of selected task on the canvas">Overlay selected task</RadioButton>
+                        </StackPanel>
+                    </Expander>
+                </Border>
 
                 <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
                     <Expander Header="Speed" IsExpanded="True">

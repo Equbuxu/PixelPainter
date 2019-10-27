@@ -75,7 +75,7 @@
                 </TextBlock>
             </Border>
             <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Right="15" Canvas.Top="55" Height="25" Width="25">
-                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5,0,5,0" FontSize="16" MouseUp="OnResetPosition" ToolTip="Reset canvas' position">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5,0,5,0" FontSize="16" MouseUp="OnResetPosition" ToolTip="Reset position of canvas">
                     ↻
                 </TextBlock>
             </Border>

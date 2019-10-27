@@ -90,6 +90,15 @@ namespace GUIPixelPainter
         public bool TrackingEnabled { get; private set; }
 
         public bool OverlayTasks { get; private set; }
+        public bool OverlayAllTasks { get; private set; }
+        public bool OverlaySelectedTask { get; private set; }
+        public double OverlayTranslucency { get; private set; }
+
+        public System.Windows.WindowState windowState { get; private set; }
+        public double windowWidth { get; private set; }
+        public double windowHeight { get; private set; }
+
+        public int SelectedTaskIndex { get; private set; }
 
         public int CanvasId { get; private set; }
 
@@ -131,6 +140,24 @@ namespace GUIPixelPainter
             this.botWindow = botWindow;
         }
 
+        public void UpdateOverlay()
+        {
+            if (!guiTasks.ContainsKey(CanvasId))
+            {
+                pixelCanvas.OverlayTasks(new List<GUITask>());
+                return;
+            }
+
+            if (OverlayAllTasks)
+                pixelCanvas.OverlayTasks(guiTasks[CanvasId].ToList());
+            else if (OverlayTasks)
+                pixelCanvas.OverlayTasks(guiTasks[CanvasId].Where((a) => a.Enabled).ToList());
+            else if (OverlaySelectedTask && SelectedTaskIndex != -1)
+                pixelCanvas.OverlayTasks(new List<GUITask>() { guiTasks[CanvasId][SelectedTaskIndex] });
+            else
+                pixelCanvas.OverlayTasks(new List<GUITask>());
+        }
+
         //"Update from GUI" methods. Grab data from controls and forward to other controls if necessary
         public void UpdateUsersFromGUI()
         {
@@ -140,20 +167,40 @@ namespace GUIPixelPainter
             Updater.Update();
         }
 
+        public void UpdateWindowStateFromUI()
+        {
+            windowWidth = botWindow.GetWindowWidth();
+            windowHeight = botWindow.GetWindowHeight();
+            windowState = botWindow.GetWindowState();
+        }
+
+        public void UpdateSelectedTaskFromGUI()
+        {
+            SelectedTaskIndex = taskPanel.GetSelectedTaskIndex();
+            UpdateOverlay();
+        }
+
+        public void UpdateTranslucencyFromGUI()
+        {
+            OverlayTranslucency = botWindow.GetOverlayTranslucency();
+            pixelCanvas.SetTaskOverlayTranslucency(OverlayTranslucency);
+        }
+
         public void UpdateTasksFromGUI()
         {
             OverlayTasks = botWindow.IsOverlayEnabled();
             guiTasks = taskPanel.GetTasks();
             UsefulData.UpdateTasks();
             Updater.Update();
-            if (OverlayTasks && guiTasks.ContainsKey(CanvasId))
-                pixelCanvas.OverlayTasks(guiTasks[CanvasId].Where((a) => a.Enabled).ToList());
+            UpdateOverlay();
         }
 
         public void UpdateGeneralSettingsFromGUI()
         {
             BotEnabled = botWindow.IsBotEnabled();
             OverlayTasks = botWindow.IsOverlayEnabled();
+            OverlayAllTasks = botWindow.IsOverlayAllEnabled();
+            OverlaySelectedTask = botWindow.IsOverlaySelectedEnabled();
             PlacementMode = botWindow.GetPlacementMode();
             TrackingEnabled = botWindow.IsTrackingEnabled();
 
@@ -170,10 +217,7 @@ namespace GUIPixelPainter
                 UsefulData.UpdateCanvasId();
             }
 
-            if (OverlayTasks && guiTasks.ContainsKey(canvasId))
-                pixelCanvas.OverlayTasks(guiTasks[CanvasId].Where((a) => a.Enabled).ToList());
-            else
-                pixelCanvas.OverlayTasks(new List<GUITask>());
+            UpdateOverlay();
 
             UsefulData.UpdatePlacementMode();
             UsefulData.UpdateTasks();
@@ -259,21 +303,24 @@ namespace GUIPixelPainter
         {
             userPanel.AddNewUser(user);
         }
-
-        public void PushSettings(bool overlayTasks, int canvasId)
+        /*
+        public void PushSetting(string name, string value)
         {
-            botWindow.SetSettings(overlayTasks, canvasId);
+            var property = typeof(GUIDataExchange).GetProperty(name);
+            if (property == null)
+                return;
 
-            //TODO Why the fuck is this here??
-            if (canvasId != CanvasId)
-            {
-                CanvasId = canvasId;
+            property.SetValue(this, Convert.ChangeType(value, property.PropertyType));
+        }*/
 
-                taskPanel.SetCanvasId(canvasId);
-                pixelCanvas.ReloadCanvas(canvasId);
+        public void PushWindowState(double width, double height, System.Windows.WindowState state)
+        {
+            botWindow.SetWindowState(width, height, state);
+        }
 
-                UsefulData.UpdateCanvasId();
-            }
+        public void PushSettings(bool overlayTasks, bool overlayAllTasks, bool overlaySelectedTask, double overlayTranslucency, int canvasId, PlacementMode placementMode)
+        {
+            botWindow.SetSettings(overlayTasks, overlayAllTasks, overlaySelectedTask, overlayTranslucency, canvasId, placementMode);
         }
 
         public void PushTaskPosition(int x, int y)

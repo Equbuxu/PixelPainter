@@ -47,6 +47,7 @@ namespace GUIPixelPainter.GUI
         private bool shiftDirHor = false;
         private bool loading = false;
         private bool tracking = false;
+        private double overlayOpacity = 0.5;
 
         private Tools tool = Tools.MOVE;
         private Color selectedColor = Color.FromArgb(0, 1, 2, 3);
@@ -149,11 +150,26 @@ namespace GUIPixelPainter.GUI
                 Image image = new Image();
                 image.Source = Helper.Convert(task.Dithering == true ? task.DitheredConvertedBitmap : task.ConvertedBitmap);
                 RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.NearestNeighbor);
-                image.Opacity = 0.5;
+                image.Opacity = overlayOpacity;
                 Canvas.SetLeft(image, task.X);
                 Canvas.SetTop(image, task.Y);
                 image.Tag = "taskOverlay";
                 MainCanvas.Children.Add(image);
+            }
+        }
+
+        public void SetTaskOverlayTranslucency(double value)
+        {
+            if (value > 1)
+                value = 1;
+            else if (value < 0)
+                value = 0;
+            overlayOpacity = 1 - value;
+            for (int i = MainCanvas.Children.Count - 1; i >= 0; i--)
+            {
+                FrameworkElement elem = MainCanvas.Children[i] as FrameworkElement;
+                if ((string)elem.Tag == "taskOverlay")
+                    (elem as Image).Opacity = overlayOpacity;
             }
         }
 
