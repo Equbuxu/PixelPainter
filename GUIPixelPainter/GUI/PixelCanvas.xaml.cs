@@ -219,6 +219,7 @@ namespace GUIPixelPainter.GUI
             userPlaceTime[userId] = time;
             Canvas.SetLeft(nameLabels[userId], x + 1);
             Canvas.SetTop(nameLabels[userId], y + 1);
+            (nameLabels[userId].Child as TextBlock).Text = Helper.GetUsernameById(userId);
             (nameLabels[userId].Child as TextBlock).Foreground = new SolidColorBrush(c);
 
             if (time - lastUpdateTime > 100)

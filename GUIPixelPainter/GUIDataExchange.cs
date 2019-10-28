@@ -16,7 +16,7 @@ namespace GUIPixelPainter
 
     public class GUIUser
     {
-        public GUIUser(Guid internalId, string name, string proxy, string authKey, string authToken, Status status, bool enabled)
+        public GUIUser(Guid internalId, string name, string proxy, string authKey, string authToken, string phpSessId, Status status, bool enabled)
         {
             InternalId = internalId;
             Name = name;
@@ -24,6 +24,7 @@ namespace GUIPixelPainter
             AuthKey = authKey;
             AuthToken = authToken;
             Status = status;
+            PhpSessId = phpSessId;
             Enabled = enabled;
         }
         public Guid InternalId { get; }
@@ -31,6 +32,7 @@ namespace GUIPixelPainter
         public string Proxy { get; }
         public string AuthKey { get; }
         public string AuthToken { get; }
+        public string PhpSessId { get; }
         [JsonIgnore]
         public Status Status { get; }
         public bool Enabled { get; }
@@ -104,6 +106,8 @@ namespace GUIPixelPainter
 
         public PlacementMode PlacementMode { get; private set; }
 
+        public IReadOnlyCollection<int> UnknownUsernames { get; private set; }
+
         private Dictionary<int, List<GUITask>> guiTasks = new Dictionary<int, List<GUITask>>();
         //public IReadOnlyDictionary<int, IReadOnlyList<GUITask>> GUITasks => (IReadOnlyDictionary<int, IReadOnlyList<GUITask>>)guiTasks;
         public IReadOnlyDictionary<int, IReadOnlyList<GUITask>> GUITasks => guiTasks.ToDictionary((a) => a.Key, (a) => (IReadOnlyList<GUITask>)a.Value.AsReadOnly());
@@ -128,16 +132,18 @@ namespace GUIPixelPainter
         private GUI.TaskPanel taskPanel;
         private GUI.PixelCanvas pixelCanvas;
         private GUI.BotWindow botWindow;
+        private GUIHelper guiHelper;
 
         public GUIUpdater Updater { get; set; }
         public UsefulDataRepresentation UsefulData { get; set; }
 
-        public GUIDataExchange(GUI.UserPanel userPanel, GUI.TaskPanel taskPanel, GUI.PixelCanvas pixelCanvas, GUI.BotWindow botWindow)
+        public GUIDataExchange(GUI.UserPanel userPanel, GUI.TaskPanel taskPanel, GUI.PixelCanvas pixelCanvas, GUI.BotWindow botWindow, GUIHelper helper)
         {
             this.userPanel = userPanel;
             this.taskPanel = taskPanel;
             this.pixelCanvas = pixelCanvas;
             this.botWindow = botWindow;
+            this.guiHelper = helper;
         }
 
         public void UpdateOverlay()
@@ -165,6 +171,12 @@ namespace GUIPixelPainter
 
             UsefulData.UpdateUsers();
             Updater.Update();
+        }
+
+        public void UpdateUnknownUsernamesFromGUI()
+        {
+            UnknownUsernames = guiHelper.GetUnknownUsernames();
+            UsefulData.UpdateUnknownUsernames();
         }
 
         public void UpdateWindowStateFromUI()
@@ -225,6 +237,7 @@ namespace GUIPixelPainter
         }
 
         //"Create" methonds. They are like push methods, but push data back instead of forward
+
         /// <summary>
         /// return true on success, false on failure 
         /// </summary>
@@ -266,6 +279,11 @@ namespace GUIPixelPainter
         }
 
         //"Push" methods. Transfer individual events forward to controls. They don't impact data stored here.
+        public void PushNewUsername(int id, string name)
+        {
+            guiHelper.AddUsername(id, name);
+        }
+
         public void PushChatMessage(string message, System.Windows.Media.Color c)
         {
             botWindow.AddChatText(message, c);

@@ -87,7 +87,8 @@ namespace GUIPixelPainter
 
         public List<Tuple<string, EventArgs>> Update(List<GUIEvent> events)
         {
-            latestGUIEvents.AddRange(events.Select((a) => a).ToList());
+            lock (latestGUIEvents)
+                latestGUIEvents.AddRange(events.Select((a) => a).ToList());
             resetEvent.Set();
             lock (eventsToDispatch)
             {
@@ -116,7 +117,22 @@ namespace GUIPixelPainter
                     ManageQueues();
                     ProcessGUIEvents();
                     ProcessEvents();
+                    ManageUnknownUsernames();
                 }
+            }
+        }
+
+        private void ManageUnknownUsernames()
+        {
+            foreach (Connection conn in users)
+            {
+                if (!conn.Client.Premium || conn.Client.GetStatus() != Status.OPEN)
+                    continue;
+
+                foreach (int unknownUsername in guiData.UnknownUsernames)
+                    conn.Client.SendNicknameRequest(unknownUsername);
+
+                break;
             }
         }
 
@@ -220,17 +236,20 @@ namespace GUIPixelPainter
 
         private void ProcessGUIEvents()
         {
-            for (int i = latestGUIEvents.Count - 1; i >= 0; i--)
+            lock (latestGUIEvents)
             {
-                var @event = latestGUIEvents[i];
-                if (@event is ChatMessageGUIEvent)
+                for (int i = latestGUIEvents.Count - 1; i >= 0; i--)
                 {
-                    ChatMessageGUIEvent message = @event as ChatMessageGUIEvent;
-                    var user = users.Where((a) => a.Id == message.UserId);
-                    if (user.Count() == 0)
-                        continue;
-                    user.First().Client.SendChatMessage(message.Message, message.Color);
-                    latestGUIEvents.RemoveAt(i);
+                    var @event = latestGUIEvents[i];
+                    if (@event is ChatMessageGUIEvent)
+                    {
+                        ChatMessageGUIEvent message = @event as ChatMessageGUIEvent;
+                        var user = users.Where((a) => a.Id == message.UserId);
+                        if (user.Count() == 0)
+                            continue;
+                        user.First().Client.SendChatMessage(message.Message, message.Color);
+                        latestGUIEvents.RemoveAt(i);
+                    }
                 }
             }
         }
@@ -334,7 +353,7 @@ namespace GUIPixelPainter
 
         private SocketIO CreateSocketIO(UsefulUser user)
         {
-            SocketIO socket = new SocketIO(user.AuthKey, user.AuthToken, guiData.CanvasId, user.Proxy);
+            SocketIO socket = new SocketIO(user.AuthKey, user.AuthToken, user.PhpSessId, guiData.CanvasId, user.Proxy);
             socket.OnEvent += (a, b) => { OnSocketEvent(a, b, user.Id); };
             return socket;
         }

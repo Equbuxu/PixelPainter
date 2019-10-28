@@ -21,6 +21,12 @@ namespace GUIPixelPainter
         CLOSEDDISCONNECT
     }
 
+    class NicknamePacket : EventArgs
+    {
+        public int id;
+        public string nickname;
+    }
+
     class ErrorPacket : EventArgs
     {
         public int id;
@@ -129,7 +135,14 @@ namespace GUIPixelPainter
         private int boardId;
         private string authKey;
         private string authToken;
+        private string phpSessId;
         private string proxy;
+
+        private bool premium;
+        private string username;
+
+        public bool Premium { get { return premium; } }
+        public string Username { get { return username; } }
 
         private string id;
         private Status status;
@@ -142,10 +155,11 @@ namespace GUIPixelPainter
         private List<Tuple<Task<HttpResponseMessage>, bool>> tasks = new List<Tuple<Task<HttpResponseMessage>, bool>>();
         private HttpClient client;
 
-        public SocketIO(string authKey, string authToken, int boardId, string proxy)
+        public SocketIO(string authKey, string authToken, string phpSessId, int boardId, string proxy)
         {
             this.authKey = authKey;
             this.authToken = authToken;
+            this.phpSessId = phpSessId;
             this.boardId = boardId;
             this.proxy = proxy;
         }
@@ -156,17 +170,23 @@ namespace GUIPixelPainter
                 throw new Exception("already connected");
             status = Status.CONNECTING;
 
+            CookieContainer cookies = new CookieContainer();
+            cookies.Add(new Cookie("PHPSESSID", phpSessId, "/", "pixelplace.io"));
+            cookies.Add(new Cookie("authKey", authKey, "/", "pixelplace.io"));
+            cookies.Add(new Cookie("authToken", authToken, "/", "pixelplace.io"));
+
+            HttpClientHandler handler;
             if (string.IsNullOrWhiteSpace(proxy))
-                client = new HttpClient();
+                handler = new HttpClientHandler() { CookieContainer = cookies };
             else
             {
-                HttpClientHandler handler = new HttpClientHandler()
+                handler = new HttpClientHandler()
                 {
                     UseProxy = true,
                     Proxy = new WebProxy(proxy)
                 };
-                client = new HttpClient(handler);
             }
+            client = new HttpClient(handler);
 
 
             ConnectSequence();
@@ -193,6 +213,22 @@ namespace GUIPixelPainter
                     IdResponce result = JsonConvert.DeserializeObject<IdResponce>(response);
                     this.id = result.sid;
                 }
+                //Get premium status, username
+                {
+                    var page = client.GetAsync("https://pixelplace.io/").Result;
+                    string content = page.Content.ReadAsStringAsync().Result;
+                    int configStart = content.IndexOf(@"var CONFIG = {");
+                    int userStart = content.IndexOf("user: {", configStart);
+
+                    int usernameStart = content.IndexOf(@"username:", userStart);
+                    string usernameToken = content.Substring(usernameStart, content.IndexOf(',', usernameStart) - usernameStart);
+                    username = usernameToken.Substring(11, usernameToken.Length - 12);
+
+                    int premiumStart = content.IndexOf(@"premium:", userStart);
+                    string premiumToken = content.Substring(premiumStart, content.IndexOf(',', premiumStart) + 1 - premiumStart);
+                    premium = premiumToken.Contains("true");
+                }
+
                 //Send authKey and authToken
                 {
                     StringBuilder sb = new StringBuilder();
@@ -263,7 +299,7 @@ namespace GUIPixelPainter
                             status = Status.CLOSEDDISCONNECT;
                             return;
                         }
-                        if (!ProcessMessage(response))
+                        if (!ProcessMessage(response, tasks[i].Item1.Result.RequestMessage.RequestUri.ToString()))
                         {
                             status = Status.CLOSEDERROR;
                             return;
@@ -323,11 +359,36 @@ namespace GUIPixelPainter
                 throw new Exception("already closed");
         }
 
+        public bool SendNicknameRequest(int userId)
+        {
+            if (status != Status.OPEN)
+            {
+                Console.WriteLine("Failed to username request");
+                return false;
+            }
+
+            //if (premium == false)
+            //    return false;
+
+            try
+            {
+                tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.GetAsync("https://pixelplace.io/back/modalsV2.php?getUsernameById=true&id=" + userId), false));
+                Console.WriteLine("Requested {0}'s nickname", userId);
+            }
+            catch (HttpRequestException)
+            {
+                status = Status.CLOSEDDISCONNECT;
+                return false;
+            }
+            return true;
+        }
+
         public bool SendPixels(IReadOnlyCollection<IdPixel> pixels)
         {
             if (status != Status.OPEN)
             {
-                throw new Exception("not connected");
+                Console.WriteLine("Failed to send pixels");
+                return false;
             }
 
             StringBuilder builder = new StringBuilder();
@@ -360,6 +421,7 @@ namespace GUIPixelPainter
             if (status != Status.OPEN)
             {
                 Console.WriteLine("Failed to send chat message: {0}", message);
+                return false;
             }
 
             string data = String.Format("42[\"chat.message\",{{\"message\":\"{0}\",\"color\":{1}}}]", message, color);
@@ -391,8 +453,40 @@ namespace GUIPixelPainter
             return result;
         }
 
-        private bool ProcessMessage(string data)
+        private bool ProcessMessage(string data, string requestUri)
         {
+            if (data.Contains("\"success\"") && data.Contains("\"data\""))
+            {
+                int id = int.Parse(requestUri.Substring(requestUri.LastIndexOf("=") + 1));
+
+                //data = "{\"success\":true,\"data\":{\"username\":\"Person" + id.ToString() + "\"}}";
+
+                //username request response
+                string suc = data.Substring(11, 5);
+                if (suc == "false")
+                {
+                    premium = false;
+                    Console.WriteLine("failed to get username, no premium");
+                    return true;
+                }
+                if (data.Contains("User not found") || data.Contains("You need to be connected"))
+                {
+                    Console.WriteLine("failed to get username");
+                    return true;
+                }
+                int startPos = data.IndexOf("\"username\":\"") + 1 + 11;
+                int endPos = data.IndexOf("\"}}");
+                if (endPos == -1)
+                {
+                    Console.WriteLine("failed to get username");
+                    return true;
+                }
+                string name = data.Substring(startPos, endPos - startPos);
+                NicknamePacket packet = new NicknamePacket() { nickname = name, id = id };
+                OnEvent("nickname", packet);
+                return true;
+            }
+
             if (!data.Contains('['))
             {
                 return true;
@@ -409,10 +503,6 @@ namespace GUIPixelPainter
                     {
                         string packet = data.Substring(colonIndex + 3, packetSize - 2);
                         packets.Add(packet);
-                    }
-                    else
-                    {
-                        //Console.WriteLine("3");
                     }
                     data = data.Substring(packetSize + colonIndex + 1);
                 }

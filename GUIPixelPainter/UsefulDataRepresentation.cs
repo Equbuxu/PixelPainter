@@ -26,15 +26,17 @@ namespace GUIPixelPainter
 
     public class UsefulUser
     {
-        public UsefulUser(Guid id, string authKey, string authToken, string proxy)
+        public UsefulUser(Guid id, string authKey, string authToken, string phpSessId, string proxy)
         {
             Id = id;
             AuthKey = authKey;
             AuthToken = authToken;
+            PhpSessId = phpSessId;
             Proxy = proxy;
         }
         public Guid Id { get; }
         public string AuthToken { get; }
+        public string PhpSessId { get; }
         public string AuthKey { get; }
         public string Proxy { get; }
     }
@@ -81,6 +83,15 @@ namespace GUIPixelPainter
             }
         }
 
+        private List<int> unknownUsernames = new List<int>();
+        public List<int> UnknownUsernames
+        {
+            get
+            {
+                lock (manualPixels) { return unknownUsernames.Select((a) => a).ToList(); }
+            }
+        }
+
         public int CanvasId { get; private set; } = -1;
 
         public PlacementMode PlacementMode { get; private set; }
@@ -90,6 +101,18 @@ namespace GUIPixelPainter
         public UsefulDataRepresentation(GUIDataExchange dataExchange)
         {
             this.dataExchange = dataExchange;
+        }
+
+        public void UpdateUnknownUsernames()
+        {
+            lock (unknownUsernames)
+            {
+                unknownUsernames.Clear();
+                foreach (int userId in dataExchange.UnknownUsernames)
+                {
+                    unknownUsernames.Add(userId);
+                }
+            }
         }
 
         public void UpdateCanvasId()
@@ -148,9 +171,9 @@ namespace GUIPixelPainter
                 users.Clear();
                 foreach (GUIUser user in dataExchange.GUIUsers)
                 {
-                    if (!user.Enabled)
+                    if (!user.Enabled || string.IsNullOrEmpty(user.PhpSessId) || string.IsNullOrEmpty(user.AuthKey) || string.IsNullOrEmpty(user.AuthToken))
                         continue;
-                    UsefulUser newUser = new UsefulUser(user.InternalId, user.AuthKey, user.AuthToken, user.Proxy);
+                    UsefulUser newUser = new UsefulUser(user.InternalId, user.AuthKey, user.AuthToken, user.PhpSessId, user.Proxy);
                     users.Add(newUser);
                 }
             }

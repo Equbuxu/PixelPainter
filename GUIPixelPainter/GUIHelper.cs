@@ -15,18 +15,36 @@ namespace GUIPixelPainter
     {
         public Dictionary<int, List<System.Drawing.Color>> Palette { get; }
         public Dictionary<int, string> usernames;
+        private HashSet<int> unknownUsernames = new HashSet<int>();
+        public GUIDataExchange DataExchange { get; set; }
 
         public GUIHelper(Dictionary<int, List<System.Drawing.Color>> palette)
         {
             Palette = palette;
-            usernames = JsonConvert.DeserializeObject<Dictionary<int, string>>(Resources.Usernames);
         }
 
         public string GetUsernameById(int id)
         {
             if (usernames.ContainsKey(id))
                 return usernames[id];// + " (" + id.ToString() + ")";
+            if (unknownUsernames.Add(id))
+                DataExchange.UpdateUnknownUsernamesFromGUI();
             return id.ToString();
+        }
+
+        public void AddUsername(int id, string name)
+        {
+            unknownUsernames.Remove(id);
+            if (!usernames.ContainsKey(id))
+            {
+                usernames.Add(id, name);
+                DataExchange.UpdateUnknownUsernamesFromGUI();
+            }
+        }
+
+        public IReadOnlyCollection<int> GetUnknownUsernames()
+        {
+            return unknownUsernames;
         }
 
         public BitmapSource Convert(System.Drawing.Bitmap bitmap)

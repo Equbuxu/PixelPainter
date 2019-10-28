@@ -13,13 +13,16 @@ namespace GUIPixelPainter
     public class DataLoader
     {
         private GUIDataExchange dataExchange;
-        public DataLoader(GUIDataExchange dataExchange)
+        private GUIHelper helper;
+        public DataLoader(GUIDataExchange dataExchange, GUIHelper helper)
         {
             this.dataExchange = dataExchange;
+            this.helper = helper;
         }
 
         private string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PixelPainter");
         private string configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PixelPainter/config.json");
+        private string usernamesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PixelPainter/usernames.json");
 
         enum ConfigVersion
         {
@@ -55,16 +58,39 @@ namespace GUIPixelPainter
                 LoadLegacy();
             else if (version == ConfigVersion.v0)
                 LoadV0();
+
+            LoadUsernames();
         }
 
-        public void LoadNew()
+        public void LoadUsernames()
+        {
+            Dictionary<int, string> embeddedNames = JsonConvert.DeserializeObject<Dictionary<int, string>>(Properties.Resources.Usernames);
+
+            if (File.Exists(usernamesPath))
+            {
+                Dictionary<int, string> savedNames = JsonConvert.DeserializeObject<Dictionary<int, string>>(File.ReadAllText(usernamesPath));
+                foreach (KeyValuePair<int, string> pair in savedNames)
+                {
+                    if (!embeddedNames.ContainsKey(pair.Key))
+                        embeddedNames.Add(pair.Key, pair.Value);
+                }
+            }
+
+            helper.usernames = embeddedNames;
+        }
+
+        public void SaveUsernames(string path)
+        {
+            File.WriteAllText(path, JsonConvert.SerializeObject(helper.usernames, Formatting.Indented));
+        }
+
+        private void LoadNew()
         {
             dataExchange.PushSettings(true, false, false, 0.5, 7, PlacementMode.TOPDOWN);
             dataExchange.PushWindowState(1350, 950, System.Windows.WindowState.Normal);
-
         }
 
-        public void LoadV0()
+        private void LoadV0()
         {
             using (StreamReader file = File.OpenText(configPath))
             {
@@ -120,7 +146,7 @@ namespace GUIPixelPainter
             }
         }
 
-        public void LoadLegacy()
+        private void LoadLegacy()
         {
             using (StreamReader file = File.OpenText(configPath))
             {
@@ -235,6 +261,8 @@ namespace GUIPixelPainter
                     }
                 }
             }
+
+            SaveUsernames(usernamesPath);
         }
     }
 }

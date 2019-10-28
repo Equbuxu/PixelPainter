@@ -111,11 +111,11 @@ namespace GUIPixelPainter
             //Create or get everything
             window = app.Windows[0] as GUI.BotWindow;
             helper = new GUIHelper(GUIPalette);
-            dataExchange = new GUIDataExchange(window.usersPanel, window.taskList, window.pixelCanvas, window);
+            dataExchange = new GUIDataExchange(window.usersPanel, window.taskList, window.pixelCanvas, window, helper);
             representation = new UsefulDataRepresentation(dataExchange);
             manager = new UserManager(representation, palette);
             updater = new GUIUpdater(palette);
-            loader = new DataLoader(dataExchange);
+            loader = new DataLoader(dataExchange, helper);
 
             //Set window properties
             window.Helper = helper;
@@ -136,6 +136,9 @@ namespace GUIPixelPainter
             //Set dataexchange properties
             dataExchange.UsefulData = representation;
             dataExchange.Updater = updater;
+
+            //Set helper properties
+            helper.DataExchange = dataExchange;
 
             //Load saved data
             loader.Load();

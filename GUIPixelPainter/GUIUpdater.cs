@@ -91,6 +91,11 @@ namespace GUIPixelPainter
                     TaskEnableStateData data = eventTuple.Item2 as TaskEnableStateData;
                     DataExchange.PushTaskEnabledState(data);
                 }
+                else if (eventTuple.Item1 == "nickname")
+                {
+                    NicknamePacket data = eventTuple.Item2 as NicknamePacket;
+                    DataExchange.PushNewUsername(data.id, data.nickname);
+                }
             }
         }
     }

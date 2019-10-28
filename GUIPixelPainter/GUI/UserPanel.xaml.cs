@@ -27,6 +27,7 @@ namespace GUIPixelPainter.GUI
             public string proxyUrl;
             public string authKey;
             public string authToken;
+            public string phpSessId;
             public bool isEnabled;
             public Status status;
         }
@@ -50,7 +51,7 @@ namespace GUIPixelPainter.GUI
             List<GUIUser> converted = new List<GUIUser>();
             foreach (User user in users)
             {
-                converted.Add(new GUIUser(user.internalId, user.name, user.proxyUrl, user.authKey, user.authToken, user.status, user.isEnabled));
+                converted.Add(new GUIUser(user.internalId, user.name, user.proxyUrl, user.authKey, user.authToken, user.phpSessId, user.status, user.isEnabled));
             }
             return converted;
         }
@@ -82,6 +83,7 @@ namespace GUIPixelPainter.GUI
                 proxyUrl = user.Proxy,
                 authKey = user.AuthKey,
                 authToken = user.AuthToken,
+                phpSessId = user.PhpSessId,
                 isEnabled = user.Enabled,
                 status = user.Status
             };
@@ -179,6 +181,7 @@ namespace GUIPixelPainter.GUI
                 userProxy.IsEnabled = false;
                 authKey.IsEnabled = false;
                 authToken.IsEnabled = false;
+                phpSessId.IsEnabled = false;
                 enableUser.IsEnabled = false;
                 deleteUser.IsEnabled = false;
                 userStatus.Content = "Status: ";
@@ -192,6 +195,7 @@ namespace GUIPixelPainter.GUI
             userProxy.Text = selectedUser.proxyUrl;
             authKey.Text = selectedUser.authKey;
             authToken.Text = selectedUser.authToken;
+            phpSessId.Text = selectedUser.phpSessId;
             enableUser.IsChecked = selectedUser.isEnabled;
             userStatus.Content = "Status: " + selectedUser.status.ToString();
 
@@ -199,6 +203,7 @@ namespace GUIPixelPainter.GUI
             userProxy.IsEnabled = true;
             authKey.IsEnabled = true;
             authToken.IsEnabled = true;
+            phpSessId.IsEnabled = true;
             enableUser.IsEnabled = true;
             deleteUser.IsEnabled = true;
 
@@ -243,6 +248,7 @@ namespace GUIPixelPainter.GUI
             selectedUser.proxyUrl = userProxy.Text;
             selectedUser.authKey = authKey.Text;
             selectedUser.authToken = authToken.Text;
+            selectedUser.phpSessId = phpSessId.Text;
             DataExchange.UpdateUsersFromGUI();
             if (sender.Equals(userName))
                 UpdateUserList();
