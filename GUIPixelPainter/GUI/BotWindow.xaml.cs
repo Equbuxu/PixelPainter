@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -348,6 +349,15 @@ namespace GUIPixelPainter.GUI
         private void OnWindowSizeStateChange(object sender, EventArgs e)
         {
             DataExchange?.UpdateWindowStateFromUI();
+        }
+
+        private void OnExportNicknames(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "JSON|*.json";
+            saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            if (saveFileDialog.ShowDialog() == true)
+                Launcher.ExportNicknames(saveFileDialog.FileName);
         }
     }
 }

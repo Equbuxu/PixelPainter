@@ -151,5 +151,10 @@ namespace GUIPixelPainter
         {
             loader.Save();
         }
+
+        public void ExportNicknames(string path)
+        {
+            loader.SaveUsernames(path);
+        }
     }
 }

@@ -67,6 +67,14 @@
                         </StackPanel>
                     </Expander>
                 </Border>
+
+                <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
+                    <Expander Header="Other" IsExpanded="True">
+                        <StackPanel Margin="5">
+                            <Button Click="OnExportNicknames">Export usernames</Button>
+                        </StackPanel>
+                    </Expander>
+                </Border>
             </StackPanel>
         </ScrollViewer>
 
