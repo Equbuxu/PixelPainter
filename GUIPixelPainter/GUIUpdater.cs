@@ -96,6 +96,11 @@ namespace GUIPixelPainter
                     NicknamePacket data = eventTuple.Item2 as NicknamePacket;
                     DataExchange.PushNewUsername(data.id, data.nickname);
                 }
+                else if (eventTuple.Item1 == "tokens")
+                {
+                    TokenPacket data = eventTuple.Item2 as TokenPacket;
+                    DataExchange.PushTokens(data.phpSessId, data.authToken, data.id);
+                }
             }
         }
     }

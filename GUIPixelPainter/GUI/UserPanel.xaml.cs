@@ -63,6 +63,16 @@ namespace GUIPixelPainter.GUI
             return Guid.Parse(((userList.SelectedItem as StackPanel).Children[1] as TextBlock).Text);
         }
 
+        public void SetUserTokens(Guid id, string phpSessId, string authToken)
+        {
+            var user = GetUser(id);
+            if (user == null)
+                return;
+            user.authToken = authToken;
+            user.phpSessId = phpSessId;
+            UpdateUserList();
+        }
+
         public void SetUserStatus(Guid id, Status status)
         {
             var user = GetUser(id);

@@ -21,6 +21,13 @@ namespace GUIPixelPainter
         CLOSEDDISCONNECT
     }
 
+    class TokenPacket : EventArgs
+    {
+        public string phpSessId;
+        public string authToken;
+        public Guid id;
+    }
+
     class NicknamePacket : EventArgs
     {
         public int id;
@@ -213,9 +220,42 @@ namespace GUIPixelPainter
                     IdResponce result = JsonConvert.DeserializeObject<IdResponce>(response);
                     this.id = result.sid;
                 }
-                //Get premium status, username
+                //Get premium status, username, new AuthToken and PHPSESSID
                 {
                     var page = client.GetAsync("https://pixelplace.io/").Result;
+
+                    IEnumerable<string> values;
+                    if (page.Headers.TryGetValues("Set-Cookie", out values))
+                    {
+                        bool changed = false;
+                        foreach (string s in values)
+                        {
+                            if (s.StartsWith("authToken"))
+                            {
+                                string[] data = s.Split('=', ';');
+                                if (data[1] != authToken)
+                                {
+                                    changed = true;
+                                    authToken = data[1];
+                                }
+                            }
+                            else if (s.StartsWith("PHPSESSID"))
+                            {
+                                string[] data = s.Split('=', ';');
+                                if (data[1] != phpSessId)
+                                {
+                                    changed = true;
+                                    phpSessId = data[1];
+                                }
+                            }
+                        }
+                        if (changed)
+                        {
+                            TokenPacket packet = new TokenPacket() { authToken = authToken, phpSessId = phpSessId };
+                            OnEvent("tokens", packet);
+                        }
+                    }
+
                     string content = page.Content.ReadAsStringAsync().Result;
                     int configStart = content.IndexOf(@"var CONFIG = {");
                     int userStart = content.IndexOf("user: {", configStart);
@@ -228,7 +268,6 @@ namespace GUIPixelPainter
                     string premiumToken = content.Substring(premiumStart, content.IndexOf(',', premiumStart) + 1 - premiumStart);
                     premium = premiumToken.Contains("true");
                 }
-
                 //Send authKey and authToken
                 {
                     StringBuilder sb = new StringBuilder();

@@ -375,7 +375,12 @@ namespace GUIPixelPainter
                 Console.WriteLine("stall");
             }
 
-            if (user != currentActiveUser)
+            if (type == "tokens")
+            {
+                (args as TokenPacket).id = user;
+            }
+
+            if (user != currentActiveUser && type != "tokens" && type != "nickname")
             {
                 var curactive = users.Where((a) => a.Id == currentActiveUser).ToList();
                 if (curactive.Count == 0 || curactive[0].Client.GetStatus() != Status.OPEN)

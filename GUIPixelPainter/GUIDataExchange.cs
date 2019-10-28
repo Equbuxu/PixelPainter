@@ -279,6 +279,11 @@ namespace GUIPixelPainter
         }
 
         //"Push" methods. Transfer individual events forward to controls. They don't impact data stored here.
+        public void PushTokens(string PHPSESSID, string authToken, Guid id)
+        {
+            userPanel.SetUserTokens(id, PHPSESSID, authToken);
+        }
+
         public void PushNewUsername(int id, string name)
         {
             guiHelper.AddUsername(id, name);
