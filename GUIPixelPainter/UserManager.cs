@@ -247,7 +247,7 @@ namespace GUIPixelPainter
                         var user = users.Where((a) => a.Id == message.UserId);
                         if (user.Count() == 0)
                             continue;
-                        user.First().Client.SendChatMessage(message.Message, message.Color);
+                        user.First().Client.SendChatMessage(message.Message, message.Color, message.Chat);
                         latestGUIEvents.RemoveAt(i);
                     }
                 }

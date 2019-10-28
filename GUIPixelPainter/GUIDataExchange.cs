@@ -241,12 +241,12 @@ namespace GUIPixelPainter
         /// <summary>
         /// return true on success, false on failure 
         /// </summary>
-        public bool CreateChatMessage(string text, int color)
+        public bool CreateChatMessage(string text, int color, int chat)
         {
             var user = userPanel.GetSelectedUserGuidIfAny();
             if (user == Guid.Empty)
                 return false;
-            ChatMessageGUIEvent message = new ChatMessageGUIEvent(text, user, color);
+            ChatMessageGUIEvent message = new ChatMessageGUIEvent(text, user, color, chat);
             Updater.AddEvent(message);
             Updater.Update();
             return true;
@@ -289,9 +289,9 @@ namespace GUIPixelPainter
             guiHelper.AddUsername(id, name);
         }
 
-        public void PushChatMessage(string message, System.Windows.Media.Color c)
+        public void PushChatMessage(string message, bool isLocal, System.Windows.Media.Color c)
         {
-            botWindow.AddChatText(message, c);
+            botWindow.AddChatText(message, isLocal, c);
         }
 
         public void PushPixel(int x, int y, Color color, int boardId, int userId, bool myOwnPixel)

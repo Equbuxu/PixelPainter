@@ -46,7 +46,9 @@ namespace GUIPixelPainter.GUI
         {
             Debug.Assert(DataExchange != null && Helper != null && Launcher != null);
 
-            chat.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
+            chatLocal.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
+            chatGlobal.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
+            globalChatMode.IsChecked = true;
 
             speedPanelGrid.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
 
@@ -153,7 +155,7 @@ namespace GUIPixelPainter.GUI
             return int.TryParse(canvasId.Text, out int id) ? id : 7;
         }
 
-        public void AddChatText(string text, System.Windows.Media.Color c)
+        public void AddChatText(string text, bool isLocal, System.Windows.Media.Color c)
         {
             TextBlock msgBlock = new TextBlock();
             msgBlock.Padding = new Thickness(5);
@@ -215,12 +217,19 @@ namespace GUIPixelPainter.GUI
 
             msgBlock.Inlines.Add(splitLinks[lastSegment]);
 
-            chat.Children.Add(msgBlock);
-            chatScroll.ScrollToBottom();
-
-            if (chat.Children.Count > 35)
+            if (isLocal)
             {
-                chat.Children.RemoveAt(0);
+                chatLocal.Children.Add(msgBlock);
+                chatScrollLocal.ScrollToBottom();
+                if (chatLocal.Children.Count > 35)
+                    chatLocal.Children.RemoveAt(0);
+            }
+            else
+            {
+                chatGlobal.Children.Add(msgBlock);
+                chatScrollGlobal.ScrollToBottom();
+                if (chatGlobal.Children.Count > 35)
+                    chatGlobal.Children.RemoveAt(0);
             }
         }
 
@@ -309,7 +318,7 @@ namespace GUIPixelPainter.GUI
         {
             if (ignoreEvents)
                 return;
-            if (DataExchange.CreateChatMessage(chatTextBox.Text, 0))
+            if (DataExchange.CreateChatMessage(chatTextBox.Text, 0, (bool)globalChatMode.IsChecked ? 0 : GetCanvasId()))
                 chatTextBox.Text = "";
         }
 
@@ -358,6 +367,20 @@ namespace GUIPixelPainter.GUI
             saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             if (saveFileDialog.ShowDialog() == true)
                 Launcher.ExportNicknames(saveFileDialog.FileName);
+        }
+
+        private void OnChangeChatMode(object sender, RoutedEventArgs e)
+        {
+            if (sender == globalChatMode)
+            {
+                chatScrollGlobal.Visibility = Visibility.Visible;
+                chatScrollLocal.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                chatScrollGlobal.Visibility = Visibility.Collapsed;
+                chatScrollLocal.Visibility = Visibility.Visible;
+            }
         }
     }
 }

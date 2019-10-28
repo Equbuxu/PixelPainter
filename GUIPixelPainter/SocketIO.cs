@@ -49,6 +49,7 @@ namespace GUIPixelPainter
         public bool mod = false;
         public bool premium = false;
         public int boardId = 0;
+        public int chat = 0;
 
         public override int GetHashCode()
         {
@@ -455,7 +456,7 @@ namespace GUIPixelPainter
             return true;
         }
 
-        public bool SendChatMessage(string message, int color)
+        public bool SendChatMessage(string message, int color, int chat)
         {
             if (status != Status.OPEN)
             {
@@ -463,7 +464,7 @@ namespace GUIPixelPainter
                 return false;
             }
 
-            string data = String.Format("42[\"chat.message\",{{\"message\":\"{0}\",\"color\":{1}}}]", message, color);
+            string data = String.Format("42[\"chat.message\",{{\"message\":\"{0}\",\"color\":{1},\"chat\":{2}}}]", message, color, chat);
             string packet = String.Format("{0}:{1}", data.Length, data);
             StringContent content = new StringContent(packet);
             try

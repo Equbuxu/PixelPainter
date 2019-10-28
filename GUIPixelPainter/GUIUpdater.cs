@@ -14,15 +14,17 @@ namespace GUIPixelPainter
 
     public class ChatMessageGUIEvent : GUIEvent
     {
-        public ChatMessageGUIEvent(string message, Guid userId, int color)
+        public ChatMessageGUIEvent(string message, Guid userId, int color, int chat)
         {
             Message = message;
             UserId = userId;
             Color = color;
+            Chat = chat;
         }
         public string Message { get; }
         public Guid UserId { get; }
         public int Color { get; }
+        public int Chat { get; }
     }
 
     public class GUIUpdater
@@ -54,6 +56,9 @@ namespace GUIPixelPainter
                 {
                     var message = eventTuple.Item2 as ChatMessagePacket;
 
+                    if (message.chat != 0 && message.chat != DataExchange.CanvasId)
+                        continue;
+
                     string formatted = String.Format("{0}: {1}", message.username, message.message);
                     if (!String.IsNullOrWhiteSpace(message.guild))
                         formatted = formatted.Insert(0, String.Format("<{0}>", message.guild));
@@ -70,7 +75,7 @@ namespace GUIPixelPainter
                     if (!palette.ContainsKey(boardId))
                         boardId = 7;
                     Color color = palette[boardId][message.color];
-                    DataExchange.PushChatMessage(formatted, System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B));
+                    DataExchange.PushChatMessage(formatted, message.chat != 0, System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B));
                 }
                 else if (eventTuple.Item1 == "pixels")
                 {

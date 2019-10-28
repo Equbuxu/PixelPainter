@@ -85,11 +85,21 @@
                 <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
                     <Expander Header="Chat" IsExpanded="True">
                         <StackPanel Margin="5">
+                            <DockPanel>
+                                <RadioButton GroupName="chatMode" Margin="0,0,5,0" Checked="OnChangeChatMode" Name="globalChatMode">Global chat</RadioButton>
+                                <RadioButton GroupName="chatMode" Checked="OnChangeChatMode" Name="localChatMode">Current canvas</RadioButton>
+                            </DockPanel>
                             <Border BorderBrush="Gray" Margin="5" BorderThickness="1">
-                                <ScrollViewer Name="chatScroll" Width="auto" Height="230" >
-                                    <StackPanel Name="chat">
-                                    </StackPanel>
-                                </ScrollViewer>
+                                <StackPanel>
+                                    <ScrollViewer Name="chatScrollGlobal" Width="auto" Height="230" Visibility="Visible">
+                                        <StackPanel Name="chatGlobal">
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                    <ScrollViewer Name="chatScrollLocal" Width="auto" Height="230" Visibility="Collapsed">
+                                        <StackPanel Name="chatLocal">
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                </StackPanel>
                             </Border>
                             <Grid Margin="5">
                                 <Grid.ColumnDefinitions>
