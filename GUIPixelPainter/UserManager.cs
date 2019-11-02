@@ -290,7 +290,10 @@ namespace GUIPixelPainter
                 users[i].Session.ClearQueue();
                 users[i].Session.Close();
                 if (users[i].Client.GetStatus() != Status.CLOSEDERROR && users[i].Client.GetStatus() != Status.CLOSEDDISCONNECT)
+                {
                     users[i].Client.Disconnect();
+                    CreateEventToDispatch("manager.status", new UserStatusData(users[i].Id, Status.NOTOPEN));
+                }
                 users.RemoveAt(i);
             }
 
