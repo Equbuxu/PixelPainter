@@ -375,7 +375,7 @@ namespace GUIPixelPainter.GUI
                 UpdateTaskList();
         }
 
-        private void ConvertImages()
+        private void ConvertImages(Task task)
         {
             if (converterThread != null)
             {
@@ -389,7 +389,6 @@ namespace GUIPixelPainter.GUI
                 }
             }
 
-            Task task = GetSelectedTask();
             Bitmap image = task.originalImage;
 
             ImageConverter noDither = new ImageConverter(image, Helper.Palette[7], false);
@@ -424,19 +423,16 @@ namespace GUIPixelPainter.GUI
 
             Task task = GetSelectedTask();
             Bitmap image = task.originalImage;
-            if (image == null)
+            if (image == null || !task.imagesConverted)
             {
                 preview.Source = null;
                 return;
             }
 
-            if (task.imagesConverted)
-            {
-                if (dithering.IsChecked == true)
-                    preview.Source = Helper.Convert(task.ditheredImage);
-                else
-                    preview.Source = Helper.Convert(task.convertedImage);
-            }
+            if (dithering.IsChecked == true)
+                preview.Source = Helper.Convert(task.ditheredImage);
+            else
+                preview.Source = Helper.Convert(task.convertedImage);
 
             preview.UpdateLayout();
 
@@ -456,13 +452,21 @@ namespace GUIPixelPainter.GUI
             if (dialog.ShowDialog() != true)
                 return;
 
-            using (Bitmap image = new Bitmap(dialog.FileName))
+            try
             {
-                Bitmap copy = new Bitmap(image); //Converts to correct format and unlock the file
-                GetSelectedTask().originalImage = copy;
-            }
+                Task curTask = GetSelectedTask();
+                using (Bitmap image = new Bitmap(dialog.FileName))
+                {
+                    Bitmap copy = new Bitmap(image); //Converts to correct format and unlock the file
+                    curTask.originalImage = copy;
+                }
 
-            ConvertImages();
+                ConvertImages(curTask);
+            }
+            catch (ArgumentException)
+            {
+                MessageBox.Show("Error while loading image");
+            }
         }
 
         private void OnEnableTask(object sender, RoutedEventArgs e)

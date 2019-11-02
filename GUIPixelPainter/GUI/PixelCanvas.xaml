@@ -13,6 +13,9 @@
                 <Border BorderBrush="Black" BorderThickness="2" Canvas.Left="15" Canvas.Top="45" Name="loadingSign">
                     <TextBlock FontSize="15">Loading canvas...</TextBlock>
                 </Border>
+                <Border BorderBrush="Black" BorderThickness="2" Canvas.Left="15" Canvas.Top="105" Name="loadingFailSign" Visibility="Collapsed">
+                    <TextBlock FontSize="15">Error while loading</TextBlock>
+                </Border>
                 <Border Name="MainImageBorder" BorderBrush="Black" BorderThickness="2" Canvas.Left="-2" Canvas.Top="-2">
                     <Image Name="MainImage" RenderOptions.BitmapScalingMode="NearestNeighbor" Visibility="Visible"></Image>
                 </Border>

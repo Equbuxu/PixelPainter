@@ -104,26 +104,43 @@ namespace GUIPixelPainter.GUI
                     loadingSign.Visibility = Visibility.Visible;
                     bitmap = null;
                     DataExchange.PushLoadingState(true);
+                    loadingFailSign.Visibility = Visibility.Collapsed;
                 });
 
                 canvasId = id;
+                bool success = false;
                 Console.WriteLine("loading canvas {0} in PixelCanvas", id);
+
+                System.Net.WebResponse response = null;
+                System.IO.Stream responseStream = null;
                 try
                 {
                     System.Net.WebRequest request = System.Net.WebRequest.Create("https://pixelplace.io/canvas/" + id.ToString() + ".png");
-                    System.Net.WebResponse response = request.GetResponse();
-                    System.IO.Stream responseStream = response.GetResponseStream();
+                    response = request.GetResponse();
+                    responseStream = response.GetResponseStream();
                     using (var loadedBitmap = new System.Drawing.Bitmap(responseStream))
                     {
                         Dispatcher.Invoke(() => bitmap = new WriteableBitmap(Helper.Convert(loadedBitmap)));
                         Dispatcher.Invoke(() => MainImage.Source = bitmap);
                     }
                     Dispatcher.Invoke(() => CreatePalette());
+                    success = true;
                 }
                 catch (System.Net.WebException)
                 {
-                    Console.WriteLine("invalid canvas in pixelcanvas");
+                    Console.WriteLine("could not load canvas in pixelcanvas");
+                    responseStream?.Dispose();
                 }
+
+                if (!success)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        bitmap = new WriteableBitmap(Helper.Convert(new System.Drawing.Bitmap(100, 100)));
+                        loadingFailSign.Visibility = Visibility.Visible;
+                    });
+                }
+
                 loading = false;
                 Dispatcher.Invoke(() =>
                 {
@@ -189,6 +206,9 @@ namespace GUIPixelPainter.GUI
 
         public void SetPixel(int x, int y, Color color, int userId)
         {
+            if (x < 0 || y < 0 || x >= bitmap.Width || y >= bitmap.Height)
+                return;
+
             bitmap.SetPixel(x, y, color);
             UpdateNameLabel(x, y, color, userId);
         }

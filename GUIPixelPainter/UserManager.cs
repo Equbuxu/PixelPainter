@@ -269,6 +269,8 @@ namespace GUIPixelPainter
                             actualColor = palette[curCanvas][pixel.color];
                         else
                             actualColor = palette[7][pixel.color];
+                        if (pixel.x < 0 || pixel.x >= canvas.Width || pixel.y < 0 || pixel.y >= canvas.Height)
+                            continue;
                         var border = borders.GetPixel(pixel.x, pixel.y);
                         if (!(border.R == 204 && border.G == 204 && border.B == 204))
                             canvas.SetPixel(pixel.x, pixel.y, actualColor);
