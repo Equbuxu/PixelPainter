@@ -28,7 +28,6 @@ namespace GUIPixelPainter.GUI
         enum Tools
         {
             MOVE,
-            PENCIL,
             BRUSH,
             HISTORYBRUSH
         }
@@ -50,6 +49,7 @@ namespace GUIPixelPainter.GUI
         private double overlayOpacity = 0.5;
 
         private Tools tool = Tools.MOVE;
+        private int brushSize = 5;
         private Color selectedColor = Color.FromArgb(0, 1, 2, 3);
         private int scalingPower = 0;
 
@@ -86,6 +86,7 @@ namespace GUIPixelPainter.GUI
 
             OnToolClick(moveTool, null);
             SetNameLabelDisplay(false);
+            ChangeBrushSize(0);
         }
 
         public void ReloadCanvas(int id)
@@ -222,6 +223,18 @@ namespace GUIPixelPainter.GUI
             {
                 nameLabels[userTime.Key].Visibility = newVisib;
             }
+        }
+
+        private void ChangeBrushSize(int delta)
+        {
+            int newSize = brushSize + delta;
+            if (newSize < 1)
+                newSize = 1;
+            else if (newSize > 25)
+                newSize = 25;
+            brushSize = newSize;
+            brushHighlight.Width = newSize;
+            brushHighlight.Height = newSize;
         }
 
         private void RemoveNameLabers()
@@ -369,12 +382,12 @@ namespace GUIPixelPainter.GUI
                 {
                     if (shiftDirHor)
                     {
-                        Canvas.SetLeft(brushHighlight, Math.Floor(mouseCoords.X - 2));
+                        Canvas.SetLeft(brushHighlight, Math.Floor(mouseCoords.X - brushSize / 2));
                         Canvas.SetLeft(pixelHighlight, Math.Floor(mouseCoords.X));
                     }
                     else
                     {
-                        Canvas.SetTop(brushHighlight, Math.Floor(mouseCoords.Y - 2));
+                        Canvas.SetTop(brushHighlight, Math.Floor(mouseCoords.Y - brushSize / 2));
                         Canvas.SetTop(pixelHighlight, Math.Floor(mouseCoords.Y));
                     }
                 }
@@ -384,8 +397,8 @@ namespace GUIPixelPainter.GUI
             {
                 shiftDirectionDeterm = false;
 
-                Canvas.SetLeft(brushHighlight, Math.Floor(mouseCoords.X - 2));
-                Canvas.SetTop(brushHighlight, Math.Floor(mouseCoords.Y - 2));
+                Canvas.SetLeft(brushHighlight, Math.Floor(mouseCoords.X - brushSize / 2));
+                Canvas.SetTop(brushHighlight, Math.Floor(mouseCoords.Y - brushSize / 2));
 
                 Canvas.SetLeft(pixelHighlight, Math.Floor(mouseCoords.X));
                 Canvas.SetTop(pixelHighlight, Math.Floor(mouseCoords.Y));
@@ -395,31 +408,19 @@ namespace GUIPixelPainter.GUI
                 return;
 
             //Move or draw
-            int drawx = (int)Canvas.GetLeft(pixelHighlight);
-            int drawy = (int)Canvas.GetTop(pixelHighlight);
-
             if (tool == Tools.MOVE || e.LeftButton != MouseButtonState.Pressed)
             {
                 Point curPosition = e.GetPosition((UIElement)MainCanvas.Parent);
                 translate.X = curPosition.X - mouseDownPoint.X;
                 translate.Y = curPosition.Y - mouseDownPoint.Y;
             }
-            else if (tool == Tools.PENCIL)
-            {
-                if (drawx >= 0 && drawy >= 0 && drawx < bitmap.Width && drawy < bitmap.Height)
-                {
-                    var pixel = bitmap.GetPixel(drawx, drawy);
-                    if (pixel != selectedColor && !(pixel.A == 0 && selectedColor.R == 255 && selectedColor.G == 255 && selectedColor.B == 255))
-                    {
-                        DataExchange.CreateManualPixel(new GUIPixel(drawx, drawy, System.Drawing.Color.FromArgb(selectedColor.A, selectedColor.R, selectedColor.G, selectedColor.B)));
-                    }
-                }
-            }
             else if (tool == Tools.BRUSH)
             {
-                for (int i = drawx - 2; i <= drawx + 2; i++)
+                int drawx = (int)Canvas.GetLeft(brushHighlight);
+                int drawy = (int)Canvas.GetTop(brushHighlight);
+                for (int i = drawx; i < drawx + brushSize; i++)
                 {
-                    for (int j = drawy - 2; j <= drawy + 2; j++)
+                    for (int j = drawy; j < drawy + brushSize; j++)
                     {
                         if (!(i >= 0 && j >= 0 && i < bitmap.Width && j < bitmap.Height))
                             continue;
@@ -436,9 +437,11 @@ namespace GUIPixelPainter.GUI
             }
             else if (tool == Tools.HISTORYBRUSH)
             {
-                for (int i = drawx - 2; i <= drawx + 2; i++)
+                int drawx = (int)Canvas.GetLeft(brushHighlight);
+                int drawy = (int)Canvas.GetTop(brushHighlight);
+                for (int i = drawx; i < drawx + brushSize; i++)
                 {
-                    for (int j = drawy - 2; j <= drawy + 2; j++)
+                    for (int j = drawy; j < drawy + brushSize; j++)
                     {
                         if (!(i >= 0 && j >= 0 && i < bitmap.Width && j < bitmap.Height))
                             continue;
@@ -483,6 +486,13 @@ namespace GUIPixelPainter.GUI
         {
             if (loading)
                 return;
+
+            if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) && (tool == Tools.BRUSH || tool == Tools.HISTORYBRUSH))
+            {
+                ChangeBrushSize(e.Delta / 120);
+                return;
+            }
+
             Point curPosition = e.GetPosition((UIElement)MainCanvas.Parent);
             curPosition.X -= translate.X;
             curPosition.Y -= translate.Y;
@@ -499,11 +509,6 @@ namespace GUIPixelPainter.GUI
 
             scale.ScaleX = newScale;
             scale.ScaleY = newScale;
-
-            /*
-            double factor = Math.Pow(1.5, e.Delta / 120);
-            scale.ScaleX *= factor;
-            scale.ScaleY *= factor;*/
 
             if (scalingPower < 0)
                 RenderOptions.SetBitmapScalingMode(MainImage, BitmapScalingMode.HighQuality);
@@ -549,13 +554,22 @@ namespace GUIPixelPainter.GUI
                 var mousePos = Mouse.GetPosition(MainCanvas);
                 DataExchange.PushTaskPosition((int)mousePos.X, (int)mousePos.Y);
             }
+            else if (e.Key == Key.Add || e.Key == Key.OemPlus)
+            {
+                if (tool == Tools.BRUSH || tool == Tools.HISTORYBRUSH)
+                    ChangeBrushSize(1);
+            }
+            else if (e.Key == Key.Subtract || e.Key == Key.OemMinus)
+            {
+                if (tool == Tools.BRUSH || tool == Tools.HISTORYBRUSH)
+                    ChangeBrushSize(-1);
+            }
         }
 
         private void OnToolClick(object sender, MouseButtonEventArgs e)
         {
             moveTool.Background = Brushes.Black;
             brushTool.Background = Brushes.Black;
-            drawTool.Background = Brushes.Black;
             historyBrushTool.Background = Brushes.Black;
 
             (sender as Border).Background = Brushes.Gray;
@@ -569,11 +583,6 @@ namespace GUIPixelPainter.GUI
             {
                 tool = Tools.BRUSH;
                 ShowBrush(true);
-            }
-            else if (sender == drawTool)
-            {
-                tool = Tools.PENCIL;
-                ShowBrush(false);
             }
             else if (sender == historyBrushTool)
             {

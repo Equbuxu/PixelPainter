@@ -10,7 +10,7 @@
         <Canvas>
 
             <Canvas Name="MainCanvas" MouseDown="Canvas_MouseDown" Focusable="True" KeyDown="MainCanvas_KeyDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp" MouseWheel="MainCanvas_MouseWheel" MouseEnter="MainCanvas_MouseEnter" MouseLeave="MainCanvas_MouseLeave">
-                <Border BorderBrush="Black" BorderThickness="2" Canvas.Left="15" Canvas.Top="45" Name="loadingSign">
+                <Border BorderBrush="Black" BorderThickness="2" Canvas.Left="15" Canvas.Top="105" Name="loadingSign">
                     <TextBlock FontSize="15">Loading canvas...</TextBlock>
                 </Border>
                 <Border BorderBrush="Black" BorderThickness="2" Canvas.Left="15" Canvas.Top="105" Name="loadingFailSign" Visibility="Collapsed">
@@ -41,49 +41,44 @@
             <StackPanel Orientation="Horizontal" Canvas.Bottom="15" Canvas.Left="15" Name="palettePanel">
             </StackPanel>
 
-            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="15" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="moveTool">
-                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" ToolTip="Move tool">
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="15" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="moveTool" ToolTip="Move canvas">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18">
                     ☩
                 </TextBlock>
             </Border>
-            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="55" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="drawTool">
-                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Pencil">
-                    •
-                </TextBlock>
-            </Border>
-            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="95" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="brushTool">
-                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Brush">
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="55" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="brushTool" ToolTip="Brush. +,- or Ctrl+Scroll to resize">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center">
                     ⚫
                 </TextBlock>
             </Border>
-            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="135" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="historyBrushTool">
-                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="History Brush">
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="95" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="historyBrushTool" ToolTip="History Brush">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center">
                     ↶
                 </TextBlock>
             </Border>
-            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="135" Canvas.Top="45" Height="25" Width="25" MouseDown="OnSaveRevertStateClick" Name="historyBrushSaveButton">
-                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Save Revert State">
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="95" Canvas.Top="45" Height="25" Width="25" MouseDown="OnSaveRevertStateClick" Name="historyBrushSaveButton" ToolTip="Save Revert State">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center">
                     💾
                 </TextBlock>
             </Border>
-            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="135" Canvas.Top="75" Height="25" Width="25" MouseDown="OnLoadRevertStateClick" Name="historyBrushLoadButton">
-                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Load Revert State">
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="95" Canvas.Top="75" Height="25" Width="25" MouseDown="OnLoadRevertStateClick" Name="historyBrushLoadButton" ToolTip="Load Revert State">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center">
                     📂
                 </TextBlock>
             </Border>
 
-            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Right="15" Canvas.Top="15" Height="25" Width="{Binding ElementName=coordsLabel, Path=ActualWidth}">
-                <TextBlock Name="coordsLabel" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5,0,5,0" ToolTip="Mouse position">
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Right="15" Canvas.Top="15" Height="25" Width="{Binding ElementName=coordsLabel, Path=ActualWidth}" ToolTip="Mouse position">
+                <TextBlock Name="coordsLabel" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5,0,5,0">
                     0,0
                 </TextBlock>
             </Border>
-            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Right="15" Canvas.Top="55" Height="25" Width="25">
-                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5,0,5,0" FontSize="16" MouseUp="OnResetPosition" ToolTip="Reset position of canvas">
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Right="15" Canvas.Top="55" Height="25" Width="25" ToolTip="Reset position of canvas">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5,0,5,0" FontSize="16" MouseUp="OnResetPosition">
                     ↻
                 </TextBlock>
             </Border>
-            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Right="55" Canvas.Top="55" Height="25" Width="25">
-                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5,0,5,0" FontSize="12" MouseUp="OnSaveMouseUp" ToolTip="Save canvas to a file">
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Right="55" Canvas.Top="55" Height="25" Width="25" ToolTip="Save canvas to a file">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5,0,5,0" FontSize="12" MouseUp="OnSaveMouseUp">
                     💾
                 </TextBlock>
             </Border>
