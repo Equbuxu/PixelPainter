@@ -172,7 +172,15 @@ namespace GUIPixelPainter
             this.proxy = proxy;
         }
 
-        public void Connect()
+        public void StartConnect()
+        {
+            thread = new Thread(Connect);
+            thread.Name = "SocketIO polling";
+            thread.IsBackground = true;
+            thread.Start();
+        }
+
+        private void Connect()
         {
             if (status != Status.NOTOPEN)
                 throw new Exception("already connected");
@@ -201,10 +209,7 @@ namespace GUIPixelPainter
             if (status == Status.CLOSEDDISCONNECT)
                 return;
 
-            thread = new Thread(ConnectLoop);
-            thread.Name = "SocketIO polling";
-            thread.IsBackground = true;
-            thread.Start();
+            ConnectLoop();
         }
 
         private void ConnectSequence()

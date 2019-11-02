@@ -208,13 +208,13 @@ namespace GUIPixelPainter
             //Add new users
             foreach (UsefulUser user in guiData.Users)
             {
-                if ((DateTime.UtcNow - lastUserConnectionTime).TotalMilliseconds < 2000)
-                    break;
+                /*if ((DateTime.UtcNow - lastUserConnectionTime).TotalMilliseconds < 2000)
+                    break;*/
                 if (users.Find((a) => a.Id == user.Id) == null)
                 {
                     Console.WriteLine("user connection created, there was {0} users in total", users.Count);
                     SocketIO server = CreateSocketIO(user);
-                    server.Connect();
+                    server.StartConnect();
                     UserSession newUser = new UserSession(server);
                     Connection connection = new Connection(server, newUser, user.Id);
                     users.Add(connection);
