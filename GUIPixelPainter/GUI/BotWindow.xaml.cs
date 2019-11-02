@@ -127,6 +127,11 @@ namespace GUIPixelPainter.GUI
             }
         }
 
+        public int GetCanvasId()
+        {
+            return int.TryParse(canvasId.Text, out int id) ? id : 7;
+        }
+
         public void SetWindowState(double width, double height, WindowState state)
         {
             this.Width = width;
@@ -150,9 +155,10 @@ namespace GUIPixelPainter.GUI
             DataExchange.UpdateGeneralSettingsFromGUI();
         }
 
-        public int GetCanvasId()
+        public void ClearChat()
         {
-            return int.TryParse(canvasId.Text, out int id) ? id : 7;
+            chatLocal.Children.Clear();
+            chatGlobal.Children.Clear();
         }
 
         public void AddChatText(string text, bool isLocal, System.Windows.Media.Color c)

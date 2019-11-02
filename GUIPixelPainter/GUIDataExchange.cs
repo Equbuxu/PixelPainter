@@ -223,6 +223,7 @@ namespace GUIPixelPainter
             {
                 CanvasId = canvasId;
 
+                botWindow.ClearChat();
                 taskPanel.SetCanvasId(canvasId);
                 pixelCanvas.ReloadCanvas(canvasId);
                 manualTask.Clear();
