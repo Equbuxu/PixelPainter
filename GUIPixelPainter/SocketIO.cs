@@ -92,10 +92,12 @@ namespace GUIPixelPainter
         public int userId = 0;
         [JsonProperty(PropertyName = "b")]
         public int boardId = 0;
+        [JsonIgnore]
+        public int socketUserId = 0;
 
         public override int GetHashCode()
         {
-            return x.GetHashCode() ^ y.GetHashCode() ^ color.GetHashCode() ^ userId.GetHashCode() ^ boardId.GetHashCode();
+            return x.GetHashCode() ^ y.GetHashCode() ^ color.GetHashCode() ^ userId.GetHashCode() ^ boardId.GetHashCode() ^ socketUserId.GetHashCode();
         }
 
         public override bool Equals(object obj)
@@ -148,9 +150,11 @@ namespace GUIPixelPainter
 
         private bool premium;
         private string username;
+        private int pixelId;
 
         public bool Premium { get { return premium; } }
         public string Username { get { return username; } }
+        public int PixelId { get { return pixelId; } }
 
         private string id;
         private Status status;
@@ -265,6 +269,10 @@ namespace GUIPixelPainter
                     string content = page.Content.ReadAsStringAsync().Result;
                     int configStart = content.IndexOf(@"var CONFIG = {");
                     int userStart = content.IndexOf("user: {", configStart);
+
+                    int idStart = content.IndexOf(@"id:", userStart);
+                    string idToken = content.Substring(idStart, content.IndexOf(',', idStart) - idStart);
+                    pixelId = int.Parse(idToken.Substring(3, idToken.Length - 3));
 
                     int usernameStart = content.IndexOf(@"username:", userStart);
                     string usernameToken = content.Substring(usernameStart, content.IndexOf(',', usernameStart) - usernameStart);
@@ -580,6 +588,7 @@ namespace GUIPixelPainter
                         {
                             foreach (PixelPacket pixel in pixels)
                             {
+                                pixel.socketUserId = pixelId;
                                 OnEvent("pixels", pixel);
                             }
                         }

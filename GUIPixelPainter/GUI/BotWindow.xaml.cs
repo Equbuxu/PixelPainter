@@ -29,7 +29,8 @@ namespace GUIPixelPainter.GUI
         private Dictionary<int, Label> nicksLabel = new Dictionary<int, Label>();
         private Dictionary<int, Label> speedsLabel = new Dictionary<int, Label>();
         private bool ignoreEvents = true;
-        long lastUpdateTime = -1;
+        private long lastUpdateTime = -1;
+        private string halfNickname = "";
 
         DropShadowEffect textShadow = new DropShadowEffect();
 
@@ -241,6 +242,9 @@ namespace GUIPixelPainter.GUI
 
         public void UpdateSpeed(int x, int y, System.Windows.Media.Color c, int userId, bool myOwnPixel)
         {
+            if (myOwnPixel)
+                halfNickname = Helper.GetUsernameById(userId);
+
             if (!lastUserPlaceTimes.ContainsKey(userId))
             {
                 lastUserPlaceTimes.Add(userId, new LinkedList<long>());
@@ -280,9 +284,9 @@ namespace GUIPixelPainter.GUI
                     }
                     double dT = (time - userTime.Value.First.Value) / 1000.0;
                     double speed = userTime.Value.Count / (dT == 0 ? 1 : dT);
-                    if (myOwnPixel)
-                        speed /= 2;
                     string userName = Helper.GetUsernameById(userTime.Key);
+                    if (userName == halfNickname)
+                        speed /= 2;
                     nicksLabel[userTime.Key].Content = userName.ToString() + ':';
                     speedsLabel[userTime.Key].Content = speed.ToString("0.00") + " px/s";
                 }
