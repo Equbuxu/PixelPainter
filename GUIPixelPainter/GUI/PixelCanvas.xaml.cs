@@ -97,6 +97,7 @@ namespace GUIPixelPainter.GUI
                 loading = true;
                 Dispatcher.Invoke(() =>
                 {
+                    HideOverlay(true);
                     RemoveNameLabers();
                     OnResetPosition(null, null);
                     MainImageBorder.Visibility = Visibility.Hidden;
@@ -130,11 +131,22 @@ namespace GUIPixelPainter.GUI
                     DataExchange.PushLoadingState(false);
                     MainImageBorder.Visibility = Visibility.Visible;
                     loadingSign.Visibility = Visibility.Hidden;
+                    HideOverlay(false);
                 });
             });
             loadThread.Name = "canvas loading thread";
             loadThread.IsBackground = true;
             loadThread.Start();
+        }
+
+        private void HideOverlay(bool hide)
+        {
+            for (int i = MainCanvas.Children.Count - 1; i >= 0; i--)
+            {
+                FrameworkElement elem = MainCanvas.Children[i] as FrameworkElement;
+                if ((string)elem.Tag == "taskOverlay")
+                    elem.Visibility = hide ? Visibility.Hidden : Visibility.Visible;
+            }
         }
 
         public void OverlayTasks(List<GUITask> tasks)
@@ -154,6 +166,8 @@ namespace GUIPixelPainter.GUI
                 Canvas.SetLeft(image, task.X);
                 Canvas.SetTop(image, task.Y);
                 image.Tag = "taskOverlay";
+                if (loading)
+                    image.Visibility = Visibility.Hidden;
                 MainCanvas.Children.Add(image);
             }
         }
