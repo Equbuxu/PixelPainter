@@ -17,7 +17,7 @@ namespace GUIPixelPainter
         private Thread drawThread;
 
         int packetSize = 28;
-        int packetDelay = 2600;
+        int packetDelay = 2500;
         long lastPacketTime = -1;
 
         bool stalled = false;
