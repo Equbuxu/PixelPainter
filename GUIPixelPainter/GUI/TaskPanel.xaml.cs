@@ -78,9 +78,9 @@ namespace GUIPixelPainter.GUI
             return converted;
         }
 
-        public int GetSelectedTaskIndex()
+        public Guid GetSelectedTaskId()
         {
-            return taskList.SelectedIndex;
+            return taskList.SelectedIndex == -1 ? Guid.Empty : GetSelectedTask().internalId;
         }
 
         public void SetCanvasId(int id)

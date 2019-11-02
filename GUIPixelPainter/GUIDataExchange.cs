@@ -100,7 +100,7 @@ namespace GUIPixelPainter
         public double windowWidth { get; private set; }
         public double windowHeight { get; private set; }
 
-        public int SelectedTaskIndex { get; private set; }
+        public Guid SelectedTaskId { get; private set; }
 
         public int CanvasId { get; private set; }
 
@@ -158,8 +158,14 @@ namespace GUIPixelPainter
                 pixelCanvas.OverlayTasks(guiTasks[CanvasId].ToList());
             else if (OverlayTasks)
                 pixelCanvas.OverlayTasks(guiTasks[CanvasId].Where((a) => a.Enabled).ToList());
-            else if (OverlaySelectedTask && SelectedTaskIndex != -1)
-                pixelCanvas.OverlayTasks(new List<GUITask>() { guiTasks[CanvasId][SelectedTaskIndex] });
+            else if (OverlaySelectedTask)
+            {
+                var task = guiTasks[CanvasId].Where((a) => a.InternalId == SelectedTaskId);
+                if (task.Count() == 0)
+                    pixelCanvas.OverlayTasks(new List<GUITask>());
+                else
+                    pixelCanvas.OverlayTasks(new List<GUITask>() { task.First() });
+            }
             else
                 pixelCanvas.OverlayTasks(new List<GUITask>());
         }
@@ -188,7 +194,7 @@ namespace GUIPixelPainter
 
         public void UpdateSelectedTaskFromGUI()
         {
-            SelectedTaskIndex = taskPanel.GetSelectedTaskIndex();
+            SelectedTaskId = taskPanel.GetSelectedTaskId();
             UpdateOverlay();
         }
 
