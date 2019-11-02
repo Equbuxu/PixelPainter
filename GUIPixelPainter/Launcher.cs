@@ -24,20 +24,24 @@ namespace GUIPixelPainter
         [STAThread]
         public static void Main()
         {
+            launcher = new Launcher();
+
             AppDomain currentDomain = default(AppDomain);
             currentDomain = AppDomain.CurrentDomain;
-            currentDomain.UnhandledException += GlobalUnhandledExceptionHandler;
-            launcher = new Launcher();
+            currentDomain.UnhandledException += launcher.GlobalUnhandledExceptionHandler;
+
+            launcher.Launch();
         }
 
-        private static void GlobalUnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
+        private void GlobalUnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
         {
             Exception ex = default(Exception);
             ex = (Exception)e.ExceptionObject;
             File.AppendAllText("PixelPainterError.txt", ex.Message + "\n" + ex.StackTrace + "\n");
+            Save();
         }
 
-        public Launcher()
+        public void Launch()
         {
             app = new App();
             app.InitializeComponent();
@@ -127,6 +131,7 @@ namespace GUIPixelPainter
             //Set window children properties
             window.taskList.DataExchange = dataExchange;
             window.usersPanel.DataExchange = dataExchange;
+            window.usersPanel.Launcher = this;
             window.pixelCanvas.DataExchange = dataExchange;
 
             //Set updater properties

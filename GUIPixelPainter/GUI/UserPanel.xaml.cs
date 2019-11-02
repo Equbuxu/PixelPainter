@@ -36,6 +36,7 @@ namespace GUIPixelPainter.GUI
         private bool ignoreEvents = false;
 
         public GUIDataExchange DataExchange { get; set; }
+        public Launcher Launcher { get; set; }
 
         public UserPanel()
         {
@@ -71,6 +72,8 @@ namespace GUIPixelPainter.GUI
             user.authToken = authToken;
             user.phpSessId = phpSessId;
             UpdateUserList();
+            DataExchange.UpdateUsersFromGUI();
+            Launcher.Save();
         }
 
         public void SetUserStatus(Guid id, Status status)
