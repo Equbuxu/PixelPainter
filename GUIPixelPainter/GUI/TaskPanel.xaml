@@ -84,7 +84,7 @@
                                     <ColumnDefinition Width="26" />
                                 </Grid.ColumnDefinitions>
                                 <Label>y:</Label>
-                                <Button Grid.Column="1" Focusable="False" Name="ydown" Width="26" Click="OnYDownClick" ToolTip="Move up by 1 px">
+                                <Button Grid.Column="1" Focusable="False" Name="yDown" Width="26" Click="OnYDownClick" ToolTip="Move up by 1 px">
                                     -
                                 </Button>
                                 <TextBox Grid.Column="2" Name="y" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>

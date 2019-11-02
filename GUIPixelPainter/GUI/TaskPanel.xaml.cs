@@ -235,6 +235,10 @@ namespace GUIPixelPainter.GUI
                 loop.IsEnabled = false;
                 deleteThisTask.IsEnabled = false;
                 preview.Visibility = Visibility.Collapsed;
+                xDown.IsEnabled = false;
+                xUp.IsEnabled = false;
+                yDown.IsEnabled = false;
+                yUp.IsEnabled = false;
 
                 ignoreEvents = false;
                 return;
@@ -257,6 +261,10 @@ namespace GUIPixelPainter.GUI
             loop.IsEnabled = true;
             deleteThisTask.IsEnabled = true;
             preview.Visibility = Visibility.Visible;
+            xDown.IsEnabled = true;
+            xUp.IsEnabled = true;
+            yDown.IsEnabled = true;
+            yUp.IsEnabled = true;
 
             ignoreEvents = false;
             ShowPreview();
