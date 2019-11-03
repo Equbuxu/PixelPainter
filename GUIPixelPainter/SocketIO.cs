@@ -272,7 +272,13 @@ namespace GUIPixelPainter
 
                     int idStart = content.IndexOf(@"id:", userStart);
                     string idToken = content.Substring(idStart, content.IndexOf(',', idStart) - idStart);
-                    pixelId = int.Parse(idToken.Substring(3, idToken.Length - 3));
+                    string idString = idToken.Substring(3, idToken.Length - 3);
+                    if (idString == "null")
+                    {
+                        status = Status.CLOSEDERROR;
+                        return;
+                    }
+                    pixelId = int.Parse(idString);
 
                     int usernameStart = content.IndexOf(@"username:", userStart);
                     string usernameToken = content.Substring(usernameStart, content.IndexOf(',', usernameStart) - usernameStart);
@@ -375,7 +381,7 @@ namespace GUIPixelPainter
                     if (updateCount % 25 == 24)
                     {
                         StringContent pingContent = new StringContent("1:2");
-                        tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, pingContent), false));
+                        tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, pingContent)., false));
                     }
                 }
                 catch (HttpRequestException)
