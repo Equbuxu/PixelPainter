@@ -49,6 +49,8 @@ namespace GUIPixelPainter
 
         public BitmapSource Convert(System.Drawing.Bitmap bitmap)
         {
+            bitmap.SetResolution(96, 96);
+
             var bitmapData = bitmap.LockBits(
                 new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
                 System.Drawing.Imaging.ImageLockMode.ReadOnly, bitmap.PixelFormat);

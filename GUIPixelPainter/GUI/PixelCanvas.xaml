@@ -9,7 +9,7 @@
     <Border ClipToBounds="True">
         <Canvas>
 
-            <Canvas Name="MainCanvas" MouseDown="Canvas_MouseDown" Focusable="True" KeyDown="MainCanvas_KeyDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp" MouseWheel="MainCanvas_MouseWheel" MouseEnter="MainCanvas_MouseEnter" MouseLeave="MainCanvas_MouseLeave">
+            <Canvas Name="MainCanvas" MouseDown="Canvas_MouseDown" Focusable="True" KeyDown="MainCanvas_KeyDown" KeyUp="MainCanvas_KeyUp" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp" MouseWheel="MainCanvas_MouseWheel" MouseEnter="MainCanvas_MouseEnter" MouseLeave="MainCanvas_MouseLeave">
                 <Border BorderBrush="Black" BorderThickness="2" Canvas.Left="15" Canvas.Top="105" Name="loadingSign">
                     <TextBlock FontSize="15">Loading canvas...</TextBlock>
                 </Border>
@@ -46,7 +46,7 @@
                     ☩
                 </TextBlock>
             </Border>
-            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="55" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="brushTool" ToolTip="Brush. +,- or Ctrl+Scroll to resize">
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="55" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="brushTool" ToolTip="Brush. +,- or Shift+Scroll to resize">
                 <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center">
                     ⚫
                 </TextBlock>

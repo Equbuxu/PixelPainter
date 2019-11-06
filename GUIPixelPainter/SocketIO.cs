@@ -381,7 +381,7 @@ namespace GUIPixelPainter
                     if (updateCount % 25 == 24)
                     {
                         StringContent pingContent = new StringContent("1:2");
-                        tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, pingContent)., false));
+                        tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, pingContent), false));
                     }
                 }
                 catch (HttpRequestException)
@@ -442,7 +442,7 @@ namespace GUIPixelPainter
             return true;
         }
 
-        public bool SendPixels(IReadOnlyCollection<IdPixel> pixels)
+        public bool SendPixels(IReadOnlyCollection<IdPixel> pixels, Action<Task> callback)
         {
             if (status != Status.OPEN)
             {
@@ -459,7 +459,9 @@ namespace GUIPixelPainter
             StringContent content = new StringContent(builder.ToString());
             try
             {
-                tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content), false));
+                Task<HttpResponseMessage> sent = client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content);
+                sent.ContinueWith(callback);
+                tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(sent, false));
                 Console.Write("Sent {0} pixels", pixels.Count);
                 foreach (IdPixel px in pixels)
                 {

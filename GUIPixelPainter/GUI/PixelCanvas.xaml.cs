@@ -487,7 +487,12 @@ namespace GUIPixelPainter.GUI
             if (loading)
                 return;
 
-            if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) && (tool == Tools.BRUSH || tool == Tools.HISTORYBRUSH))
+            //bool leftCtrl = Keyboard.IsKeyDown(Key.LeftCtrl);
+            //bool leftCtrl = Keyboard.Modifiers == ModifierKeys.Control;
+            //bool leftCtrl = false;
+            //bool rightCtrl = Keyboard.IsKeyDown(Key.RightCtrl);
+
+            if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift && (tool == Tools.BRUSH || tool == Tools.HISTORYBRUSH))
             {
                 ChangeBrushSize(e.Delta / 120);
                 return;
@@ -549,6 +554,7 @@ namespace GUIPixelPainter.GUI
 
         private void MainCanvas_KeyDown(object sender, KeyEventArgs e)
         {
+            Console.WriteLine(e.Key);
             if (e.Key == Key.P)
             {
                 var mousePos = Mouse.GetPosition(MainCanvas);
@@ -663,6 +669,11 @@ namespace GUIPixelPainter.GUI
 
             revertState?.Dispose();
             revertState = loaded;
+        }
+
+        private void MainCanvas_KeyUp(object sender, KeyEventArgs e)
+        {
+            Console.WriteLine(e.Key + "rel");
         }
     }
 }

@@ -20,6 +20,8 @@ namespace GUIPixelPainter
         int packetDelay = 2600;
         long lastPacketTime = -1;
 
+        AutoResetEvent packetSent = new AutoResetEvent(false);
+
         bool stalled = false;
         int stallDelay = 0;
 
@@ -94,6 +96,11 @@ namespace GUIPixelPainter
             }
         }
 
+        private void SendCallback(Task t)
+        {
+            packetSent.Set();
+        }
+
         private bool Draw()
         {
             int queueCount;
@@ -124,7 +131,10 @@ namespace GUIPixelPainter
             lastPacketTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
 
             if (server.GetStatus() == Status.OPEN)
-                server.SendPixels(toPlace);
+            {
+                server.SendPixels(toPlace, SendCallback);
+                packetSent.WaitOne();
+            }
             else
                 Console.WriteLine("Failed to send pixels");
             return true;
