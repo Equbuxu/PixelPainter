@@ -210,7 +210,7 @@ namespace GUIPixelPainter
 
 
             ConnectSequence();
-            if (status == Status.CLOSEDDISCONNECT)
+            if (status == Status.CLOSEDDISCONNECT || status == Status.CLOSEDERROR)
                 return;
 
             ConnectLoop();
@@ -264,6 +264,12 @@ namespace GUIPixelPainter
                             TokenPacket packet = new TokenPacket() { authToken = authToken, phpSessId = phpSessId };
                             OnEvent("tokens", packet);
                         }
+                    }
+
+                    if (authToken == "deleted")
+                    {
+                        status = Status.CLOSEDERROR;
+                        return;
                     }
 
                     string content = page.Content.ReadAsStringAsync().Result;

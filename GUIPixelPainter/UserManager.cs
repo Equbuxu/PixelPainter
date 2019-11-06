@@ -149,14 +149,16 @@ namespace GUIPixelPainter
 
                 if (conn.Client.GetStatus() != Status.OPEN)
                     continue;
-                if (conn.Session.QueueLength() > 200)
+                if (conn.Session.QueueLength() > 80)
                     continue;
 
                 //var queue = BuildQueue(total.IndexOf(conn), total.Count);
                 if (placementBehaviour == null)
                     break;
-                var queue = placementBehaviour.BuildQueue(total.IndexOf(conn), total.Count, completedTasks);
 
+                var queue = placementBehaviour.BuildQueue(total.IndexOf(conn), total.Count, completedTasks);
+                if (queue.Count == 0)
+                    break;
 
                 foreach (IdPixel pixel in queue)
                 {

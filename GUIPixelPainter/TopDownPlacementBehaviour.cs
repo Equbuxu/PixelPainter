@@ -50,6 +50,8 @@ namespace GUIPixelPainter
 
         private void AddTasks(List<IdPixel> queue, List<UsefulTask> completedTasksToFill)
         {
+            Dictionary<int, List<IdPixel>> pixels = new Dictionary<int, List<IdPixel>>();
+
             foreach (UsefulTask task in guiData.Tasks)
             {
                 bool completed = true;
@@ -57,12 +59,17 @@ namespace GUIPixelPainter
                 {
                     for (int i = 0; i < task.Image.Width; i++)
                     {
-                        if (queue.Count >= maxQueueSize)
-                            return;
+                        foreach (KeyValuePair<int, List<IdPixel>> pair in pixels)
+                        {
+                            if (pair.Value.Count >= maxQueueSize)
+                                goto loopend;
+                        }
 
                         int canvasX = task.X + i;
                         int canvasY = task.Y + j;
                         if (canvasX < 0 || canvasY < 0 || canvasX >= canvas.Width || canvasY >= canvas.Height)
+                            continue;
+                        if (iterCount - lastUpdateIterCount[canvasX, canvasY] < pixelResendDelay) //avoid spamming the same place
                             continue;
 
                         var canvasPixel = canvas.GetPixel(canvasX, canvasY);
@@ -78,16 +85,39 @@ namespace GUIPixelPainter
                             continue;
                         completed = false;
 
-                        if (iterCount - lastUpdateIterCount[canvasX, canvasY] < pixelResendDelay) //avoid spamming the same place
-                            continue;
-
-                        IdPixel pixel = new IdPixel(curCanvasInvPalette[reqPixel], canvasX, canvasY);
-                        queue.Add(pixel);
-                        lastUpdateIterCount[canvasX, canvasY] = iterCount;
+                        int pxId = curCanvasInvPalette[reqPixel];
+                        IdPixel pixel = new IdPixel(pxId, canvasX, canvasY);
+                        if (pixels.ContainsKey(pxId))
+                            pixels[pxId].Add(pixel);
+                        else
+                            pixels.Add(pxId, new List<IdPixel>() { pixel });
                     }
                 }
                 if (completed && !task.KeepRepairing)
                     completedTasksToFill.Add(task);
+            }
+
+            loopend:
+            while (queue.Count < maxQueueSize && pixels.Count > 0)
+            {
+                KeyValuePair<int, List<IdPixel>> maxPair = new KeyValuePair<int, List<IdPixel>>();
+                int maxPx = -1;
+                foreach (KeyValuePair<int, List<IdPixel>> pair in pixels)
+                {
+                    if (pair.Value.Count > maxPx)
+                    {
+                        maxPx = pair.Value.Count;
+                        maxPair = pair;
+                    }
+                }
+                queue.AddRange(maxPair.Value);
+                pixels.Remove(maxPair.Key);
+            }
+            if (queue.Count > maxQueueSize)
+                queue.RemoveRange(maxQueueSize, queue.Count - maxQueueSize);
+            foreach (IdPixel px in queue)
+            {
+                lastUpdateIterCount[px.X, px.Y] = iterCount;
             }
         }
 

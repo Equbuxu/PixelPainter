@@ -17,8 +17,9 @@ namespace GUIPixelPainter
         private Thread drawThread;
 
         int packetSize = 28;
-        int packetDelay = 2600;
+        int packetDelay = 2500;
         long lastPacketTime = -1;
+        long lastRecieveTime = -1;
 
         AutoResetEvent packetSent = new AutoResetEvent(false);
 
@@ -118,9 +119,10 @@ namespace GUIPixelPainter
             //    toPlace.RemoveRange(packetSize, toPlace.Count - packetSize);
 
             long time = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-            if (time - lastPacketTime < packetDelay)
+            long estimatedRecieveTime = (lastPacketTime + lastRecieveTime) / 2;
+            if (time - estimatedRecieveTime < packetDelay)
             {
-                Thread.Sleep((int)(packetDelay - (time - lastPacketTime)));
+                Thread.Sleep((int)(packetDelay - (time - estimatedRecieveTime)));
             }
 
             if (stalled)
@@ -134,6 +136,7 @@ namespace GUIPixelPainter
             {
                 server.SendPixels(toPlace, SendCallback);
                 packetSent.WaitOne();
+                lastRecieveTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
             }
             else
                 Console.WriteLine("Failed to send pixels");

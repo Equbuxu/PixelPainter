@@ -554,7 +554,6 @@ namespace GUIPixelPainter.GUI
 
         private void MainCanvas_KeyDown(object sender, KeyEventArgs e)
         {
-            Console.WriteLine(e.Key);
             if (e.Key == Key.P)
             {
                 var mousePos = Mouse.GetPosition(MainCanvas);
@@ -669,11 +668,6 @@ namespace GUIPixelPainter.GUI
 
             revertState?.Dispose();
             revertState = loaded;
-        }
-
-        private void MainCanvas_KeyUp(object sender, KeyEventArgs e)
-        {
-            Console.WriteLine(e.Key + "rel");
         }
     }
 }
