@@ -69,21 +69,24 @@ namespace GUIPixelPainter
                         int canvasY = task.Y + j;
                         if (canvasX < 0 || canvasY < 0 || canvasX >= canvas.Width || canvasY >= canvas.Height)
                             continue;
-                        if (iterCount - lastUpdateIterCount[canvasX, canvasY] < pixelResendDelay) //avoid spamming the same place
-                            continue;
 
-                        var canvasPixel = canvas.GetPixel(canvasX, canvasY);
                         var bordersPixel = borders.GetPixel(canvasX, canvasY);
                         if (bordersPixel.R == 204 && bordersPixel.G == 204 && bordersPixel.B == 204)
                             continue;
+
                         var reqPixel = task.Image.GetPixel(i, j);
-                        if (canvasPixel == reqPixel)
-                            continue;
                         if (!curCanvasInvPalette.ContainsKey(reqPixel))
+                            continue;
+
+                        var canvasPixel = canvas.GetPixel(canvasX, canvasY);
+                        if (canvasPixel == reqPixel)
                             continue;
                         if (reqPixel.R == 255 && reqPixel.G == 255 && reqPixel.B == 255 && canvasPixel.A == 0)
                             continue;
+
                         completed = false;
+                        if (iterCount - lastUpdateIterCount[canvasX, canvasY] < pixelResendDelay) //avoid spamming the same place
+                            continue;
 
                         int pxId = curCanvasInvPalette[reqPixel];
                         IdPixel pixel = new IdPixel(pxId, canvasX, canvasY);
