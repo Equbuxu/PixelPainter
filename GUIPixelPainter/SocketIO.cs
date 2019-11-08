@@ -287,6 +287,17 @@ namespace GUIPixelPainter
                     int premiumStart = content.IndexOf(@"premium:", userStart);
                     string premiumToken = content.Substring(premiumStart, content.IndexOf(',', premiumStart) + 1 - premiumStart);
                     premium = premiumToken.Contains("true");
+
+                    Console.WriteLine("premium={0}", premium);
+                    if (!premium)
+                    {
+                        int modStart = content.IndexOf(@"mod:", userStart);
+                        string modToken = content.Substring(modStart, content.IndexOf(',', modStart) + 1 - modStart);
+                        premium = premiumToken.Contains("true");
+
+                        Console.WriteLine("mod={1} ({0})", modToken, premium);
+                    }
+
                 }
                 //Send authKey and authToken
                 {
