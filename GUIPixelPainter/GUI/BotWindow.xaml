@@ -71,7 +71,8 @@
                 <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
                     <Expander Header="Other" IsExpanded="True">
                         <StackPanel Margin="5">
-                            <Button Click="OnExportNicknames">Export usernames</Button>
+                            <Button Click="OnExportUsernames" Margin="5">Export usernames</Button>
+                            <Button Click="OnImportUsernames" Margin="5">Import usernames</Button>
                         </StackPanel>
                     </Expander>
                 </Border>

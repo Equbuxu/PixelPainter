@@ -1,8 +1,10 @@
 ﻿using Microsoft.Win32;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -370,7 +372,7 @@ namespace GUIPixelPainter.GUI
             DataExchange?.UpdateWindowStateFromUI();
         }
 
-        private void OnExportNicknames(object sender, RoutedEventArgs e)
+        private void OnExportUsernames(object sender, RoutedEventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "JSON|*.json";
@@ -390,6 +392,30 @@ namespace GUIPixelPainter.GUI
             {
                 chatScrollGlobal.Visibility = Visibility.Collapsed;
                 chatScrollLocal.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void OnImportUsernames(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "JSON|*.json";
+            openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            if (openFileDialog.ShowDialog() == false)
+                return;
+
+            Dictionary<int, string> names;
+            try
+            {
+                names = JsonConvert.DeserializeObject<Dictionary<int, string>>(File.ReadAllText(openFileDialog.FileName));
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Could not load usernames");
+                return;
+            }
+            foreach (KeyValuePair<int, string> pair in names)
+            {
+                Helper.AddUsername(pair.Key, pair.Value);
             }
         }
     }
