@@ -106,6 +106,8 @@ namespace GUIPixelPainter
 
         public PlacementMode PlacementMode { get; private set; }
 
+        public double PlacementSpeed { get; private set; }
+
         public IReadOnlyCollection<int> UnknownUsernames { get; private set; }
 
         private Dictionary<int, List<GUITask>> guiTasks = new Dictionary<int, List<GUITask>>();
@@ -223,6 +225,13 @@ namespace GUIPixelPainter
             TrackingEnabled = botWindow.IsTrackingEnabled();
 
             pixelCanvas.SetNameLabelDisplay(TrackingEnabled);
+
+            double placementSpeed = botWindow.GetPlacementSpeed();
+            if (placementSpeed != PlacementSpeed)
+            {
+                PlacementSpeed = placementSpeed;
+                UsefulData.UpdatePlacementSpeed();
+            }
 
             int canvasId = botWindow.GetCanvasId();
             if (canvasId != CanvasId)
@@ -348,9 +357,9 @@ namespace GUIPixelPainter
             botWindow.SetWindowState(width, height, state);
         }
 
-        public void PushSettings(bool overlayTasks, bool overlayAllTasks, bool overlaySelectedTask, double overlayTranslucency, int canvasId, PlacementMode placementMode)
+        public void PushSettings(bool overlayTasks, bool overlayAllTasks, bool overlaySelectedTask, double overlayTranslucency, int canvasId, PlacementMode placementMode, double placementSpeed)
         {
-            botWindow.SetSettings(overlayTasks, overlayAllTasks, overlaySelectedTask, overlayTranslucency, canvasId, placementMode);
+            botWindow.SetSettings(overlayTasks, overlayAllTasks, overlaySelectedTask, overlayTranslucency, canvasId, placementMode, placementSpeed);
         }
 
         public void PushTaskPosition(int x, int y)

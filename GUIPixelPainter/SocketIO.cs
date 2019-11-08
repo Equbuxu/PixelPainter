@@ -294,14 +294,14 @@ namespace GUIPixelPainter
                     string premiumToken = content.Substring(premiumStart, content.IndexOf(',', premiumStart) + 1 - premiumStart);
                     premium = premiumToken.Contains("true");
 
-                    Console.WriteLine("premium={0}", premium);
+                    Console.WriteLine("premium={0} ({1}) for {2}", premium, premiumToken, username);
                     if (!premium)
                     {
                         int modStart = content.IndexOf(@"mod:", userStart);
                         string modToken = content.Substring(modStart, content.IndexOf(',', modStart) + 1 - modStart);
                         premium = premiumToken.Contains("true");
 
-                        Console.WriteLine("mod={1} ({0})", modToken, premium);
+                        Console.WriteLine("mod={1} ({0}) for {2}", modToken, premium, username);
                     }
 
                 }

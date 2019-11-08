@@ -94,6 +94,8 @@ namespace GUIPixelPainter
 
         public int CanvasId { get; private set; } = -1;
 
+        public double PlacementSpeed { get; private set; } = 11.2;
+
         public PlacementMode PlacementMode { get; private set; }
 
         private GUIDataExchange dataExchange;
@@ -140,6 +142,11 @@ namespace GUIPixelPainter
         public void UpdatePlacementMode()
         {
             PlacementMode = dataExchange.PlacementMode;
+        }
+
+        public void UpdatePlacementSpeed()
+        {
+            PlacementSpeed = dataExchange.PlacementSpeed;
         }
 
         public void UpdateTasks()

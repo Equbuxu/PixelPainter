@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -135,6 +136,22 @@ namespace GUIPixelPainter.GUI
             return int.TryParse(canvasId.Text, out int id) ? id : 7;
         }
 
+        public double GetPlacementSpeed()
+        {
+            double speed = 11.2;
+            if (!double.TryParse(placementSpeed.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out speed))
+            {
+                double.TryParse(placementSpeed.Text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out speed);
+            }
+
+            if (speed > 15)
+                speed = 15;
+            else if (speed < 1)
+                speed = 1;
+
+            return speed;
+        }
+
         public void SetWindowState(double width, double height, WindowState state)
         {
             this.Width = width;
@@ -143,7 +160,7 @@ namespace GUIPixelPainter.GUI
             OnWindowSizeStateChange(null, null);
         }
 
-        public void SetSettings(bool overlayTasks, bool overlayAllTasks, bool overlaySelectedTask, double overlayTranslucency, int canvasId, PlacementMode placementMode)
+        public void SetSettings(bool overlayTasks, bool overlayAllTasks, bool overlaySelectedTask, double overlayTranslucency, int canvasId, PlacementMode placementMode, double placementSpeed)
         {
             ignoreEvents = true;
             overlay.IsChecked = overlayTasks;
@@ -153,6 +170,7 @@ namespace GUIPixelPainter.GUI
             this.overlayTranslucency.Value = overlayTranslucency;
             this.canvasId.Text = canvasId.ToString();
             this.placementMode.SelectedIndex = placementMode == PlacementMode.DENOISE ? 1 : 0;
+            this.placementSpeed.Text = placementSpeed.ToString(CultureInfo.InvariantCulture);
 
             ignoreEvents = false;
             DataExchange.UpdateGeneralSettingsFromGUI();

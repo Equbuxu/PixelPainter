@@ -54,6 +54,14 @@ namespace GUIPixelPainter
             }
         }
 
+        public void SetPlacementSpeed(double speed)
+        {
+            if (speed < 1 || speed > 15)
+                return;
+            double delay = 28 / speed * 1000;
+            packetDelay = (int)delay;
+        }
+
         public void Enqueue(IdPixel pixel)
         {
             lock (queue)

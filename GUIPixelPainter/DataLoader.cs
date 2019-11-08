@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -29,6 +30,7 @@ namespace GUIPixelPainter
             UNKNOWN,
             LEGACY,
             v0,
+            v1,
         }
 
         private ConfigVersion GetConfigVersion()
@@ -45,6 +47,8 @@ namespace GUIPixelPainter
                 return ConfigVersion.LEGACY;
             else if ((string)reader.Value == "version0")
                 return ConfigVersion.v0;
+            else if ((string)reader.Value == "version1")
+                return ConfigVersion.v1;
 
             return ConfigVersion.UNKNOWN;
         }
@@ -56,8 +60,8 @@ namespace GUIPixelPainter
                 LoadNew();
             else if (version == ConfigVersion.LEGACY)
                 LoadLegacy();
-            else if (version == ConfigVersion.v0)
-                LoadV0();
+            else if (version == ConfigVersion.v0 || version == ConfigVersion.v1)
+                LoadV0or1(version == ConfigVersion.v1);
 
             LoadUsernames();
         }
@@ -86,11 +90,11 @@ namespace GUIPixelPainter
 
         private void LoadNew()
         {
-            dataExchange.PushSettings(true, false, false, 0.5, 7, PlacementMode.TOPDOWN);
+            dataExchange.PushSettings(true, false, false, 0.5, 7, PlacementMode.TOPDOWN, 11.2);
             dataExchange.PushWindowState(1350, 950, System.Windows.WindowState.Normal);
         }
 
-        private void LoadV0()
+        private void LoadV0or1(bool v1)
         {
             using (StreamReader file = File.OpenText(configPath))
             {
@@ -133,15 +137,19 @@ namespace GUIPixelPainter
                 bool overlayTasks = bool.Parse(dataExchangeData["overlayTasks"]);
                 bool overlayAllTasks = bool.Parse(dataExchangeData["overlayAllTasks"]);
                 bool overlaySelectedTask = bool.Parse(dataExchangeData["overlaySelectedTasks"]);
-                double overlayTranslucency = double.Parse(dataExchangeData["overlayTranslucency"]);
+                double overlayTranslucency = double.Parse(dataExchangeData["overlayTranslucency"], CultureInfo.InvariantCulture);
                 int canvasId = int.Parse(dataExchangeData["canvasId"]);
                 PlacementMode placementMode = (PlacementMode)Enum.Parse(typeof(PlacementMode), dataExchangeData["placementMode"]);
 
-                double windowWidth = double.Parse(dataExchangeData["windowWidth"]);
-                double windowHeight = double.Parse(dataExchangeData["windowHeight"]);
+                double placementSpeed = 11.2;
+                if (v1)
+                    placementSpeed = double.Parse(dataExchangeData["placementSpeed"], CultureInfo.InvariantCulture);
+
+                double windowWidth = double.Parse(dataExchangeData["windowWidth"], CultureInfo.InvariantCulture);
+                double windowHeight = double.Parse(dataExchangeData["windowHeight"], CultureInfo.InvariantCulture);
                 System.Windows.WindowState windowState = (System.Windows.WindowState)Enum.Parse(typeof(System.Windows.WindowState), dataExchangeData["windowState"]);
 
-                dataExchange.PushSettings(overlayTasks, overlayAllTasks, overlaySelectedTask, overlayTranslucency, canvasId, placementMode);
+                dataExchange.PushSettings(overlayTasks, overlayAllTasks, overlaySelectedTask, overlayTranslucency, canvasId, placementMode, placementSpeed);
                 dataExchange.PushWindowState(windowWidth, windowHeight, windowState);
             }
         }
@@ -185,7 +193,7 @@ namespace GUIPixelPainter
                     dataExchange.PushNewUser(user);
                 }
 
-                dataExchange.PushSettings(overlayTasks, false, false, 0.5, canvasId, PlacementMode.TOPDOWN);
+                dataExchange.PushSettings(overlayTasks, false, false, 0.5, canvasId, PlacementMode.TOPDOWN, 11.2);
                 dataExchange.PushWindowState(1350, 950, System.Windows.WindowState.Normal);
             }
         }
@@ -230,21 +238,22 @@ namespace GUIPixelPainter
                 Dictionary<int, List<GUITask>> tasks = dataExchange.GUITasks.Select((a) => a).ToDictionary((a) => a.Key, (a) => a.Value.Select((b) => b).ToList());
                 Dictionary<string, string> dataExchangeData = new Dictionary<string, string>()
                 {
-                    {"overlayTasks", dataExchange.OverlayTasks.ToString() },
-                    {"overlayAllTasks", dataExchange.OverlayAllTasks.ToString() },
-                    {"overlaySelectedTasks", dataExchange.OverlaySelectedTask.ToString() },
-                    {"overlayTranslucency", dataExchange.OverlayTranslucency.ToString() },
-                    {"canvasId", dataExchange.CanvasId.ToString() },
+                    {"overlayTasks", dataExchange.OverlayTasks.ToString(CultureInfo.InvariantCulture) },
+                    {"overlayAllTasks", dataExchange.OverlayAllTasks.ToString(CultureInfo.InvariantCulture) },
+                    {"overlaySelectedTasks", dataExchange.OverlaySelectedTask.ToString(CultureInfo.InvariantCulture) },
+                    {"overlayTranslucency", dataExchange.OverlayTranslucency.ToString(CultureInfo.InvariantCulture) },
+                    {"canvasId", dataExchange.CanvasId.ToString(CultureInfo.InvariantCulture) },
                     {"placementMode", dataExchange.PlacementMode.ToString() },
-                    {"windowWidth", dataExchange.windowWidth.ToString() },
-                    {"windowHeight", dataExchange.windowHeight.ToString() },
+                    {"placementSpeed", dataExchange.PlacementSpeed.ToString(CultureInfo.InvariantCulture) },
+                    {"windowWidth", dataExchange.windowWidth.ToString(CultureInfo.InvariantCulture) },
+                    {"windowHeight", dataExchange.windowHeight.ToString(CultureInfo.InvariantCulture) },
                     {"windowState", dataExchange.windowState.ToString() },
                 };
                 List<GUIUser> users = dataExchange.GUIUsers.Select((a) => a).ToList();
                 bool overlayTasks = dataExchange.OverlayTasks;
                 int canvasId = dataExchange.CanvasId;
                 serializer.Serialize(file, new List<object>() {
-                    "version0",
+                    "version1",
                     tasks,
                     users,
                     dataExchangeData,

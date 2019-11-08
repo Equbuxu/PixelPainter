@@ -113,12 +113,21 @@ namespace GUIPixelPainter
                         ChangePlacementBehaviour();
 
                     //TODO remake queues on update (or maybe not?)
+                    UpdatePlacementSpeed();
                     RefreshConnections();
                     ManageQueues();
                     ProcessGUIEvents();
                     ProcessEvents();
                     ManageUnknownUsernames();
                 }
+            }
+        }
+
+        private void UpdatePlacementSpeed()
+        {
+            foreach (Connection conn in users)
+            {
+                conn.Session.SetPlacementSpeed(guiData.PlacementSpeed);
             }
         }
 
