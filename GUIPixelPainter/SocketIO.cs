@@ -299,7 +299,7 @@ namespace GUIPixelPainter
                     {
                         int modStart = content.IndexOf(@"mod:", userStart);
                         string modToken = content.Substring(modStart, content.IndexOf(',', modStart) + 1 - modStart);
-                        premium = premiumToken.Contains("true");
+                        premium = modToken.Contains("true");
 
                         Console.WriteLine("mod={1} ({0}) for {2}", modToken, premium, username);
                     }
