@@ -46,7 +46,14 @@
                     ☩
                 </TextBlock>
             </Border>
-            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="55" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="brushTool" ToolTip="Brush. +,- or Shift+Scroll to resize">
+            <Border CornerRadius="4" BorderThickness="0" Background="Black" Canvas.Left="55" Canvas.Top="15" Height="25" Width="25" MouseDown="OnToolClick" Name="brushTool">
+                <Border.ToolTip>
+                    <TextBlock>
+                    Brush. +,- or Shift+Scroll to resize<LineBreak />
+                    Hold shift to draw straing lines<LineBreak />
+                    Hold alt to draw diagonal lines
+                    </TextBlock>
+                </Border.ToolTip>
                 <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center">
                     ⚫
                 </TextBlock>

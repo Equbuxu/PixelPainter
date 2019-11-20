@@ -44,6 +44,8 @@ namespace GUIPixelPainter.GUI
         private Point mouseDownPoint = new Point();
         private bool shiftDirectionDeterm = false;
         private bool shiftDirHor = false;
+        private bool altDirectionDeterm = false;
+        private bool altDirAsc = false;
         private bool loading = false;
         private bool tracking = false;
         private double overlayOpacity = 0.5;
@@ -353,60 +355,14 @@ namespace GUIPixelPainter.GUI
             var mouseCoords = e.GetPosition(MainCanvas);
             coordsLabel.Text = String.Format("{0},{1}", (int)mouseCoords.X, (int)mouseCoords.Y);
 
-            //Process shift key
-            if (Keyboard.IsKeyDown(Key.LeftShift) && e.LeftButton == MouseButtonState.Pressed && tool != Tools.MOVE)
-            {
-                Point curPosition = e.GetPosition((UIElement)MainCanvas.Parent);
-                curPosition.X -= translate.X;
-                curPosition.Y -= translate.Y;
-
-                int dx = (int)((mouseDownPoint.X - curPosition.X) / scale.ScaleX);
-                int dy = (int)((mouseDownPoint.Y - curPosition.Y) / scale.ScaleY);
-
-                if (!shiftDirectionDeterm)
-                {
-                    if (Math.Abs(dx) > Math.Abs(dy))
-                    {
-                        shiftDirHor = true;
-                        shiftDirectionDeterm = true;
-                    }
-                    else if (Math.Abs(dx) < Math.Abs(dy))
-                    {
-                        shiftDirHor = false;
-                        shiftDirectionDeterm = true;
-                    }
-                    //unable to determine of cursor has yet to move more than a pixel
-                }
-
-                if (shiftDirectionDeterm)
-                {
-                    if (shiftDirHor)
-                    {
-                        Canvas.SetLeft(brushHighlight, Math.Floor(mouseCoords.X - brushSize / 2));
-                        Canvas.SetLeft(pixelHighlight, Math.Floor(mouseCoords.X));
-                    }
-                    else
-                    {
-                        Canvas.SetTop(brushHighlight, Math.Floor(mouseCoords.Y - brushSize / 2));
-                        Canvas.SetTop(pixelHighlight, Math.Floor(mouseCoords.Y));
-                    }
-                }
-
-            }
-            else
-            {
-                shiftDirectionDeterm = false;
-
-                Canvas.SetLeft(brushHighlight, Math.Floor(mouseCoords.X - brushSize / 2));
-                Canvas.SetTop(brushHighlight, Math.Floor(mouseCoords.Y - brushSize / 2));
-
-                Canvas.SetLeft(pixelHighlight, Math.Floor(mouseCoords.X));
-                Canvas.SetTop(pixelHighlight, Math.Floor(mouseCoords.Y));
-            }
-
+            HandleMoveLock(e);
             if (!MainCanvas.IsMouseCaptured)
                 return;
+            HandleDraggingDrawing(e);
+        }
 
+        private void HandleDraggingDrawing(MouseEventArgs e)
+        {
             //Move or draw
             if (tool == Tools.MOVE || e.LeftButton != MouseButtonState.Pressed)
             {
@@ -459,7 +415,128 @@ namespace GUIPixelPainter.GUI
                     }
                 }
             }
+        }
 
+        private void HandleMoveLock(MouseEventArgs e)
+        {
+            var mouseCoords = e.GetPosition(MainCanvas);
+
+            bool shiftpressed = (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift;
+            bool altpressed = (Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt;
+            bool butpressed = e.LeftButton == MouseButtonState.Pressed;
+
+            if ((shiftpressed || altpressed) && butpressed && tool != Tools.MOVE)
+            {
+                if (shiftpressed)
+                {
+                    Point curPosition = e.GetPosition((UIElement)MainCanvas.Parent);
+                    curPosition.X -= translate.X;
+                    curPosition.Y -= translate.Y;
+
+                    int dx = (int)((mouseDownPoint.X - curPosition.X) / scale.ScaleX);
+                    int dy = (int)((mouseDownPoint.Y - curPosition.Y) / scale.ScaleY);
+
+                    if (!shiftDirectionDeterm)
+                    {
+                        if (Math.Abs(dx) > Math.Abs(dy))
+                        {
+                            shiftDirHor = true;
+                            shiftDirectionDeterm = true;
+                        }
+                        else if (Math.Abs(dx) < Math.Abs(dy))
+                        {
+                            shiftDirHor = false;
+                            shiftDirectionDeterm = true;
+                        }
+                        //unable to determine of cursor has yet to move more than a pixel
+                    }
+
+                    if (shiftDirectionDeterm)
+                    {
+                        if (shiftDirHor)
+                        {
+                            Canvas.SetLeft(brushHighlight, Math.Floor(mouseCoords.X - brushSize / 2));
+                            Canvas.SetLeft(pixelHighlight, Math.Floor(mouseCoords.X));
+                        }
+                        else
+                        {
+                            Canvas.SetTop(brushHighlight, Math.Floor(mouseCoords.Y - brushSize / 2));
+                            Canvas.SetTop(pixelHighlight, Math.Floor(mouseCoords.Y));
+                        }
+                    }
+                }
+                else if (altpressed)
+                {
+                    Point curPosition = e.GetPosition((UIElement)MainCanvas.Parent);
+                    curPosition.X -= translate.X;
+                    curPosition.Y -= translate.Y;
+
+                    int dx = (int)((mouseDownPoint.X - curPosition.X) / scale.ScaleX);
+                    int dy = (int)((mouseDownPoint.Y - curPosition.Y) / scale.ScaleY);
+
+                    if (!altDirectionDeterm)
+                    {
+                        if (dx < 0 && dy < 0 || dx > 0 && dy > 0)
+                        {
+                            altDirectionDeterm = true;
+                            altDirAsc = true;
+                        }
+                        else if (dx > 0 && dy < 0 || dx < 0 && dy > 0)
+                        {
+                            altDirectionDeterm = true;
+                            altDirAsc = false;
+                        }
+                        //unable to determine of cursor has yet to move more than a pixel diagonally
+                    }
+
+                    if (altDirectionDeterm)
+                    {
+                        if (altDirAsc)
+                        {
+                            int mdpx = (int)(mouseDownPoint.X / scale.ScaleX);
+                            int mdpy = (int)(mouseDownPoint.Y / scale.ScaleY);
+                            int cpx = (int)(curPosition.X / scale.ScaleX);
+                            int cpy = (int)(curPosition.Y / scale.ScaleY);
+
+                            int x = (int)((cpx + cpy - mdpy + mdpx) / 2);
+                            int y = (int)(x - mdpx + mdpy);
+
+                            Canvas.SetLeft(brushHighlight, x - brushSize / 2);
+                            Canvas.SetTop(brushHighlight, y - brushSize / 2);
+
+                            Canvas.SetLeft(pixelHighlight, x);
+                            Canvas.SetTop(pixelHighlight, y);
+                        }
+                        else
+                        {
+                            int mdpx = (int)(mouseDownPoint.X / scale.ScaleX);
+                            int mdpy = (int)(mouseDownPoint.Y / scale.ScaleY);
+                            int cpx = (int)(curPosition.X / scale.ScaleX);
+                            int cpy = (int)(curPosition.Y / scale.ScaleY);
+
+                            double xD = (mdpx + mdpy - cpy + cpx) / 2;
+                            int x = (int)xD;
+                            int y = (int)(xD - cpx + cpy);
+
+                            Canvas.SetLeft(brushHighlight, x - brushSize / 2);
+                            Canvas.SetTop(brushHighlight, y - brushSize / 2);
+
+                            Canvas.SetLeft(pixelHighlight, x);
+                            Canvas.SetTop(pixelHighlight, y);
+                        }
+                    }
+                }
+                return;
+            }
+
+            shiftDirectionDeterm = false;
+            altDirectionDeterm = false;
+
+            Canvas.SetLeft(brushHighlight, Math.Floor(mouseCoords.X - brushSize / 2));
+            Canvas.SetTop(brushHighlight, Math.Floor(mouseCoords.Y - brushSize / 2));
+
+            Canvas.SetLeft(pixelHighlight, Math.Floor(mouseCoords.X));
+            Canvas.SetTop(pixelHighlight, Math.Floor(mouseCoords.Y));
         }
 
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
@@ -486,11 +563,6 @@ namespace GUIPixelPainter.GUI
         {
             if (loading)
                 return;
-
-            //bool leftCtrl = Keyboard.IsKeyDown(Key.LeftCtrl);
-            //bool leftCtrl = Keyboard.Modifiers == ModifierKeys.Control;
-            //bool leftCtrl = false;
-            //bool rightCtrl = Keyboard.IsKeyDown(Key.RightCtrl);
 
             if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift && (tool == Tools.BRUSH || tool == Tools.HISTORYBRUSH))
             {
