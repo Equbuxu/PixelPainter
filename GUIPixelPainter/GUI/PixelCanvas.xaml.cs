@@ -498,8 +498,11 @@ namespace GUIPixelPainter.GUI
                             int cpx = (int)(curPosition.X / scale.ScaleX);
                             int cpy = (int)(curPosition.Y / scale.ScaleY);
 
-                            int x = (int)((cpx + cpy - mdpy + mdpx) / 2);
-                            int y = (int)(x - mdpx + mdpy);
+                            double xD = (cpx + cpy - mdpy + mdpx) / 2;
+                            double yD = (xD - mdpx + mdpy);
+
+                            int x, y;
+                            RoundDiag(mdpx, mdpy, xD, yD, out x, out y);
 
                             Canvas.SetLeft(brushHighlight, x - brushSize / 2);
                             Canvas.SetTop(brushHighlight, y - brushSize / 2);
@@ -515,8 +518,10 @@ namespace GUIPixelPainter.GUI
                             int cpy = (int)(curPosition.Y / scale.ScaleY);
 
                             double xD = (mdpx + mdpy - cpy + cpx) / 2;
-                            int x = (int)xD;
-                            int y = (int)(xD - cpx + cpy);
+                            double yD = (xD - cpx + cpy);
+
+                            int x, y;
+                            RoundDiag(mdpx, mdpy, xD, yD, out x, out y);
 
                             Canvas.SetLeft(brushHighlight, x - brushSize / 2);
                             Canvas.SetTop(brushHighlight, y - brushSize / 2);
@@ -537,6 +542,33 @@ namespace GUIPixelPainter.GUI
 
             Canvas.SetLeft(pixelHighlight, Math.Floor(mouseCoords.X));
             Canvas.SetTop(pixelHighlight, Math.Floor(mouseCoords.Y));
+        }
+
+        private void RoundDiag(double mdpx, double mdpy, double x, double y, out int newX, out int newY)
+        {
+            double dx = x - mdpx;
+            double dy = y - mdpy;
+
+            if (dx > 0 && dy > 0)
+            {
+                newX = (int)Math.Floor(x);
+                newY = (int)Math.Floor(y);
+            }
+            else if (dx < 0 && dy > 0)
+            {
+                newX = (int)Math.Ceiling(x);
+                newY = (int)Math.Floor(y);
+            }
+            else if (dx > 0 && dy < 0)
+            {
+                newX = (int)Math.Ceiling(x);
+                newY = (int)Math.Ceiling(y);
+            }
+            else
+            {
+                newX = (int)Math.Ceiling(x);
+                newY = (int)Math.Ceiling(y);
+            }
         }
 
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
