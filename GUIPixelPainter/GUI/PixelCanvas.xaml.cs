@@ -518,7 +518,7 @@ namespace GUIPixelPainter.GUI
                             int cpy = (int)(curPosition.Y / scale.ScaleY);
 
                             double xD = (mdpx + mdpy - cpy + cpx) / 2;
-                            double yD = (xD - cpx + cpy);
+                            double yD = (-xD + mdpx + mdpy);
 
                             int x, y;
                             RoundDiag(mdpx, mdpy, xD, yD, out x, out y);
