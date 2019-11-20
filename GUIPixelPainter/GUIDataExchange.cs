@@ -79,6 +79,22 @@ namespace GUIPixelPainter
         public int X { get; }
         public int Y { get; }
         public Color Color { get; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is GUIPixel)
+            {
+                GUIPixel other = obj as GUIPixel;
+                return X == other.X && Y == other.Y;
+            }
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            int result = (X << 16) | Y;
+            return result;
+        }
     }
 
     /// <summary>
@@ -114,11 +130,11 @@ namespace GUIPixelPainter
         //public IReadOnlyDictionary<int, IReadOnlyList<GUITask>> GUITasks => (IReadOnlyDictionary<int, IReadOnlyList<GUITask>>)guiTasks;
         public IReadOnlyDictionary<int, IReadOnlyList<GUITask>> GUITasks => guiTasks.ToDictionary((a) => a.Key, (a) => (IReadOnlyList<GUITask>)a.Value.AsReadOnly());
 
-        private List<GUIPixel> manualTask = new List<GUIPixel>();
-        public IReadOnlyCollection<GUIPixel> ManualTask
+        private Dictionary<GUIPixel, GUIPixel> manualTask = new Dictionary<GUIPixel, GUIPixel>();
+        /*public IReadOnlyCollection<GUIPixel> ManualTask
         {
             get { return manualTask.AsReadOnly(); }
-        }
+        }*/
 
         public bool MoveToolSelected { get; private set; }
 
@@ -270,7 +286,26 @@ namespace GUIPixelPainter
 
         public void CreateManualPixel(GUIPixel pixel)
         {
-            for (int i = 0; i < manualTask.Count; i++)
+            if (!BotEnabled)
+                return;
+            pixel = new GUIPixel(pixel.X, pixel.Y, Color.FromArgb(pixel.Color.A, pixel.Color.R, pixel.Color.G, pixel.Color.B));
+            if (manualTask.ContainsKey(pixel))
+            {
+                GUIPixel cur = manualTask[pixel];
+                if (cur.Color.R == pixel.Color.R && cur.Color.G == pixel.Color.G && cur.Color.B == pixel.Color.B)
+                    return;
+                else
+                {
+                    manualTask.Remove(pixel);
+                    manualTask.Add(pixel, pixel);
+                    UsefulData.UpdateManualPixel(pixel);
+                    return;
+                }
+            }
+
+            manualTask.Add(pixel, pixel);
+            UsefulData.UpdateManualPixel(pixel);
+            /*for (int i = 0; i < manualTask.Count; i++)
             {
                 GUIPixel cur = manualTask[i];
                 if (cur.X == pixel.X && cur.Y == pixel.Y)
@@ -284,9 +319,7 @@ namespace GUIPixelPainter
                         return;
                     }
                 }
-            }
-            manualTask.Add(pixel);
-            UsefulData.UpdateManualTask();
+            }*/
         }
 
         public void CreateUpdate()
@@ -318,8 +351,9 @@ namespace GUIPixelPainter
                 pixelCanvas.SetPixel(x, y, cColor, userId);
                 botWindow.UpdateSpeed(x, y, cColor, userId, myOwnPixel);
 
-                manualTask.RemoveAll((a) => a.X == x && a.Y == y && a.Color == color);
-                UsefulData.UpdateManualTask(); //TODO might not be necessary, could be removed as an optimisation
+                GUIPixel removed = new GUIPixel(x, y, color);
+                if (manualTask.Remove(removed))
+                    UsefulData.RemoveManualPixel(removed); //TODO might not be necessary, could be removed as an optimisation
             }
         }
 

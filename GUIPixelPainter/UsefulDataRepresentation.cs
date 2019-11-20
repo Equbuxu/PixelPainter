@@ -52,6 +52,21 @@ namespace GUIPixelPainter
         public int X { get; }
         public int Y { get; }
         public Color Color { get; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is UsefulPixel)
+            {
+                UsefulPixel other = obj as UsefulPixel;
+                return X == other.X && Y == other.Y;
+            }
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return (X << 16) | Y;
+        }
     }
 
     public class UsefulDataRepresentation
@@ -74,12 +89,12 @@ namespace GUIPixelPainter
             }
         }
 
-        private List<UsefulPixel> manualPixels = new List<UsefulPixel>();
+        private Dictionary<UsefulPixel, UsefulPixel> manualPixels = new Dictionary<UsefulPixel, UsefulPixel>();
         public List<UsefulPixel> ManualPixels
         {
             get
             {
-                lock (manualPixels) { return manualPixels.Select((a) => a).ToList(); }
+                lock (manualPixels) { return manualPixels.Select((a) => a.Key).ToList(); }
             }
         }
 
@@ -124,18 +139,30 @@ namespace GUIPixelPainter
             manualPixels.Clear();
         }
 
-        public void UpdateManualTask()
+        public void UpdateManualPixel(GUIPixel pixel)
         {
+            if (!dataExchange.BotEnabled)
+                return;
             lock (manualPixels)
             {
-                manualPixels.Clear();
-                if (!dataExchange.BotEnabled)
-                    return;
+                UsefulPixel newPixel = new UsefulPixel(pixel.X, pixel.Y, pixel.Color);
+                manualPixels.Remove(newPixel);
+                manualPixels.Add(newPixel, newPixel);
+                /*manualPixels.Clear();
                 foreach (GUIPixel pixel in dataExchange.ManualTask)
                 {
                     UsefulPixel newPixel = new UsefulPixel(pixel.X, pixel.Y, pixel.Color);
                     manualPixels.Add(newPixel);
-                }
+                }*/
+            }
+        }
+
+        public void RemoveManualPixel(GUIPixel pixel)
+        {
+            lock (manualPixels)
+            {
+                UsefulPixel newPixel = new UsefulPixel(pixel.X, pixel.Y, pixel.Color);
+                manualPixels.Remove(newPixel);
             }
         }
 

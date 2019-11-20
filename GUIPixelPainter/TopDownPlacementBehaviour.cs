@@ -27,6 +27,11 @@ namespace GUIPixelPainter
             lastUpdateIterCount = new int[canvas.Width, canvas.Height];
         }
 
+        public void ResetResendDelay(int x, int y)
+        {
+            lastUpdateIterCount[x, y] -= pixelResendDelay;
+        }
+
         public override PlacementMode GetMode()
         {
             return PlacementMode.TOPDOWN;

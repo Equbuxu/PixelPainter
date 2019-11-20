@@ -410,6 +410,12 @@ namespace GUIPixelPainter
                 }
             }
 
+            if (type == "pixels" && placementBehaviour.GetMode() == PlacementMode.TOPDOWN)
+            {
+                PixelPacket px = args as PixelPacket;
+                (placementBehaviour as TopDownPlacementBehaviour).ResetResendDelay(px.x, px.y);
+            }
+
             lock (eventsToProcess)
             {
                 eventsToProcess.Add(new Tuple<string, EventArgs>(type, args));

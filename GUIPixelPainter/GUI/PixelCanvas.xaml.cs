@@ -493,10 +493,10 @@ namespace GUIPixelPainter.GUI
                     {
                         if (altDirAsc)
                         {
-                            int mdpx = (int)(mouseDownPoint.X / scale.ScaleX);
-                            int mdpy = (int)(mouseDownPoint.Y / scale.ScaleY);
-                            int cpx = (int)(curPosition.X / scale.ScaleX);
-                            int cpy = (int)(curPosition.Y / scale.ScaleY);
+                            double mdpx = (int)(mouseDownPoint.X / scale.ScaleX);
+                            double mdpy = (int)(mouseDownPoint.Y / scale.ScaleY);
+                            double cpx = (int)(curPosition.X / scale.ScaleX);
+                            double cpy = (int)(curPosition.Y / scale.ScaleY);
 
                             double xD = (cpx + cpy - mdpy + mdpx) / 2;
                             double yD = (xD - mdpx + mdpy);
@@ -512,13 +512,13 @@ namespace GUIPixelPainter.GUI
                         }
                         else
                         {
-                            int mdpx = (int)(mouseDownPoint.X / scale.ScaleX);
-                            int mdpy = (int)(mouseDownPoint.Y / scale.ScaleY);
-                            int cpx = (int)(curPosition.X / scale.ScaleX);
-                            int cpy = (int)(curPosition.Y / scale.ScaleY);
+                            double mdpx = (int)(mouseDownPoint.X / scale.ScaleX);
+                            double mdpy = (int)(mouseDownPoint.Y / scale.ScaleY);
+                            double cpx = (int)(curPosition.X / scale.ScaleX);
+                            double cpy = (int)(curPosition.Y / scale.ScaleY);
 
                             double xD = (mdpx + mdpy - cpy + cpx) / 2;
-                            double yD = (-xD + mdpx + mdpy);
+                            double yD = (xD - cpx + cpy);
 
                             int x, y;
                             RoundDiag(mdpx, mdpy, xD, yD, out x, out y);
@@ -561,7 +561,7 @@ namespace GUIPixelPainter.GUI
             }
             else if (dx > 0 && dy < 0)
             {
-                newX = (int)Math.Ceiling(x);
+                newX = (int)Math.Floor(x);
                 newY = (int)Math.Ceiling(y);
             }
             else
