@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -40,11 +41,37 @@ namespace GUIPixelPainter
 
         public void Launch()
         {
+            EnsureBrowserEmulationEnabled();
             app = new App();
             app.InitializeComponent();
             app.Dispatcher.InvokeAsync(() => app.MainWindow.Loaded += Startup);
             app.Run();
             Save();
+        }
+
+        //from https://weblog.west-wind.com/posts/2011/May/21/Web-Browser-Control-Specifying-the-IE-Version
+        private void EnsureBrowserEmulationEnabled(string exename = "GUIPixelPainter.exe", bool uninstall = false)
+        {
+            try
+            {
+                using (
+                    var rk = Registry.CurrentUser.OpenSubKey(
+                            @"SOFTWARE\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_BROWSER_EMULATION", true)
+                )
+                {
+                    if (!uninstall)
+                    {
+                        dynamic value = rk.GetValue(exename);
+                        if (value == null)
+                            rk.SetValue(exename, (uint)11001, RegistryValueKind.DWord);
+                    }
+                    else
+                        rk.DeleteValue(exename);
+                }
+            }
+            catch
+            {
+            }
         }
 
         private void Startup(object sender, System.Windows.RoutedEventArgs e)

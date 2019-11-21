@@ -182,6 +182,7 @@ namespace GUIPixelPainter.GUI
                 enableUser.IsChecked = false;
 
                 userName.IsEnabled = false;
+                loginButton.IsEnabled = false;
                 userProxy.IsEnabled = false;
                 authKey.IsEnabled = false;
                 authToken.IsEnabled = false;
@@ -204,6 +205,7 @@ namespace GUIPixelPainter.GUI
             userStatus.Content = "Status: " + selectedUser.status.ToString();
 
             userName.IsEnabled = true;
+            loginButton.IsEnabled = !selectedUser.isEnabled;
             userProxy.IsEnabled = true;
             authKey.IsEnabled = true;
             authToken.IsEnabled = true;
@@ -266,6 +268,7 @@ namespace GUIPixelPainter.GUI
             if (userList.SelectedItem == null)
                 return;
             GetSelectedUser().isEnabled = true;
+            loginButton.IsEnabled = false;
             DataExchange.UpdateUsersFromGUI();
         }
 
@@ -277,7 +280,28 @@ namespace GUIPixelPainter.GUI
             if (userList.SelectedItem == null)
                 return;
             GetSelectedUser().isEnabled = false;
+            loginButton.IsEnabled = true;
             DataExchange.UpdateUsersFromGUI();
+        }
+
+        private void OpenBrowserClick(object sender, RoutedEventArgs e)
+        {
+
+            Browser browser = new Browser();
+            browser.ShowDialog();
+            if (!browser.Success)
+            {
+                MessageBox.Show("Log in before closing the window");
+                return;
+            }
+
+            User user = GetSelectedUser();
+            user.authKey = browser.AuthKey;
+            user.authToken = browser.AuthToken;
+            user.phpSessId = browser.PHPSESSID;
+            UpdateUserSettingsPanel();
+
+            enableUser.IsChecked = true;
         }
     }
 }

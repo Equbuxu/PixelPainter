@@ -27,6 +27,7 @@
                             <Label>Proxy url:</Label>
                             <TextBox Name="userProxy" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
                         </DockPanel>
+                        <Button Margin="5" Click="OpenBrowserClick" Name="loginButton">Login through browser</Button>
                         <DockPanel Margin="5">
                             <Label>authKey:</Label>
                             <TextBox Name="authKey" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
