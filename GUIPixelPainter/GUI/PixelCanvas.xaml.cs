@@ -37,8 +37,8 @@ namespace GUIPixelPainter.GUI
         private Point mouseDownPoint = new Point();
         private bool shiftDirectionDeterm = false;
         private bool shiftDirHor = false;
-        private bool altDirectionDeterm = false;
-        private bool altDirAsc = false;
+        private bool diagDirectionDeterm = false;
+        private bool diagDirAsc = false;
         private bool loading = false;
         private bool tracking = false;
         private double overlayOpacity = 0.5;
@@ -415,10 +415,10 @@ namespace GUIPixelPainter.GUI
             var mouseCoords = e.GetPosition(MainCanvas);
 
             bool shiftpressed = (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift;
-            bool altpressed = (Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt;
+            bool zpressed = Keyboard.IsKeyDown(Key.Z);
             bool butpressed = e.LeftButton == MouseButtonState.Pressed;
 
-            if ((shiftpressed || altpressed) && butpressed && tool != Tools.MOVE)
+            if ((shiftpressed || zpressed) && butpressed && tool != Tools.MOVE)
             {
                 if (shiftpressed)
                 {
@@ -458,7 +458,7 @@ namespace GUIPixelPainter.GUI
                         }
                     }
                 }
-                else if (altpressed)
+                else if (zpressed)
                 {
                     Point curPosition = e.GetPosition((UIElement)MainCanvas.Parent);
                     curPosition.X -= translate.X;
@@ -467,24 +467,24 @@ namespace GUIPixelPainter.GUI
                     int dx = (int)((mouseDownPoint.X - curPosition.X) / scale.ScaleX);
                     int dy = (int)((mouseDownPoint.Y - curPosition.Y) / scale.ScaleY);
 
-                    if (!altDirectionDeterm)
+                    if (!diagDirectionDeterm)
                     {
                         if (dx < 0 && dy < 0 || dx > 0 && dy > 0)
                         {
-                            altDirectionDeterm = true;
-                            altDirAsc = true;
+                            diagDirectionDeterm = true;
+                            diagDirAsc = true;
                         }
                         else if (dx > 0 && dy < 0 || dx < 0 && dy > 0)
                         {
-                            altDirectionDeterm = true;
-                            altDirAsc = false;
+                            diagDirectionDeterm = true;
+                            diagDirAsc = false;
                         }
                         //unable to determine of cursor has yet to move more than a pixel diagonally
                     }
 
-                    if (altDirectionDeterm)
+                    if (diagDirectionDeterm)
                     {
-                        if (altDirAsc)
+                        if (diagDirAsc)
                         {
                             double mdpx = (int)(mouseDownPoint.X / scale.ScaleX);
                             double mdpy = (int)(mouseDownPoint.Y / scale.ScaleY);
@@ -528,7 +528,7 @@ namespace GUIPixelPainter.GUI
             }
 
             shiftDirectionDeterm = false;
-            altDirectionDeterm = false;
+            diagDirectionDeterm = false;
 
             Canvas.SetLeft(brushHighlight, Math.Floor(mouseCoords.X - brushSize / 2));
             Canvas.SetTop(brushHighlight, Math.Floor(mouseCoords.Y - brushSize / 2));

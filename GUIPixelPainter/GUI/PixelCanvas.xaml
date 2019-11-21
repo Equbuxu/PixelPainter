@@ -51,7 +51,7 @@
                     <TextBlock>
                     Brush. +,- or Shift+Scroll to resize<LineBreak />
                     Hold shift to draw straing lines<LineBreak />
-                    Hold alt to draw diagonal lines
+                    Hold Z to draw diagonal lines
                     </TextBlock>
                 </Border.ToolTip>
                 <TextBlock Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center">
