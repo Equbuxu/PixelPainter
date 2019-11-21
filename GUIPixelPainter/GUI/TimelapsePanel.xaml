@@ -1,0 +1,36 @@
+﻿<UserControl x:Class="GUIPixelPainter.GUI.TimelapsePanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GUIPixelPainter.GUI"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="220">
+    <Border BorderBrush="Gray" BorderThickness="1" Margin="5" Name="border">
+        <Expander Header="Timelapse recording" IsExpanded="True">
+            <StackPanel>
+                <DockPanel>
+                    <TextBlock VerticalAlignment="Center"  Margin="5">Final video FPS</TextBlock>
+                    <TextBox Margin="5,0,0,0" Text="{Binding FPS}" IsEnabled="{Binding NotRecording}" VerticalContentAlignment="Center"></TextBox>
+                </DockPanel>
+
+                <DockPanel Margin="0,5,0,0">
+                    <TextBlock VerticalAlignment="Center" Margin="5">Speed multiplier</TextBlock>
+                    <TextBox Margin="5,0,0,0" Text="{Binding SpeedMult}" IsEnabled="{Binding NotRecording}" VerticalContentAlignment="Center"></TextBox>
+                </DockPanel>
+
+                <DockPanel Margin="0,5,0,0">
+                    <TextBlock VerticalAlignment="Center" Margin="5">Fragment length (sec)</TextBlock>
+                    <TextBox Margin="5,0,0,0" Text="{Binding FragLength}" IsEnabled="{Binding NotRecording}" VerticalContentAlignment="Center"></TextBox>
+                </DockPanel>
+
+                <DockPanel Margin="5">
+                    <Button Margin="0,5,5,5" Width="92" IsEnabled="{Binding NotRecording}" Command="{Binding StartRec}">Start Recording</Button>
+                    <Button Margin="0,5,0,5" Width="92" IsEnabled="{Binding Recording}" Command="{Binding StopRec}">Stop Recording</Button>
+                </DockPanel>
+
+                <TextBlock Margin="5" Text="{Binding StatusText}"></TextBlock>
+            </StackPanel>
+        </Expander>
+    </Border>
+</UserControl>

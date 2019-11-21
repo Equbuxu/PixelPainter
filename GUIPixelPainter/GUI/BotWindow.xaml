@@ -80,6 +80,8 @@
                         </StackPanel>
                     </Expander>
                 </Border>
+
+                <local:TimelapsePanel></local:TimelapsePanel>
             </StackPanel>
         </ScrollViewer>
 

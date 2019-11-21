@@ -6,50 +6,46 @@
              xmlns:local="clr-namespace:GUIPixelPainter.GUI"
              mc:Ignorable="d" 
              d:DesignHeight="800" d:DesignWidth="800">
-    <StackPanel>
-        <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
+    <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
+        <Expander Header="Users" IsExpanded="True">
             <StackPanel>
-                <Expander Header="Users" IsExpanded="True">
-                    <StackPanel>
-                        <ListView Name="userList" SelectionChanged="OnUserSelection" Margin="5" Height="200">
+                <ListView Name="userList" SelectionChanged="OnUserSelection" Margin="5" Height="200">
 
-                        </ListView>
-                        <Button Margin="5" Click="OnNewUserClick" ToolTip="Create new user">
-                            New user
-                        </Button>
+                </ListView>
+                <Button Margin="5" Click="OnNewUserClick" ToolTip="Create new user">
+                    New user
+                </Button>
 
-                        <Label FontWeight="Bold">User settings</Label>
-                        <DockPanel Margin="5">
-                            <Label>Name (cosmetical):</Label>
-                            <TextBox Name="userName" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
-                        </DockPanel>
-                        <DockPanel Margin="5" Visibility="Collapsed">
-                            <Label>Proxy url:</Label>
-                            <TextBox Name="userProxy" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
-                        </DockPanel>
-                        <Button Margin="5" Click="OpenBrowserClick" Name="loginButton">Login through browser</Button>
-                        <DockPanel Margin="5">
-                            <Label>authKey:</Label>
-                            <TextBox Name="authKey" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
-                        </DockPanel>
-                        <DockPanel Margin="5">
-                            <Label>authToken:</Label>
-                            <TextBox Name="authToken" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
-                        </DockPanel>
-                        <DockPanel Margin="5">
-                            <Label>PHPSESSID:</Label>
-                            <TextBox Name="phpSessId" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
-                        </DockPanel>
-                        <Label Margin="5" Name="userStatus">Status:</Label>
-                        <CheckBox Margin="5" Name="enableUser" Checked="OnEnableUser" Unchecked="OnDisableUser" IsEnabled="False">
-                            Enabled
-                        </CheckBox>
-                        <Button Margin="5" Name="deleteUser" Click="OnDeleteUserClick" IsEnabled="False">
-                            Delete
-                        </Button>
-                    </StackPanel>
-                </Expander>
+                <Label FontWeight="Bold">User settings</Label>
+                <DockPanel Margin="5">
+                    <Label>Name (cosmetical):</Label>
+                    <TextBox Name="userName" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5" Visibility="Collapsed">
+                    <Label>Proxy url:</Label>
+                    <TextBox Name="userProxy" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
+                </DockPanel>
+                <Button Margin="5" Click="OpenBrowserClick" Name="loginButton">Login through browser</Button>
+                <DockPanel Margin="5">
+                    <Label>authKey:</Label>
+                    <TextBox Name="authKey" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5">
+                    <Label>authToken:</Label>
+                    <TextBox Name="authToken" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5">
+                    <Label>PHPSESSID:</Label>
+                    <TextBox Name="phpSessId" LostFocus="OnTextBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
+                </DockPanel>
+                <Label Margin="5" Name="userStatus">Status:</Label>
+                <CheckBox Margin="5" Name="enableUser" Checked="OnEnableUser" Unchecked="OnDisableUser" IsEnabled="False">
+                    Enabled
+                </CheckBox>
+                <Button Margin="5" Name="deleteUser" Click="OnDeleteUserClick" IsEnabled="False">
+                    Delete
+                </Button>
             </StackPanel>
-        </Border>
-    </StackPanel>
+        </Expander>
+    </Border>
 </UserControl>

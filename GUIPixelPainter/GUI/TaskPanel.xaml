@@ -6,110 +6,107 @@
              xmlns:local="clr-namespace:GUIPixelPainter.GUI"
              mc:Ignorable="d" 
              d:DesignHeight="800" d:DesignWidth="800">
-    <StackPanel>
-        <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
-            <StackPanel>
-                <Label FontWeight="Bold">Tasks
-                    <Label.ToolTip>
-                        <ToolTip>
-                            List of tasks
-                        </ToolTip>
-                    </Label.ToolTip>
-                </Label>
-                <ListView Name="taskList" SelectionChanged="OnTaskSelection" SelectionMode="Single" Margin="5" Height="200">
+    <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
+        <StackPanel>
+            <Label FontWeight="Bold">Tasks
+                <Label.ToolTip>
+                    <ToolTip>
+                        List of tasks
+                    </ToolTip>
+                </Label.ToolTip>
+            </Label>
+            <ListView Name="taskList" SelectionChanged="OnTaskSelection" SelectionMode="Single" Margin="5" Height="200">
 
-                </ListView>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*" />
-                        <ColumnDefinition Width="1*" />
-                    </Grid.ColumnDefinitions>
-                    <Button Margin="5" Click="OnNewTaskClick" DockPanel.Dock="Left" Grid.Column="0">
-                        New task
+            </ListView>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+                <Button Margin="5" Click="OnNewTaskClick" DockPanel.Dock="Left" Grid.Column="0">
+                    New task
+                    <Button.ToolTip>
+                        <ToolTip>
+                            Create a new task
+                        </ToolTip>
+                    </Button.ToolTip>
+                </Button>
+                <Button Margin="5" Click="OnDisableAllClick" Name="disableAll" Grid.Column="1">Disable all</Button>
+            </Grid>
+
+            <Expander Header="Task Settings" IsExpanded="True">
+                <StackPanel Margin="5" Name="taskSettings">
+                    <DockPanel Margin="5">
+                        <Label>Name:</Label>
+                        <TextBox Name="taskName" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
+                    </DockPanel>
+                    <CheckBox Name="taskEnabled" Checked="OnEnableTask" Unchecked="OnDisableTask" IsEnabled="False">
+                        Enabled
+                        <CheckBox.ToolTip>
+                            <ToolTip>
+                                Enable the task
+                            </ToolTip>
+                        </CheckBox.ToolTip>
+                    </CheckBox>
+                    <Button Name="selectImage" Margin="5" Click="OnSelectImageClick" IsEnabled="False">
+                        Select image
                         <Button.ToolTip>
                             <ToolTip>
-                                Create a new task
+                                Open File Explorer to select an image
                             </ToolTip>
                         </Button.ToolTip>
                     </Button>
-                    <Button Margin="5" Click="OnDisableAllClick" Name="disableAll" Grid.Column="1">Disable all</Button>
-                </Grid>
-
-                <Expander Header="Task Settings" IsExpanded="True">
-                    <StackPanel Margin="5" Name="taskSettings">
-                        <DockPanel Margin="5">
-                            <Label>Name:</Label>
-                            <TextBox Name="taskName" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
-                        </DockPanel>
-                        <CheckBox Name="taskEnabled" Checked="OnEnableTask" Unchecked="OnDisableTask" IsEnabled="False">
-                            Enabled
-                            <CheckBox.ToolTip>
-                                <ToolTip>
-                                    Enable the task
-                                </ToolTip>
-                            </CheckBox.ToolTip>
-                        </CheckBox>
-                        <Button Name="selectImage" Margin="5" Click="OnSelectImageClick" IsEnabled="False">
-                            Select image
-                            <Button.ToolTip>
-                                <ToolTip>
-                                    Open File Explorer to select an image
-                                </ToolTip>
-                            </Button.ToolTip>
-                        </Button>
-                        <DockPanel Margin="5">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="26" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="26" />
-                                </Grid.ColumnDefinitions>
-                                <Label>x:</Label>
-                                <Button Focusable="False" Grid.Column="1" Name="xDown" Width="26" Click="OnXDownClick" ToolTip="Move left by 1 px">
-                                    -
-                                </Button>
-                                <TextBox Grid.Column="2" Name="x" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
-                                <Button Focusable="False" Grid.Column="3" Name="xUp" Width="26" Click="OnXUpClick" ToolTip="Move right by 1 px">
-                                    +
-                                </Button>
-                            </Grid>
-                        </DockPanel>
-                        <DockPanel Margin="5">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="26" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="26" />
-                                </Grid.ColumnDefinitions>
-                                <Label>y:</Label>
-                                <Button Grid.Column="1" Focusable="False" Name="yDown" Width="26" Click="OnYDownClick" ToolTip="Move up by 1 px">
-                                    -
-                                </Button>
-                                <TextBox Grid.Column="2" Name="y" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
-                                <Button Grid.Column="3" Focusable="False" Name="yUp" Width="26" Click="OnYUpClick" ToolTip="Move down by 1 px">
-                                    +
-                                </Button>
-                            </Grid>
-                        </DockPanel>
-                        <TextBlock Margin="5,0,0,0">P - move task to mouse pos</TextBlock>
-                        <CheckBox Margin="5" Name="dithering" LostFocus="OnBoxLostFocus" Checked="OnDitheringChange" Unchecked="OnDitheringChange" IsEnabled="False" ToolTip="Smooth out the image">
-                            Dithering
-                        </CheckBox>
-                        <CheckBox Margin="5" Name="loop" LostFocus="OnBoxLostFocus" Checked="OnKeepRepairingChange" Unchecked="OnKeepRepairingChange" IsEnabled="False" ToolTip="Don't disable task when there is nothing to draw">
-                            Keep repairing after completion
-                        </CheckBox>
-                        <Button Name="deleteThisTask" Margin="5" Click="OnDeleteTaskClick" IsEnabled="False">
-                            Delete this task
-                        </Button>
-                    </StackPanel>
-                </Expander>
-                <Expander Header="Task Preview" IsExpanded="True">
-                    <Image Name="preview" Focusable="False" RenderOptions.BitmapScalingMode="NearestNeighbor"></Image>
-                </Expander>
-            </StackPanel>
-        </Border>
-
-    </StackPanel>
+                    <DockPanel Margin="5">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="26" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="26" />
+                            </Grid.ColumnDefinitions>
+                            <Label>x:</Label>
+                            <Button Focusable="False" Grid.Column="1" Name="xDown" Width="26" Click="OnXDownClick" ToolTip="Move left by 1 px">
+                                -
+                            </Button>
+                            <TextBox Grid.Column="2" Name="x" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
+                            <Button Focusable="False" Grid.Column="3" Name="xUp" Width="26" Click="OnXUpClick" ToolTip="Move right by 1 px">
+                                +
+                            </Button>
+                        </Grid>
+                    </DockPanel>
+                    <DockPanel Margin="5">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="26" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="26" />
+                            </Grid.ColumnDefinitions>
+                            <Label>y:</Label>
+                            <Button Grid.Column="1" Focusable="False" Name="yDown" Width="26" Click="OnYDownClick" ToolTip="Move up by 1 px">
+                                -
+                            </Button>
+                            <TextBox Grid.Column="2" Name="y" LostFocus="OnBoxLostFocus" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" IsEnabled="False"></TextBox>
+                            <Button Grid.Column="3" Focusable="False" Name="yUp" Width="26" Click="OnYUpClick" ToolTip="Move down by 1 px">
+                                +
+                            </Button>
+                        </Grid>
+                    </DockPanel>
+                    <TextBlock Margin="5,0,0,0">P - move task to mouse pos</TextBlock>
+                    <CheckBox Margin="5" Name="dithering" LostFocus="OnBoxLostFocus" Checked="OnDitheringChange" Unchecked="OnDitheringChange" IsEnabled="False" ToolTip="Smooth out the image">
+                        Dithering
+                    </CheckBox>
+                    <CheckBox Margin="5" Name="loop" LostFocus="OnBoxLostFocus" Checked="OnKeepRepairingChange" Unchecked="OnKeepRepairingChange" IsEnabled="False" ToolTip="Don't disable task when there is nothing to draw">
+                        Keep repairing after completion
+                    </CheckBox>
+                    <Button Name="deleteThisTask" Margin="5" Click="OnDeleteTaskClick" IsEnabled="False">
+                        Delete this task
+                    </Button>
+                </StackPanel>
+            </Expander>
+            <Expander Header="Task Preview" IsExpanded="True">
+                <Image Name="preview" Focusable="False" RenderOptions.BitmapScalingMode="NearestNeighbor"></Image>
+            </Expander>
+        </StackPanel>
+    </Border>
 </UserControl>
