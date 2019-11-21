@@ -148,12 +148,6 @@ namespace GUIPixelPainter
                 UsefulPixel newPixel = new UsefulPixel(pixel.X, pixel.Y, pixel.Color);
                 manualPixels.Remove(newPixel);
                 manualPixels.Add(newPixel, newPixel);
-                /*manualPixels.Clear();
-                foreach (GUIPixel pixel in dataExchange.ManualTask)
-                {
-                    UsefulPixel newPixel = new UsefulPixel(pixel.X, pixel.Y, pixel.Color);
-                    manualPixels.Add(newPixel);
-                }*/
             }
         }
 

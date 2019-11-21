@@ -127,14 +127,9 @@ namespace GUIPixelPainter
         public IReadOnlyCollection<int> UnknownUsernames { get; private set; }
 
         private Dictionary<int, List<GUITask>> guiTasks = new Dictionary<int, List<GUITask>>();
-        //public IReadOnlyDictionary<int, IReadOnlyList<GUITask>> GUITasks => (IReadOnlyDictionary<int, IReadOnlyList<GUITask>>)guiTasks;
         public IReadOnlyDictionary<int, IReadOnlyList<GUITask>> GUITasks => guiTasks.ToDictionary((a) => a.Key, (a) => (IReadOnlyList<GUITask>)a.Value.AsReadOnly());
 
         private Dictionary<GUIPixel, GUIPixel> manualTask = new Dictionary<GUIPixel, GUIPixel>();
-        /*public IReadOnlyCollection<GUIPixel> ManualTask
-        {
-            get { return manualTask.AsReadOnly(); }
-        }*/
 
         public bool MoveToolSelected { get; private set; }
 
@@ -305,21 +300,6 @@ namespace GUIPixelPainter
 
             manualTask.Add(pixel, pixel);
             UsefulData.UpdateManualPixel(pixel);
-            /*for (int i = 0; i < manualTask.Count; i++)
-            {
-                GUIPixel cur = manualTask[i];
-                if (cur.X == pixel.X && cur.Y == pixel.Y)
-                {
-                    if (cur.Color.R == pixel.Color.R && cur.Color.G == pixel.Color.G && cur.Color.B == pixel.Color.B)
-                        return;
-                    else
-                    {
-                        manualTask[i] = pixel;
-                        UsefulData.UpdateManualTask();
-                        return;
-                    }
-                }
-            }*/
         }
 
         public void CreateUpdate()
@@ -353,7 +333,7 @@ namespace GUIPixelPainter
 
                 GUIPixel removed = new GUIPixel(x, y, color);
                 if (manualTask.Remove(removed))
-                    UsefulData.RemoveManualPixel(removed); //TODO might not be necessary, could be removed as an optimisation
+                    UsefulData.RemoveManualPixel(removed);
             }
         }
 
@@ -376,15 +356,6 @@ namespace GUIPixelPainter
         {
             userPanel.AddNewUser(user);
         }
-        /*
-        public void PushSetting(string name, string value)
-        {
-            var property = typeof(GUIDataExchange).GetProperty(name);
-            if (property == null)
-                return;
-
-            property.SetValue(this, Convert.ChangeType(value, property.PropertyType));
-        }*/
 
         public void PushWindowState(double width, double height, System.Windows.WindowState state)
         {

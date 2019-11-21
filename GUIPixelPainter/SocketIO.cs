@@ -380,7 +380,7 @@ namespace GUIPixelPainter
                             status = Status.CLOSEDERROR;
                             return;
                         }
-                        //Console.WriteLine(response.Length > 40 ? response.Substring(0, 40) : response);
+
                         if (tasks[i].Item2)
                             updateResponsesRecieved++;
                         tasks.RemoveAt(i);
@@ -442,9 +442,6 @@ namespace GUIPixelPainter
                 Console.WriteLine("Failed to username request");
                 return false;
             }
-
-            //if (premium == false)
-            //    return false;
 
             try
             {
@@ -536,8 +533,6 @@ namespace GUIPixelPainter
             if (data.Contains("\"success\"") && data.Contains("\"data\""))
             {
                 int id = int.Parse(requestUri.Substring(requestUri.LastIndexOf("=") + 1));
-
-                //data = "{\"success\":true,\"data\":{\"username\":\"Person" + id.ToString() + "\"}}";
 
                 //username request response
                 string suc = data.Substring(11, 5);

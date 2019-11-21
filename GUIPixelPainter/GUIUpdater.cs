@@ -84,7 +84,7 @@ namespace GUIPixelPainter
                     if (!palette.ContainsKey(boardId))
                         boardId = 7;
                     Color actualColor = palette[boardId][pixel.color];
-                    DataExchange.PushPixel(pixel.x, pixel.y, actualColor, pixel.boardId, pixel.userId, pixel.userId == pixel.socketUserId); //TODO replace false with proper user comparison
+                    DataExchange.PushPixel(pixel.x, pixel.y, actualColor, pixel.boardId, pixel.userId, pixel.userId == pixel.socketUserId);
                 }
                 else if (eventTuple.Item1 == "manager.status")
                 {

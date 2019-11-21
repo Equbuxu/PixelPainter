@@ -26,7 +26,7 @@ namespace GUIPixelPainter
         public string GetUsernameById(int id)
         {
             if (usernames.ContainsKey(id))
-                return usernames[id];// + " (" + id.ToString() + ")";
+                return usernames[id];
             if (unknownUsernames.Add(id))
                 DataExchange.UpdateUnknownUsernamesFromGUI();
             return id.ToString();

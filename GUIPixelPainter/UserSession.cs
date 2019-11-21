@@ -98,10 +98,7 @@ namespace GUIPixelPainter
         {
             while (true)
             {
-                if (Draw())
-                {
-                    //AdjustDelay();
-                }
+                Draw();
             }
         }
 
@@ -122,9 +119,6 @@ namespace GUIPixelPainter
 
             List<IdPixel> toPlace = new List<IdPixel>(packetSize);
             toPlace.AddRange(SelectOneColor());
-            //toPlace.AddRange(SelectOneColor());
-            //if (toPlace.Count > packetSize)
-            //    toPlace.RemoveRange(packetSize, toPlace.Count - packetSize);
 
             long time = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
             long estimatedRecieveTime = (lastPacketTime + lastRecieveTime) / 2;

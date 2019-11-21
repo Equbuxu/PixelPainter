@@ -112,7 +112,6 @@ namespace GUIPixelPainter
                     if ((placementBehaviour == null || placementBehaviour.GetMode() != guiData.PlacementMode) && curCanvas != -1) //HACK curCanvas check is kinda hacky (it is there to avoid crah on start)
                         ChangePlacementBehaviour();
 
-                    //TODO remake queues on update (or maybe not?)
                     UpdatePlacementSpeed();
                     RefreshConnections();
                     ManageQueues();
@@ -147,7 +146,6 @@ namespace GUIPixelPainter
 
         private void ManageQueues()
         {
-            //TODO write managequeues
             var total = users.Where((a) => a.Client.GetStatus() == Status.OPEN).ToList();
             var completedTasksForEachUser = new List<List<UsefulTask>>();
 
@@ -161,7 +159,6 @@ namespace GUIPixelPainter
                 if (conn.Session.QueueLength() > 80)
                     continue;
 
-                //var queue = BuildQueue(total.IndexOf(conn), total.Count);
                 if (placementBehaviour == null)
                     break;
 
@@ -219,8 +216,6 @@ namespace GUIPixelPainter
             //Add new users
             foreach (UsefulUser user in guiData.Users)
             {
-                /*if ((DateTime.UtcNow - lastUserConnectionTime).TotalMilliseconds < 2000)
-                    break;*/
                 if (users.Find((a) => a.Id == user.Id) == null)
                 {
                     Console.WriteLine("user connection created, there was {0} users in total", users.Count);
@@ -267,7 +262,6 @@ namespace GUIPixelPainter
 
         private void ProcessEvents()
         {
-            //TODO write event processing
             lock (eventsToProcess)
             {
                 foreach (Tuple<string, EventArgs> eventTuple in eventsToProcess)
@@ -335,9 +329,6 @@ namespace GUIPixelPainter
                 System.IO.Stream responseStream2 = response2.GetResponseStream();
                 borders = new Bitmap(responseStream2);
                 responseStream2.Dispose();
-
-                //if (guiData.CanvasId == 7)
-                //    borders.SetPixel(1029, 895, Color.FromArgb(204, 204, 204)); //cursed pixel
             }
             catch (System.Net.WebException)
             {
@@ -424,11 +415,6 @@ namespace GUIPixelPainter
             {
                 eventsToDispatch.Add(new Tuple<string, EventArgs>(type, args));
             }
-        }
-
-        private void FilterEventsToDispatch(string type, EventArgs args, Guid user)
-        {
-            //TODO filter events here instead of sending all of them in OnSocketEvent
         }
     }
 }
