@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
 
 namespace GUIPixelPainter
 {
@@ -337,7 +334,7 @@ namespace GUIPixelPainter
             eventsToProcess.Clear();
             ChangePlacementBehaviour();
 
-            Console.WriteLine("UserManager canvas loading finished", curCanvas);
+            Console.WriteLine("UserManager canvas loading finished");
         }
 
         private void ChangePlacementBehaviour()
