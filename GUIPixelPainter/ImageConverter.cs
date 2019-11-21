@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace GUIPixelPainter
 {
@@ -34,42 +35,85 @@ namespace GUIPixelPainter
 
         private void ConvertImage()
         {
-            for (int j = 0; j < original.Height; j++)
+            //assuming 32bppargb
+            unsafe
             {
-                for (int i = 0; i < original.Width; i++)
+                int w = original.Width;
+                int h = original.Height;
+
+                BitmapData data = original.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.ReadWrite, original.PixelFormat);
+                BitmapData resultData = result.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.ReadWrite, result.PixelFormat);
+
+                int stride = data.Stride;
+                int resultStride = resultData.Stride;
+
+                byte* pointer = (byte*)data.Scan0;
+                byte* resStart = (byte*)resultData.Scan0;
+                byte* origStart = (byte*)data.Scan0;
+
+                for (int j = 0; j < h; j++)
                 {
-                    Color pixel = original.GetPixel(i, j);
-                    Color closestColor;
-                    if (pixel.A == 0)
+                    for (int i = 0; i < w; i++)
                     {
-                        closestColor = pixel;
-                        result.SetPixel(i, j, Color.FromArgb(0, 1, 2, 3));
-                    }
-                    else
-                    {
-                        closestColor = FindClosestPaletteColor(pixel);
-                        result.SetPixel(i, j, closestColor);
-                    }
+                        //pointer[0] Blue
+                        //pointer[1] Green
+                        //pointer[2] Red
+                        //pointer[3] Alpha
 
-                    if (dither)
-                    {
-                        DistributeErrorDither(original, i, j, pixel, closestColor);
+                        byte closestA = 0;
+                        byte closestR = 0;
+                        byte closestG = 0;
+                        byte closestB = 0;
+
+                        if (pointer[3] == 0)
+                        {
+                            (((int*)resStart)[j * resultStride / 4 + i]) = 0x03020100;
+                            closestA = pointer[3];
+                            closestR = pointer[2];
+                            closestG = pointer[1];
+                            closestB = pointer[0];
+                        }
+                        else
+                        {
+                            int pos = (j * resultStride) + i * 4;
+                            FindClosestPaletteColor(pointer[3], pointer[2], pointer[1], pointer[0], out closestA, out closestR, out closestG, out closestB);
+                            resStart[pos + 3] = closestA;
+                            resStart[pos + 2] = closestR;
+                            resStart[pos + 1] = closestG;
+                            resStart[pos] = closestB;
+                        }
+
+                        if (dither)
+                        {
+                            DistributeErrorDither(origStart, w, h, resultStride, i, j, pointer[3], pointer[2], pointer[1], pointer[0], closestA, closestR, closestG, closestB);
+                        }
+
+                        pointer += 4;
                     }
+                    pointer += stride - w * 4;
                 }
-            }
 
+                original.UnlockBits(data);
+                result.UnlockBits(resultData);
+            }
         }
 
-        private static void AddError(Bitmap image, int x, int y, int errR, int errG, int errB)
+        private static unsafe void AddError(byte* image, int imgW, int imgH, int stride, int x, int y, int errR, int errG, int errB)
         {
-            if (x < 0 || y < 0 || x >= image.Width || y >= image.Height)
+            if (x < 0 || y < 0 || x >= imgW || y >= imgH)
                 return;
-            Color cur = image.GetPixel(x, y);
-            if (cur.A == 0)
+            //Color cur = image.GetPixel(x, y);
+            int pos = y * stride + x * 4;
+            byte curA = image[pos + 3];
+            byte curR = image[pos + 2];
+            byte curG = image[pos + 1];
+            byte curB = image[pos + 0];
+
+            if (curA == 0)
                 return;
-            int nextR = cur.R + errR;
-            int nextG = cur.G + errG;
-            int nextB = cur.B + errB;
+            int nextR = curR + errR;
+            int nextG = curG + errG;
+            int nextB = curB + errB;
 
             if (nextR > 255) nextR = 255;
             if (nextG > 255) nextG = 255;
@@ -79,38 +123,48 @@ namespace GUIPixelPainter
             if (nextG < 0) nextG = 0;
             if (nextB < 0) nextB = 0;
 
-            Color newColor = Color.FromArgb(nextR, nextG, nextB);
-            image.SetPixel(x, y, newColor);
+            //Color newColor = Color.FromArgb(nextR, nextG, nextB);
+            //image.SetPixel(x, y, newColor);
+
+            image[pos + 3] = 255;
+            image[pos + 2] = (byte)nextR;
+            image[pos + 1] = (byte)nextG;
+            image[pos] = (byte)nextB;
         }
 
-        private static void DistributeErrorDither(Bitmap image, int x, int y, Color original, Color closest)
+        private static unsafe void DistributeErrorDither(byte* image, int imgW, int imgH, int stride, int x, int y, byte orA, byte orR, byte orG, byte orB, byte clA, byte clR, byte clG, byte clB)
         {
-            int errorR = original.R - closest.R;
-            int errorG = original.G - closest.G;
-            int errorB = original.B - closest.B;
+            int errorR = orR - clR;
+            int errorG = orG - clG;
+            int errorB = orB - clB;
 
-            AddError(image, x + 1, y, errorR * 7 / 16, errorG * 7 / 16, errorB * 7 / 16);
-            AddError(image, x - 1, y + 1, errorR * 3 / 16, errorG * 3 / 16, errorB * 3 / 16);
-            AddError(image, x, y + 1, errorR * 5 / 16, errorG * 5 / 16, errorB * 5 / 16);
-            AddError(image, x + 1, y + 1, errorR * 1 / 16, errorG * 1 / 16, errorB * 1 / 16);
+            AddError(image, imgW, imgH, stride, x + 1, y, errorR * 7 / 16, errorG * 7 / 16, errorB * 7 / 16);
+            AddError(image, imgW, imgH, stride, x - 1, y + 1, errorR * 3 / 16, errorG * 3 / 16, errorB * 3 / 16);
+            AddError(image, imgW, imgH, stride, x, y + 1, errorR * 5 / 16, errorG * 5 / 16, errorB * 5 / 16);
+            AddError(image, imgW, imgH, stride, x + 1, y + 1, errorR * 1 / 16, errorG * 1 / 16, errorB * 1 / 16);
         }
 
-        private Color FindClosestPaletteColor(Color c)
+        private void FindClosestPaletteColor(byte a, byte r, byte g, byte b, out byte closestA, out byte closestR, out byte closestG, out byte closestB)
         {
-            Color minColor = Color.FromArgb(0, 1, 2, 3);
-            int minDist = 9999;
+            closestA = 0;
+            closestR = 0;
+            closestG = 0;
+            closestB = 0;
+
+            int minDist = int.MaxValue;
             foreach (Color p in palette)
             {
-                int dist = Math.Abs(p.R - c.R) + Math.Abs(p.G - c.G) + Math.Abs(p.B - c.B);
+                int dist = Math.Abs(p.R - r) + Math.Abs(p.G - g) + Math.Abs(p.B - b);
 
                 if (dist < minDist)
                 {
                     minDist = dist;
-                    minColor = p;
+                    closestA = p.A;
+                    closestR = p.R;
+                    closestG = p.G;
+                    closestB = p.B;
                 }
             }
-
-            return minColor;
         }
 
     }
