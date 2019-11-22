@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -26,7 +31,10 @@ namespace GUIPixelPainter.GUI
         public TimelapsePanel()
         {
             InitializeComponent();
-            TimelapsePanelViewModel model = new TimelapsePanelViewModel();
+        }
+
+        public void SetViewModel(TimelapsePanelViewModel model)
+        {
             border.DataContext = model;
         }
     }
@@ -35,7 +43,7 @@ namespace GUIPixelPainter.GUI
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private TimelapsePanelModel model = new TimelapsePanelModel();
+        private TimelapsePanelModel model;
 
         public string FPS
         {
@@ -73,20 +81,20 @@ namespace GUIPixelPainter.GUI
             }
         }
 
-        public string FragLength
+        public string RecTime
         {
-            get { return model.fragLength.ToString(); }
+            get { return TimeSpan.FromSeconds(model.targetRecTime).ToString(); }
             set
             {
-                int result;
-                if (int.TryParse(value, out result))
+                TimeSpan result;
+                if (TimeSpan.TryParse(value, out result))
                 {
-                    model.fragLength = result;
-                    if (model.fragLength < 5)
-                        model.fragLength = 5;
-                    else if (model.fragLength > 900)
-                        model.fragLength = 900;
-                    RaisePropertyChanged("FragLength");
+                    model.targetRecTime = (int)result.TotalSeconds;
+                    if (model.targetRecTime < 1)
+                        model.targetRecTime = 1;
+                    else if (model.targetRecTime > 3000000)
+                        model.targetRecTime = 3000000;
+                    RaisePropertyChanged("RecTime");
                 }
             }
         }
@@ -104,17 +112,23 @@ namespace GUIPixelPainter.GUI
             }
         }
 
+        public bool? RestartRec
+        {
+            get => model.restartOnCompletion;
+            set
+            {
+                model.restartOnCompletion = (bool)value;
+                RaisePropertyChanged("RestartRec");
+            }
+        }
+
         public bool NotRecording { get { return !Recording; } }
 
         public ICommand StartRec
         {
             get
             {
-                return new ButtonCommand(() =>
-                    {
-                        Recording = true;
-                        model.StartRecording();
-                    });
+                return new ButtonCommand(StartRecording);
             }
         }
 
@@ -122,11 +136,7 @@ namespace GUIPixelPainter.GUI
         {
             get
             {
-                return new ButtonCommand(() =>
-                    {
-                        Recording = false;
-                        model.StopRecording();
-                    });
+                return new ButtonCommand(StopRecording);
             }
         }
 
@@ -136,7 +146,11 @@ namespace GUIPixelPainter.GUI
             {
                 if (NotRecording)
                     return "Not recording.";
-                return "Recording...\n Total frames: 10 \n Video length: 10 min 5 sec \n Time passed: 112 min 42 sec";
+                return String.Format("Recording...\n Total frames: {0} \n Video length: {1} \n Time passed: {2}",
+                    model.TotalFrames,
+                    TimeSpan.FromSeconds(model.TotalSecondsVideo).ToString(),
+                    TimeSpan.FromSeconds(model.TotalSecondsReal).ToString()
+                    );
             }
         }
 
@@ -145,11 +159,41 @@ namespace GUIPixelPainter.GUI
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
-        public TimelapsePanelViewModel()
+        public void StartRecording()
         {
+            if (!File.Exists("ffmpeg.exe"))
+            {
+                MessageBox.Show("Couldn't start ffmpeg");
+                return;
+            }
+            Recording = true;
+            model.StartRecording();
+        }
+
+        public void StopRecording()
+        {
+            Recording = false;
+            model.StopRecording();
+        }
+
+        public TimelapsePanelViewModel(TimelapsePanelModel model)
+        {
+            this.model = model;
+            model.PropertyChanged += OnModelPropertyChanged;
             model.fps = 60;
             model.speedMult = 20;
-            model.fragLength = 300;
+            model.restartOnCompletion = false;
+            model.targetRecTime = 600;
+        }
+
+        private void OnModelPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "TotalFrames" || e.PropertyName == "TotalSecondsVideo" || e.PropertyName == "TotalSecondsReal")
+                RaisePropertyChanged("StatusText");
+            else if (e.PropertyName == "Recording")
+            {
+                this.Recording = model.Recording;
+            }
         }
     }
 
@@ -175,49 +219,149 @@ namespace GUIPixelPainter.GUI
         }
     }
 
-    public class TimelapsePanelModel
+    public class TimelapsePanelModel : INotifyPropertyChanged
     {
         public int fps;
         public double speedMult;
-        public int fragLength;
+        public int targetRecTime;
+        public bool restartOnCompletion;
 
+        private Timer timer = new Timer();
         private bool recording = false;
-
-        public void StartRecording()
+        public bool Recording
         {
-            if (recording)
-                return;
-            recording = true;
-            Record(fps, speedMult, fragLength);
-        }
-
-        private void Record(int fps, double mult, int fragLength)
-        {
-            int totalFrames = fps * fragLength;
-            int frameDelay = (int)(1000.0 / fps * mult);
-
-            long lastFrameTime = 0;
-            for (int i = 0; i < totalFrames; i++)
+            get
             {
-                if (!recording)
-                    break;
-                lastFrameTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-
-
-                //get frame
-                //send frame
-
-                long time = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-                long toWait = frameDelay - (time - lastFrameTime);
-                if (toWait > 0)
-                    Thread.Sleep((int)toWait);
+                return recording;
+            }
+            private set
+            {
+                recording = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Recording"));
             }
         }
 
-        public void StopRecording(Action callback)
-        {
-            recording = false;
+        private Process ffmpeg;
 
+        private GUIDataExchange dataExchange;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private int totalFrames;
+        public int TotalFrames
+        {
+            get
+            {
+                return totalFrames;
+            }
+            private set
+            {
+                totalFrames = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("TotalFrames"));
+            }
+        }
+
+        private int totalSecondsVideo;
+        public int TotalSecondsVideo
+        {
+            get
+            {
+                return totalSecondsVideo;
+            }
+            private set
+            {
+                totalSecondsVideo = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("TotalSecondsVideo"));
+            }
+        }
+
+        private int totalSecondsReal;
+        public int TotalSecondsReal
+        {
+            get
+            {
+                return totalSecondsReal;
+            }
+            private set
+            {
+                totalSecondsReal = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("TotalSecondsReal"));
+            }
+        }
+
+        private long startSeconds;
+        private int selectedFps;
+        private int selectedTargetRecTime;
+
+        public TimelapsePanelModel(GUIDataExchange dataExchange)
+        {
+            timer.Elapsed += SaveFrame;
+            timer.AutoReset = true;
+            this.dataExchange = dataExchange;
+        }
+
+        public void StartRecording()
+        {
+            if (Recording)
+                return;
+            Recording = true;
+
+            TotalFrames = 0;
+            TotalSecondsReal = 0;
+            TotalSecondsVideo = 0;
+            startSeconds = DateTime.Now.Ticks / TimeSpan.TicksPerSecond;
+            selectedFps = fps;
+            selectedTargetRecTime = targetRecTime;
+
+            Record(fps, speedMult);
+        }
+
+        private void Record(int selFps, double selMult)
+        {
+            int frameDelay = (int)(1000.0 / selFps * selMult);
+
+            var size = dataExchange.GetCanvasSize();
+
+            if (!Directory.Exists("videoout"))
+                Directory.CreateDirectory("videoout");
+            string filename = "videoout//" + DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+
+            ffmpeg = new Process();
+            ffmpeg.StartInfo.FileName = @"ffmpeg.exe";
+            ffmpeg.StartInfo.Arguments = "-f rawvideo -r " + selFps + " -video_size " + size.Width + "x" + size.Height + " -pixel_format bgra -i pipe:0 -r " + selFps + " -y -pix_fmt yuv420p " + filename + ".mp4";
+            ffmpeg.StartInfo.UseShellExecute = false;
+            ffmpeg.StartInfo.RedirectStandardInput = true;
+            ffmpeg.StartInfo.RedirectStandardOutput = true;
+            ffmpeg.Start();
+
+            timer.Interval = frameDelay;
+            timer.Start();
+        }
+
+        private void SaveFrame(object sender, ElapsedEventArgs args)
+        {
+            dataExchange.SaveBitmapToStream(ffmpeg.StandardInput.BaseStream);
+            TotalFrames++;
+            TotalSecondsReal = (int)(DateTime.Now.Ticks / TimeSpan.TicksPerSecond - startSeconds);
+            TotalSecondsVideo = TotalFrames / selectedFps;
+
+            if (totalSecondsReal >= selectedTargetRecTime)
+            {
+                StopRecording();
+                if (restartOnCompletion)
+                    StartRecording();
+            }
+        }
+
+        public void StopRecording()
+        {
+            if (!Recording)
+                return;
+            timer.Stop();
+
+            ffmpeg.StandardInput.BaseStream.Close();
+            ffmpeg.WaitForExit();
+            Recording = false;
         }
     }
 }

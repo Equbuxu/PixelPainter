@@ -20,9 +20,11 @@
                 </DockPanel>
 
                 <DockPanel Margin="0,5,0,0">
-                    <TextBlock VerticalAlignment="Center" Margin="5">Fragment length (sec)</TextBlock>
-                    <TextBox Margin="5,0,0,0" Text="{Binding FragLength}" IsEnabled="{Binding NotRecording}" VerticalContentAlignment="Center"></TextBox>
+                    <TextBlock VerticalAlignment="Center" Margin="5">Target rec. time</TextBlock>
+                    <TextBox Margin="5,0,0,0" Text="{Binding RecTime}" IsEnabled="{Binding NotRecording}" VerticalContentAlignment="Center"></TextBox>
                 </DockPanel>
+
+                <CheckBox Margin="5" IsEnabled="{Binding NotRecording}" IsChecked="{Binding RestartRec}">Restart recording on completion</CheckBox>
 
                 <DockPanel Margin="5">
                     <Button Margin="0,5,5,5" Width="92" IsEnabled="{Binding NotRecording}" Command="{Binding StartRec}">Start Recording</Button>

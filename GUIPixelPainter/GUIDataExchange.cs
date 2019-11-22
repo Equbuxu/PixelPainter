@@ -143,21 +143,45 @@ namespace GUIPixelPainter
         private GUI.TaskPanel taskPanel;
         private GUI.PixelCanvas pixelCanvas;
         private GUI.BotWindow botWindow;
+        private GUI.TimelapsePanel timelapsePanel;
         private GUIHelper guiHelper;
+
+        private GUI.TimelapsePanelViewModel timelapsePanelViewModel;
+        private GUI.TimelapsePanelModel timelapsePanelModel;
 
         public GUIUpdater Updater { get; set; }
         public UsefulDataRepresentation UsefulData { get; set; }
 
-        public GUIDataExchange(GUI.UserPanel userPanel, GUI.TaskPanel taskPanel, GUI.PixelCanvas pixelCanvas, GUI.BotWindow botWindow, GUIHelper helper)
+        public GUIDataExchange(GUI.UserPanel userPanel, GUI.TaskPanel taskPanel, GUI.PixelCanvas pixelCanvas, GUI.BotWindow botWindow, GUI.TimelapsePanel timelapsePanel, GUIHelper helper)
         {
             this.userPanel = userPanel;
             this.taskPanel = taskPanel;
             this.pixelCanvas = pixelCanvas;
             this.botWindow = botWindow;
+            this.timelapsePanel = timelapsePanel;
             this.guiHelper = helper;
+
+            InitModels();
         }
 
-        public void UpdateOverlay()
+        private void InitModels()
+        {
+            timelapsePanelModel = new GUI.TimelapsePanelModel(this);
+            timelapsePanelViewModel = new GUI.TimelapsePanelViewModel(timelapsePanelModel);
+            timelapsePanel.SetViewModel(timelapsePanelViewModel);
+        }
+
+        public void SaveBitmapToStream(System.IO.Stream stream)
+        {
+            pixelCanvas.SaveBitmapToStream(stream);
+        }
+
+        public Size GetCanvasSize()
+        {
+            return pixelCanvas.GetCanvasSize();
+        }
+
+        private void UpdateOverlay()
         {
             if (!guiTasks.ContainsKey(CanvasId))
             {
@@ -252,6 +276,8 @@ namespace GUIPixelPainter
                 pixelCanvas.ReloadCanvas(canvasId);
                 manualTask.Clear();
                 UsefulData.UpdateCanvasId();
+
+                timelapsePanelViewModel.StopRecording();
             }
 
             UpdateOverlay();

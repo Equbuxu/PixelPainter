@@ -81,7 +81,7 @@
                     </Expander>
                 </Border>
 
-                <local:TimelapsePanel></local:TimelapsePanel>
+                <local:TimelapsePanel x:Name="timelapsePanel"></local:TimelapsePanel>
             </StackPanel>
         </ScrollViewer>
 

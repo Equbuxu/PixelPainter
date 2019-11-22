@@ -152,6 +152,40 @@ namespace GUIPixelPainter.GUI
             loadThread.Start();
         }
 
+        public void SaveBitmapToStream(Stream stream)
+        {
+            if (bitmap == null)
+                return;
+
+            int width = 0, height = 0, stride = 0;
+            Dispatcher.Invoke(() =>
+            {
+                width = bitmap.PixelWidth;
+                height = bitmap.PixelHeight;
+                stride = width * ((bitmap.Format.BitsPerPixel + 7) / 8);
+            });
+            var bitmapData = new byte[height * stride];
+            Dispatcher.Invoke(() =>
+            {
+                bitmap.CopyPixels(bitmapData, stride, 0);
+            });
+            stream.Write(bitmapData, 0, height * stride);
+        }
+
+        public System.Drawing.Size GetCanvasSize()
+        {
+            if (bitmap == null)
+                return new System.Drawing.Size(2200, 1500);
+            int w = 0, h = 0;
+            Dispatcher.Invoke(() =>
+            {
+                w = bitmap.PixelWidth;
+                h = bitmap.PixelHeight;
+            });
+
+            return new System.Drawing.Size(w, h);
+        }
+
         private void HideOverlay(bool hide)
         {
             for (int i = MainCanvas.Children.Count - 1; i >= 0; i--)
