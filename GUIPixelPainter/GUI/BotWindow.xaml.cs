@@ -135,7 +135,8 @@ namespace GUIPixelPainter.GUI
             double speed = 11.2;
             if (!double.TryParse(placementSpeed.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out speed))
             {
-                double.TryParse(placementSpeed.Text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out speed);
+                if (!double.TryParse(placementSpeed.Text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out speed))
+                    speed = 11.2;
             }
 
             if (speed > 15)
