@@ -828,13 +828,5 @@ namespace GUIPixelPainter.GUI
             revertState?.Dispose();
             revertState = loaded;
         }
-
-        private void MainCanvas_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.System)
-            {
-                e.Handled = true;
-            }
-        }
     }
 }

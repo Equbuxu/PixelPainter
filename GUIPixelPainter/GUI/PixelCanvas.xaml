@@ -9,7 +9,7 @@
     <Border ClipToBounds="True">
         <Canvas>
 
-            <Canvas Name="MainCanvas" MouseDown="Canvas_MouseDown" Focusable="True" PreviewKeyDown="MainCanvas_PreviewKeyDown" KeyDown="MainCanvas_KeyDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp" MouseWheel="MainCanvas_MouseWheel" MouseEnter="MainCanvas_MouseEnter" MouseLeave="MainCanvas_MouseLeave">
+            <Canvas Name="MainCanvas" MouseDown="Canvas_MouseDown" Focusable="True" KeyDown="MainCanvas_KeyDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp" MouseWheel="MainCanvas_MouseWheel" MouseEnter="MainCanvas_MouseEnter" MouseLeave="MainCanvas_MouseLeave">
                 <Border BorderBrush="Black" BorderThickness="2" Canvas.Left="15" Canvas.Top="105" Name="loadingSign">
                     <TextBlock FontSize="15">Loading canvas...</TextBlock>
                 </Border>

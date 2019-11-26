@@ -9,7 +9,8 @@
         Height="950" 
         Width="1350" 
         SizeChanged="OnWindowSizeStateChange"
-        StateChanged="OnWindowSizeStateChange">
+        StateChanged="OnWindowSizeStateChange"
+        PreviewKeyDown="OnPreviewKeyDown">
     <Grid Name="mainGrid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="240"  MinWidth="240" MaxWidth="500"/>

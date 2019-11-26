@@ -436,5 +436,13 @@ namespace GUIPixelPainter.GUI
         {
             DataExchange.CreateClearManualTask();
         }
+
+        private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.System)
+            {
+                e.Handled = true;
+            }
+        }
     }
 }
