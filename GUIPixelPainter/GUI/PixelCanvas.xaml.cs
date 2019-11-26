@@ -390,8 +390,25 @@ namespace GUIPixelPainter.GUI
 
         private void HandleDraggingDrawing(MouseEventArgs e)
         {
+            //Alt-pick color
+            if (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt))
+            {
+                var coords = e.GetPosition(MainCanvas);
+                if (coords.X >= 0 && coords.Y >= 0 && coords.X < bitmap.Width && coords.Y < bitmap.Height)
+                {
+                    Color color = bitmap.GetPixel((int)coords.X, (int)coords.Y);
+                    foreach (Rectangle child in palettePanel.Children)
+                    {
+                        if ((child.Fill as SolidColorBrush).Color == color)
+                        {
+                            OnSelectColor(child, null);
+                            break;
+                        }
+                    }
+                }
+            }
             //Move or draw
-            if (tool == Tools.MOVE || e.LeftButton != MouseButtonState.Pressed)
+            else if (tool == Tools.MOVE || e.LeftButton != MouseButtonState.Pressed)
             {
                 Point curPosition = e.GetPosition((UIElement)MainCanvas.Parent);
                 translate.X = curPosition.X - mouseDownPoint.X;
@@ -799,6 +816,14 @@ namespace GUIPixelPainter.GUI
 
             revertState?.Dispose();
             revertState = loaded;
+        }
+
+        private void MainCanvas_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.System)
+            {
+                e.Handled = true;
+            }
         }
     }
 }
