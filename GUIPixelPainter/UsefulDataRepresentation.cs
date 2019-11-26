@@ -87,12 +87,12 @@ namespace GUIPixelPainter
             }
         }
 
-        private Dictionary<UsefulPixel, UsefulPixel> manualPixels = new Dictionary<UsefulPixel, UsefulPixel>();
+        private OrderedSet<UsefulPixel> manualPixels = new OrderedSet<UsefulPixel>();
         public List<UsefulPixel> ManualPixels
         {
             get
             {
-                lock (manualPixels) { return manualPixels.Select((a) => a.Key).ToList(); }
+                lock (manualPixels) { return manualPixels.ToList(); }
             }
         }
 
@@ -145,7 +145,7 @@ namespace GUIPixelPainter
             {
                 UsefulPixel newPixel = new UsefulPixel(pixel.X, pixel.Y, pixel.Color);
                 manualPixels.Remove(newPixel);
-                manualPixels.Add(newPixel, newPixel);
+                manualPixels.Add(newPixel);
             }
         }
 

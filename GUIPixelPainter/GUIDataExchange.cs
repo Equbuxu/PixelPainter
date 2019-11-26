@@ -127,7 +127,7 @@ namespace GUIPixelPainter
         private Dictionary<int, List<GUITask>> guiTasks = new Dictionary<int, List<GUITask>>();
         public IReadOnlyDictionary<int, IReadOnlyList<GUITask>> GUITasks => guiTasks.ToDictionary((a) => a.Key, (a) => (IReadOnlyList<GUITask>)a.Value.AsReadOnly());
 
-        private Dictionary<GUIPixel, GUIPixel> manualTask = new Dictionary<GUIPixel, GUIPixel>();
+        private OrderedSet<GUIPixel> manualTask = new OrderedSet<GUIPixel>();
 
         public bool MoveToolSelected { get; private set; }
 
@@ -308,21 +308,21 @@ namespace GUIPixelPainter
             if (!BotEnabled)
                 return;
             pixel = new GUIPixel(pixel.X, pixel.Y, Color.FromArgb(pixel.Color.A, pixel.Color.R, pixel.Color.G, pixel.Color.B));
-            if (manualTask.ContainsKey(pixel))
+            if (manualTask.Contains(pixel))
             {
-                GUIPixel cur = manualTask[pixel];
+                GUIPixel cur = manualTask.GetStoredCopy(pixel);
                 if (cur.Color.R == pixel.Color.R && cur.Color.G == pixel.Color.G && cur.Color.B == pixel.Color.B)
                     return;
                 else
                 {
                     manualTask.Remove(pixel);
-                    manualTask.Add(pixel, pixel);
+                    manualTask.Add(pixel);
                     UsefulData.UpdateManualPixel(pixel);
                     return;
                 }
             }
 
-            manualTask.Add(pixel, pixel);
+            manualTask.Add(pixel);
             UsefulData.UpdateManualPixel(pixel);
         }
 

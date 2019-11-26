@@ -87,6 +87,7 @@
     <Compile Include="GUI\PixelCanvas.xaml.cs">
       <DependentUpon>PixelCanvas.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OrderedSet.cs" />
     <Compile Include="PlacementBehaviour.cs" />
     <Compile Include="SocketIO.cs" />
     <Compile Include="GUI\TaskPanel.xaml.cs">
