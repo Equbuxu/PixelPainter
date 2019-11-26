@@ -250,7 +250,12 @@ namespace GUIPixelPainter
                         var user = users.Where((a) => a.Id == message.UserId);
                         if (user.Count() == 0)
                             continue;
-                        user.First().Client.SendChatMessage(message.Message, message.Color, message.Chat);
+                        int actColor = 0;
+                        if (invPalette.ContainsKey(curCanvas) && invPalette[curCanvas].ContainsKey(message.Color))
+                        {
+                            actColor = invPalette[curCanvas][message.Color];
+                        }
+                        user.First().Client.SendChatMessage(message.Message, actColor, message.Chat);
                         latestGUIEvents.RemoveAt(i);
                     }
                     else if (@event is ClearQueuesGUIEvent)

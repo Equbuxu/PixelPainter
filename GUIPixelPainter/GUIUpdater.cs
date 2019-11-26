@@ -16,7 +16,7 @@ namespace GUIPixelPainter
 
     public class ChatMessageGUIEvent : GUIEvent
     {
-        public ChatMessageGUIEvent(string message, Guid userId, int color, int chat)
+        public ChatMessageGUIEvent(string message, Guid userId, Color color, int chat)
         {
             Message = message;
             UserId = userId;
@@ -25,7 +25,7 @@ namespace GUIPixelPainter
         }
         public string Message { get; }
         public Guid UserId { get; }
-        public int Color { get; }
+        public Color Color { get; }
         public int Chat { get; }
     }
 

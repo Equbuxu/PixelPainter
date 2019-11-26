@@ -111,8 +111,8 @@ namespace GUIPixelPainter
         public double OverlayTranslucency { get; private set; }
 
         public System.Windows.WindowState windowState { get; private set; }
-        public double windowWidth { get; private set; }
-        public double windowHeight { get; private set; }
+        public double WindowWidth { get; private set; }
+        public double WindowHeight { get; private set; }
 
         public Guid SelectedTaskId { get; private set; }
 
@@ -126,6 +126,8 @@ namespace GUIPixelPainter
 
         private Dictionary<int, List<GUITask>> guiTasks = new Dictionary<int, List<GUITask>>();
         public IReadOnlyDictionary<int, IReadOnlyList<GUITask>> GUITasks => guiTasks.ToDictionary((a) => a.Key, (a) => (IReadOnlyList<GUITask>)a.Value.AsReadOnly());
+
+        public Color SelectedColor { get; private set; }
 
         private OrderedSet<GUIPixel> manualTask = new OrderedSet<GUIPixel>();
 
@@ -212,6 +214,11 @@ namespace GUIPixelPainter
         }
 
         //"Update from GUI" methods. Grab data from controls and forward to other controls if necessary
+        public void UpdateSelectedColorFromGUI()
+        {
+            SelectedColor = pixelCanvas.GetSelectedColor();
+        }
+
         public void UpdateUsersFromGUI()
         {
             guiUsers = userPanel.GetUsers();
@@ -228,8 +235,8 @@ namespace GUIPixelPainter
 
         public void UpdateWindowStateFromUI()
         {
-            windowWidth = botWindow.GetWindowWidth();
-            windowHeight = botWindow.GetWindowHeight();
+            WindowWidth = botWindow.GetWindowWidth();
+            WindowHeight = botWindow.GetWindowHeight();
             windowState = botWindow.GetWindowState();
         }
 
@@ -304,12 +311,12 @@ namespace GUIPixelPainter
         /// <summary>
         /// return true on success, false on failure 
         /// </summary>
-        public bool CreateChatMessage(string text, int color, int chat)
+        public bool CreateChatMessage(string text, int chat)
         {
             var user = userPanel.GetSelectedUserGuidIfAny();
             if (user == Guid.Empty)
                 return false;
-            ChatMessageGUIEvent message = new ChatMessageGUIEvent(text, user, color, chat);
+            ChatMessageGUIEvent message = new ChatMessageGUIEvent(text, user, SelectedColor, chat);
             Updater.AddEvent(message);
             Updater.Update();
             return true;

@@ -243,8 +243,8 @@ namespace GUIPixelPainter
                     {"canvasId", dataExchange.CanvasId.ToString(CultureInfo.InvariantCulture) },
                     {"placementMode", dataExchange.PlacementMode.ToString() },
                     {"placementSpeed", dataExchange.PlacementSpeed.ToString(CultureInfo.InvariantCulture) },
-                    {"windowWidth", dataExchange.windowWidth.ToString(CultureInfo.InvariantCulture) },
-                    {"windowHeight", dataExchange.windowHeight.ToString(CultureInfo.InvariantCulture) },
+                    {"windowWidth", dataExchange.WindowWidth.ToString(CultureInfo.InvariantCulture) },
+                    {"windowHeight", dataExchange.WindowHeight.ToString(CultureInfo.InvariantCulture) },
                     {"windowState", dataExchange.windowState.ToString() },
                 };
                 List<GUIUser> users = dataExchange.GUIUsers.Select((a) => a).ToList();

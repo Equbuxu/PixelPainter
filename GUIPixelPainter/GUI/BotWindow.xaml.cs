@@ -343,7 +343,7 @@ namespace GUIPixelPainter.GUI
         {
             if (ignoreEvents)
                 return;
-            if (DataExchange.CreateChatMessage(chatTextBox.Text, 0, (bool)globalChatMode.IsChecked ? 0 : GetCanvasId()))
+            if (DataExchange.CreateChatMessage(chatTextBox.Text, (bool)globalChatMode.IsChecked ? 0 : GetCanvasId()))
                 chatTextBox.Text = "";
         }
 

@@ -61,7 +61,7 @@ namespace GUIPixelPainter.GUI
         private List<Pixel> manualTask = new List<Pixel>();
 
         private GUIHelper helper;
-        public GUIHelper Helper { get { return helper; } set { helper = value; CreatePalette(); } }
+        public GUIHelper Helper { get { return helper; } set { helper = value; } }
         public GUIDataExchange DataExchange { get; set; }
 
         public PixelCanvas()
@@ -82,6 +82,11 @@ namespace GUIPixelPainter.GUI
             OnToolClick(moveTool, null);
             SetNameLabelDisplay(false);
             ChangeBrushSize(0);
+        }
+
+        public void Run()
+        {
+            CreatePalette();
         }
 
         public void ReloadCanvas(int id)
@@ -150,6 +155,11 @@ namespace GUIPixelPainter.GUI
             loadThread.Name = "canvas loading thread";
             loadThread.IsBackground = true;
             loadThread.Start();
+        }
+
+        public System.Drawing.Color GetSelectedColor()
+        {
+            return System.Drawing.Color.FromArgb(selectedColor.A, selectedColor.R, selectedColor.G, selectedColor.B);
         }
 
         public void SaveBitmapToStream(Stream stream)
@@ -372,6 +382,7 @@ namespace GUIPixelPainter.GUI
 
             rect.StrokeThickness = 3;
             selectedColor = (rect.Fill as SolidColorBrush).Color;
+            DataExchange.UpdateSelectedColorFromGUI();
         }
 
         private void Canvas_MouseMove(object sender, MouseEventArgs e)

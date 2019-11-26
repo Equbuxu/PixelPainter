@@ -174,6 +174,7 @@ namespace GUIPixelPainter
 
             //Start loading data
             window.Run();
+            window.pixelCanvas.Run();
         }
 
         public void Save()
