@@ -171,6 +171,12 @@ namespace GUIPixelPainter
             timelapsePanel.SetViewModel(timelapsePanelViewModel);
         }
 
+        private void ClearManualTask()
+        {
+            manualTask.Clear();
+            UsefulData.ClearManualPixels();
+        }
+
         public void SaveBitmapToStream(System.IO.Stream stream)
         {
             pixelCanvas.SaveBitmapToStream(stream);
@@ -274,7 +280,7 @@ namespace GUIPixelPainter
                 botWindow.ClearChat();
                 taskPanel.SetCanvasId(canvasId);
                 pixelCanvas.ReloadCanvas(canvasId);
-                manualTask.Clear();
+                ClearManualTask();
                 UsefulData.UpdateCanvasId();
 
                 timelapsePanelViewModel.StopRecording();
@@ -288,6 +294,12 @@ namespace GUIPixelPainter
         }
 
         //"Create" methonds. They are like push methods, but push data back instead of forward
+
+        public void CreateClearManualTask()
+        {
+            ClearManualTask();
+            Updater.AddEvent(new ClearQueuesGUIEvent());
+        }
 
         /// <summary>
         /// return true on success, false on failure 

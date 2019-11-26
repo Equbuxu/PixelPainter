@@ -137,6 +137,14 @@ namespace GUIPixelPainter
             manualPixels.Clear();
         }
 
+        public void ClearManualPixels()
+        {
+            lock (manualPixels)
+            {
+                manualPixels.Clear();
+            }
+        }
+
         public void UpdateManualPixel(GUIPixel pixel)
         {
             if (!dataExchange.BotEnabled)

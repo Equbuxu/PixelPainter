@@ -431,5 +431,10 @@ namespace GUIPixelPainter.GUI
                 Helper.AddUsername(pair.Key, pair.Value);
             }
         }
+
+        private void OnClearBrushQueue(object sender, RoutedEventArgs e)
+        {
+            DataExchange.CreateClearManualTask();
+        }
     }
 }

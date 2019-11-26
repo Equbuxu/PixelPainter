@@ -9,6 +9,11 @@ namespace GUIPixelPainter
 
     }
 
+    public class ClearQueuesGUIEvent : GUIEvent
+    {
+
+    }
+
     public class ChatMessageGUIEvent : GUIEvent
     {
         public ChatMessageGUIEvent(string message, Guid userId, int color, int chat)

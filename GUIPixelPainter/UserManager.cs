@@ -253,6 +253,14 @@ namespace GUIPixelPainter
                         user.First().Client.SendChatMessage(message.Message, message.Color, message.Chat);
                         latestGUIEvents.RemoveAt(i);
                     }
+                    else if (@event is ClearQueuesGUIEvent)
+                    {
+                        foreach (Connection user in users)
+                        {
+                            user.Session.ClearQueue();
+                        }
+                        latestGUIEvents.RemoveAt(i);
+                    }
                 }
             }
         }
