@@ -1,0 +1,16 @@
+﻿<Window x:Class="GUIPixelPainter.GUI.LicenseWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GUIPixelPainter.GUI"
+        mc:Ignorable="d"
+        Title="License check" Height="240" Width="400">
+    <StackPanel Name="mainPanel">
+        <TextBlock Margin="5">Your unique computer id:</TextBlock>
+        <TextBox Margin="5" IsReadOnly="True" TextWrapping="Wrap" MaxLines="3" Text="{Binding HardwareID}"></TextBox>
+        <TextBlock Margin="5">Enter a license key tied to the id:</TextBlock>
+        <TextBox Margin="5" TextWrapping="Wrap" MaxLines="3" Text="{Binding LicenseKey}"></TextBox>
+        <Button Width="200">Check license and launch</Button>
+    </StackPanel>
+</Window>
