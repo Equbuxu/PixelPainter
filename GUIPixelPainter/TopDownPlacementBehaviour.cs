@@ -11,7 +11,7 @@ namespace GUIPixelPainter
         private Bitmap borders;
         private int[,] lastUpdateIterCount;
         private const int maxQueueSize = 50;
-        private const int pixelResendDelay = 40;
+        private const int pixelResendDelay = 30;
         int iterCount = pixelResendDelay;
         private Dictionary<System.Drawing.Color, int> curCanvasInvPalette;
 

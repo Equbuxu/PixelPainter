@@ -154,7 +154,11 @@ namespace GUIPixelPainter
             int minDist = int.MaxValue;
             foreach (Color p in palette)
             {
-                int dist = Math.Abs(p.R - r) + Math.Abs(p.G - g) + Math.Abs(p.B - b);
+                //int dist = Math.Abs(p.R - r) + Math.Abs(p.G - g) + Math.Abs(p.B - b);
+                int dR = (p.R - r);
+                int dG = (p.G - g);
+                int dB = (p.B - b);
+                int dist = dR * dR + dG * dG + dB * dB;
 
                 if (dist < minDist)
                 {

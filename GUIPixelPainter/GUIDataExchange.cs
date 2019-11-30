@@ -263,7 +263,13 @@ namespace GUIPixelPainter
 
         public void UpdateGeneralSettingsFromGUI()
         {
-            BotEnabled = botWindow.IsBotEnabled();
+            bool botEnabled = botWindow.IsBotEnabled();
+            if (botEnabled == false && BotEnabled == true)
+            {
+                CreateClearManualTask();
+            }
+            BotEnabled = botEnabled;
+
             OverlayTasks = botWindow.IsOverlayEnabled();
             OverlayAllTasks = botWindow.IsOverlayAllEnabled();
             OverlaySelectedTask = botWindow.IsOverlaySelectedEnabled();
