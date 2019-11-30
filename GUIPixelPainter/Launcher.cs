@@ -42,11 +42,22 @@ namespace GUIPixelPainter
         public void Launch()
         {
             EnsureBrowserEmulationEnabled();
-            app = new App();
-            app.InitializeComponent();
-            app.Dispatcher.InvokeAsync(() => app.MainWindow.Loaded += Startup);
+
+            bool lisenceCheckSuc = CheckLicense();
+            app = new App(!lisenceCheckSuc, () => app.MainWindow.Loaded += Startup);
             app.Run();
             Save();
+        }
+
+        private bool CheckLicense()
+        {
+            string savedKey = GUI.LicenseHelper.LoadSavedKey();
+            string hwId = GUI.LicenseHelper.GetHwId();
+            if (!string.IsNullOrEmpty(savedKey) && GUI.LicenseHelper.CheckKey(hwId, savedKey))
+            {
+                return true;
+            }
+            return false;
         }
 
         //from https://weblog.west-wind.com/posts/2011/May/21/Web-Browser-Control-Specifying-the-IE-Version
