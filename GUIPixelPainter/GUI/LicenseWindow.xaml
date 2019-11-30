@@ -8,9 +8,10 @@
         Title="License check" Height="240" Width="400">
     <StackPanel Name="mainPanel">
         <TextBlock Margin="5">Your unique computer id:</TextBlock>
-        <TextBox Margin="5" IsReadOnly="True" TextWrapping="Wrap" MaxLines="3" Text="{Binding HardwareID}"></TextBox>
+        <TextBox Margin="5" IsReadOnly="True" TextWrapping="Wrap" MaxLines="3" Text="{Binding HardwareID, Mode=OneWay}"></TextBox>
         <TextBlock Margin="5">Enter a license key tied to the id:</TextBlock>
         <TextBox Margin="5" TextWrapping="Wrap" MaxLines="3" Text="{Binding LicenseKey}"></TextBox>
-        <Button Width="200">Check license and launch</Button>
+        <Button Width="200" Click="Check">Check license and launch</Button>
+        <TextBlock HorizontalAlignment="Center" Foreground="Red" Visibility="Collapsed" Name="invalidKeyBlock">Invalid key</TextBlock>
     </StackPanel>
 </Window>

@@ -9,15 +9,21 @@ namespace GUIPixelPainter
     public partial class App : Application
     {
         private bool checkLicense = false;
-        private RoutedEventHandler onStartup;
+        private RoutedEventHandler onBotStartup;
+
+        public App() : this(true, null) { }
 
         public App(bool checkLicense, RoutedEventHandler onStartup) : base()
         {
             this.checkLicense = checkLicense;
-            this.onStartup = onStartup;
+            this.onBotStartup = onStartup;
+
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
         }
-        private void Application_Startup(object sender, StartupEventArgs e)
+
+        protected override void OnStartup(StartupEventArgs e)
         {
+            base.OnStartup(e);
             if (checkLicense)
             {
                 GUI.LicenseWindow licenseCheck = new GUI.LicenseWindow();
@@ -29,7 +35,10 @@ namespace GUIPixelPainter
                 }
             }
             GUI.BotWindow botWindow = new GUI.BotWindow();
-            botWindow.Loaded += onStartup;
+            if (onBotStartup != null)
+                botWindow.Loaded += onBotStartup;
+            botWindow.Closed += (a, b) => this.Shutdown();
+            botWindow.Show();
         }
     }
 }

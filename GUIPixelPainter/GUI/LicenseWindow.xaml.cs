@@ -35,8 +35,25 @@ namespace GUIPixelPainter.GUI
         }
         public LicenseWindow()
         {
+            HardwareID = LicenseHelper.GetHwId();
+
             InitializeComponent();
             mainPanel.DataContext = this;
+
+        }
+
+        private void Check(object sender, RoutedEventArgs e)
+        {
+            if (LicenseHelper.CheckKey(HardwareID, LicenseKey))
+            {
+                LicenseHelper.SaveKey(LicenseKey);
+                success = true;
+                this.Close();
+            }
+            else
+            {
+                invalidKeyBlock.Visibility = Visibility.Visible;
+            }
         }
     }
 }

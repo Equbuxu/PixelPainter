@@ -10,6 +10,8 @@ namespace GUIPixelPainter
     {
         App app;
 
+        bool startupExecuted = false;
+
         GUI.BotWindow window;
         GUIDataExchange dataExchange;
         GUIHelper helper;
@@ -44,9 +46,10 @@ namespace GUIPixelPainter
             EnsureBrowserEmulationEnabled();
 
             bool lisenceCheckSuc = CheckLicense();
-            app = new App(!lisenceCheckSuc, () => app.MainWindow.Loaded += Startup);
+            app = new App(!lisenceCheckSuc, Startup);
             app.Run();
-            Save();
+            if (startupExecuted)
+                Save();
         }
 
         private bool CheckLicense()
@@ -87,6 +90,7 @@ namespace GUIPixelPainter
 
         private void Startup(object sender, System.Windows.RoutedEventArgs e)
         {
+
             //Create palettes
             var palette = new Dictionary<int, Dictionary<int, System.Drawing.Color>>()
             {
@@ -148,7 +152,15 @@ namespace GUIPixelPainter
             GUIPalette[7].RemoveRange(27, 2); //dont show premium color in UI
 
             //Create or get everything
-            window = app.Windows[0] as GUI.BotWindow;
+            foreach (object w in app.Windows)
+            {
+                if (w is GUI.BotWindow)
+                {
+                    window = w as GUI.BotWindow;
+                    break;
+                }
+            }
+
             helper = new GUIHelper(GUIPalette);
             dataExchange = new GUIDataExchange(window.usersPanel, window.taskList, window.pixelCanvas, window, window.timelapsePanel, helper);
             representation = new UsefulDataRepresentation(dataExchange);
@@ -186,6 +198,8 @@ namespace GUIPixelPainter
             //Start loading data
             window.Run();
             window.pixelCanvas.Run();
+
+            startupExecuted = true;
         }
 
         public void Save()
