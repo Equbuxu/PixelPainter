@@ -18,7 +18,13 @@ namespace GUIPixelPainter.GUI
             if (hwId != null)
                 return hwId;
 
-            string result = GetCpuId() + GetDiskId() + GetVideoId() + GetMotherboardId();
+            string cpuid = GetCpuId();
+            string diskid = GetDiskId();
+            string videoid = GetVideoId();
+            string mbid = GetMotherboardId();
+
+            string result = String.Format("cpu: {0}\ndrive: {1}\ngpu: {2}\nmotherboard: {3}", cpuid, diskid, videoid, mbid);
+            Console.WriteLine(result);
 
             byte[] buffer = Encoding.Default.GetBytes(result);
             string hexString;
@@ -34,17 +40,17 @@ namespace GUIPixelPainter.GUI
 
         private static string GetMotherboardId()
         {
-            return GetProp("Win32_BaseBoard", "Model") + GetProp("Win32_BaseBoard", "Manufacturer") + GetProp("Win32_BaseBoard", "Name") + GetProp("Win32_BaseBoard", "SerialNumber");
+            return "model:" + GetProp("Win32_BaseBoard", "Model") + " manufacturer:" + GetProp("Win32_BaseBoard", "Manufacturer") + " name:" + GetProp("Win32_BaseBoard", "Name") + " serialnumber:" + GetProp("Win32_BaseBoard", "SerialNumber");
         }
 
         private static string GetVideoId()
         {
-            return GetProp("Win32_VideoController", "DriverVersion") + GetProp("Win32_VideoController", "Name");
+            return "driverversion:" + GetProp("Win32_VideoController", "DriverVersion") + " name:" + GetProp("Win32_VideoController", "Name");
         }
 
         private static string GetDiskId()
         {
-            return GetProp("Win32_DiskDrive", "Model") + GetProp("Win32_DiskDrive", "Manufacturer") + GetProp("Win32_DiskDrive", "Signature") + GetProp("Win32_DiskDrive", "TotalHeads");
+            return "model:" + GetProp("Win32_DiskDrive", "Model") + " manufacturer:" + GetProp("Win32_DiskDrive", "Manufacturer") + " totalheads:" + GetProp("Win32_DiskDrive", "TotalHeads");
         }
 
         private static string GetCpuId()
@@ -92,8 +98,10 @@ namespace GUIPixelPainter.GUI
 
         public static void SaveKey(string key)
         {
-            string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PixelPainter/license");
-            File.WriteAllText(folderPath, key);
+            string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PixelPainter");
+            string licensePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PixelPainter/license");
+            Directory.CreateDirectory(folderPath);
+            File.WriteAllText(licensePath, key);
         }
 
         public static string LoadSavedKey()
