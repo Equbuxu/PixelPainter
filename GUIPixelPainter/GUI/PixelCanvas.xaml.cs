@@ -78,6 +78,7 @@ namespace GUIPixelPainter.GUI
             textShadow.ShadowDepth = 0.5;
             textShadow.Opacity = 0.5;
             textShadow.BlurRadius = 0;
+            textShadow.Freeze(); //memory leak possible fix
 
             OnToolClick(moveTool, null);
             SetNameLabelDisplay(false);

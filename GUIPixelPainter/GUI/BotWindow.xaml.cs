@@ -55,6 +55,7 @@ namespace GUIPixelPainter.GUI
             textShadow.ShadowDepth = 1;
             textShadow.Opacity = 0.5;
             textShadow.BlurRadius = 0.5;
+            textShadow.Freeze(); //possibly fix memory leak
 
             var updateTimer = new Timer(500);
             updateTimer.Elapsed += (a, b) => { try { Dispatcher.Invoke(() => DataExchange.CreateUpdate()); } catch (TaskCanceledException) { } };
