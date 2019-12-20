@@ -167,7 +167,7 @@ namespace GUIPixelPainter.GUI
                 return;
             }
             Recording = true;
-            model.StartRecording();
+            model.StartRecording(false);
         }
 
         public void StopRecording()
@@ -226,7 +226,9 @@ namespace GUIPixelPainter.GUI
         public int targetRecTime;
         public bool restartOnCompletion;
 
-        private Timer timer = new Timer();
+        private Timer frameTimer = new Timer();
+        private Timer restartDelayTimer = new Timer();
+
         private bool recording = false;
         public bool Recording
         {
@@ -289,18 +291,23 @@ namespace GUIPixelPainter.GUI
             }
         }
 
-        private long startSeconds;
+        private long startButtonPressMs;
+        private long startMs;
         private int selectedFps;
         private int selectedTargetRecTime;
+        private int restartCount;
 
         public TimelapsePanelModel(GUIDataExchange dataExchange)
         {
-            timer.Elapsed += SaveFrame;
-            timer.AutoReset = true;
+            frameTimer.Elapsed += SaveFrame;
+            frameTimer.AutoReset = true;
+            restartDelayTimer.Elapsed += (a, b) => StartRecording(true);
+            restartDelayTimer.AutoReset = false;
+
             this.dataExchange = dataExchange;
         }
 
-        public void StartRecording()
+        public void StartRecording(bool restart)
         {
             if (Recording)
                 return;
@@ -309,17 +316,31 @@ namespace GUIPixelPainter.GUI
             TotalFrames = 0;
             TotalSecondsReal = 0;
             TotalSecondsVideo = 0;
-            startSeconds = DateTime.Now.Ticks / TimeSpan.TicksPerSecond;
-            selectedFps = fps;
-            selectedTargetRecTime = targetRecTime;
 
-            Record(fps, speedMult);
+            StartFFMpeg(fps);
+
+            if (!restart)
+            {
+                startMs = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+                startButtonPressMs = startMs;
+
+                selectedFps = fps;
+                selectedTargetRecTime = targetRecTime;
+                restartCount = 0;
+            }
+            else
+            {
+                restartCount++;
+                startMs = startButtonPressMs + selectedTargetRecTime * 1000 * restartCount;
+            }
+
+            int frameDelay = (int)(1000.0 / selectedFps * speedMult);
+            frameTimer.Interval = frameDelay;
+            frameTimer.Start();
         }
 
-        private void Record(int selFps, double selMult)
+        private void StartFFMpeg(int selFps)
         {
-            int frameDelay = (int)(1000.0 / selFps * selMult);
-
             var size = dataExchange.GetCanvasSize();
 
             if (!Directory.Exists("videoout"))
@@ -328,28 +349,46 @@ namespace GUIPixelPainter.GUI
 
             ffmpeg = new Process();
             ffmpeg.StartInfo.FileName = @"ffmpeg.exe";
-            ffmpeg.StartInfo.Arguments = "-f rawvideo -r " + selFps + " -video_size " + size.Width + "x" + size.Height + " -pixel_format bgra -i pipe:0 -r " + selFps + " -y -pix_fmt yuv420p " + filename + ".mp4";
+            ffmpeg.StartInfo.Arguments = "-f rawvideo -r " + selFps + " -video_size " + size.Width + "x" + size.Height + " -pixel_format bgra -i pipe:0 -vf \"pad=ceil(iw/2)*2:ceil(ih/2)*2:color=Black\" -r " + selFps + " -y -pix_fmt yuv420p " + filename + ".mp4";
             ffmpeg.StartInfo.UseShellExecute = false;
             ffmpeg.StartInfo.RedirectStandardInput = true;
             ffmpeg.StartInfo.RedirectStandardOutput = true;
+            //ffmpeg.StartInfo.RedirectStandardError = true;
             ffmpeg.Start();
-
-            timer.Interval = frameDelay;
-            timer.Start();
         }
 
         private void SaveFrame(object sender, ElapsedEventArgs args)
         {
-            dataExchange.SaveBitmapToStream(ffmpeg.StandardInput.BaseStream);
             TotalFrames++;
-            TotalSecondsReal = (int)(DateTime.Now.Ticks / TimeSpan.TicksPerSecond - startSeconds);
+
+            TotalSecondsReal = (int)(DateTime.Now.Ticks / TimeSpan.TicksPerSecond - startMs / 1000);
             TotalSecondsVideo = TotalFrames / selectedFps;
 
-            if (totalSecondsReal >= selectedTargetRecTime)
+            long totalMsReal = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond - startMs;
+            long targetMs = selectedTargetRecTime * 1000;
+            long remainingMs = targetMs - totalMsReal;
+
+            dataExchange.SaveBitmapToStream(ffmpeg.StandardInput.BaseStream);
+
+            if (remainingMs < frameTimer.Interval)
             {
                 StopRecording();
                 if (restartOnCompletion)
-                    StartRecording();
+                {
+                    //recalculate time since StopRecording wait for ffmpeg to exit
+                    totalMsReal = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond - startMs;
+                    remainingMs = targetMs - totalMsReal;
+
+                    if (remainingMs > 0)
+                    {
+                        restartDelayTimer.Interval = remainingMs;
+                        restartDelayTimer.Start();
+                    }
+                    else
+                    {
+                        StartRecording(true);
+                    }
+                }
             }
         }
 
@@ -357,9 +396,10 @@ namespace GUIPixelPainter.GUI
         {
             if (!Recording)
                 return;
-            timer.Stop();
+            frameTimer.Stop();
 
             ffmpeg.StandardInput.BaseStream.Close();
+            //ffmpeg.StandardError.BaseStream.Close();
             ffmpeg.WaitForExit();
             Recording = false;
         }
