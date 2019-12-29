@@ -35,7 +35,7 @@ namespace GUIPixelPainter.GUI
 
         public void SetViewModel(TimelapsePanelViewModel model)
         {
-            border.DataContext = model;
+            expander.DataContext = model;
         }
     }
 

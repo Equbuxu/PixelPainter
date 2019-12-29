@@ -5,12 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GUIPixelPainter.GUI"
         mc:Ignorable="d"
-        Title="PixelPainter" 
+        Title="PixelPainter"
         Height="950" 
         Width="1350" 
         SizeChanged="OnWindowSizeStateChange"
         StateChanged="OnWindowSizeStateChange"
-        PreviewKeyDown="OnPreviewKeyDown">
+        PreviewKeyDown="OnPreviewKeyDown"
+        Style="{StaticResource WindowStyle}"
+        >
+
     <Grid Name="mainGrid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="240"  MinWidth="240" MaxWidth="500"/>
@@ -23,9 +26,9 @@
         <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />
         <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" />
 
-        <ScrollViewer Grid.Column="0" DockPanel.Dock="Left">
+        <ScrollViewer Grid.Column="0" DockPanel.Dock="Left" >
             <StackPanel>
-                <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
+                <Border Margin="5" BorderBrush="{StaticResource Borders}" BorderThickness="1">
                     <StackPanel Margin="5">
                         <CheckBox VerticalAlignment="Center" Checked="OnGeneralSettingChange" Unchecked="OnGeneralSettingChange" Name="enabled" Margin="0,0,0,5" ToolTip="Enable bot">
                             Enable bot
@@ -38,14 +41,14 @@
                             <TextBox Name="canvasId" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" LostFocus="OnGeneralSettingChange" Margin="0,0,5,0"></TextBox>
                         </DockPanel>
                         <DockPanel>
-                            <TextBlock Margin="5,5,5,0">Placement mode</TextBlock>
+                            <TextBlock Margin="5,5,5,0" VerticalAlignment="Center" Style="{StaticResource TextBlockStyle}">Placement mode</TextBlock>
                             <ComboBox Name="placementMode" Margin="5" SelectionChanged="OnGeneralSettingChange">
-                                <TextBlock>Top-down</TextBlock>
-                                <TextBlock>Denoise</TextBlock>
+                                <TextBlock Style="{StaticResource TextBlockStyle}">Top-down</TextBlock>
+                                <TextBlock Style="{StaticResource TextBlockStyle}">Denoise</TextBlock>
                             </ComboBox>
                         </DockPanel>
                         <DockPanel>
-                            <TextBlock Margin="5" ToolTip="11.2 by default">Placement speed:</TextBlock>
+                            <TextBlock Margin="5" ToolTip="11.2 by default" Style="{StaticResource TextBlockStyle}">Placement speed:</TextBlock>
                             <TextBox Name="placementSpeed" Margin="0,0,5,0" GotFocus="OnTextBoxGotFocus" VerticalContentAlignment="Center" LostFocus="OnGeneralSettingChange"></TextBox>
                         </DockPanel>
                         <Button Click="OnSaveClick" ToolTip="Save all setting" Margin="5">
@@ -56,24 +59,22 @@
 
                 <local:TaskPanel x:Name="taskList"></local:TaskPanel>
 
-                <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
-                    <Expander Header="Overlay" IsExpanded="True">
-                        <StackPanel Margin="5">
-                            <TextBlock>Overlay translucency</TextBlock>
-                            <Slider Minimum="0" Maximum="1" Margin="5,5,0,0" ValueChanged="OnTranslucencyValueChange" Name="overlayTranslucency"></Slider>
-                            <RadioButton GroupName="overlay" Checked="OnGeneralSettingChange" Name="overlayNothing" 
+                <Expander Header="Overlay" IsExpanded="True" Margin="5" BorderBrush="{StaticResource Borders}" BorderThickness="1">
+                    <StackPanel Margin="5">
+                        <TextBlock Style="{StaticResource TextBlockStyle}">Overlay translucency</TextBlock>
+                        <Slider Minimum="0" Maximum="1" Margin="5,5,0,0" ValueChanged="OnTranslucencyValueChange" Name="overlayTranslucency"></Slider>
+                        <RadioButton GroupName="overlay" Checked="OnGeneralSettingChange" Name="overlayNothing" 
                                          Margin="0,5,0,5" ToolTip="Disable task preview">Disable overlay</RadioButton>
-                            <RadioButton GroupName="overlay" Checked="OnGeneralSettingChange" Name="overlay" 
+                        <RadioButton GroupName="overlay" Checked="OnGeneralSettingChange" Name="overlay" 
                                          Margin="0,0,0,5" ToolTip="Display preview of enabled tasks on the canvas">Overlay enabled tasks</RadioButton>
-                            <RadioButton GroupName="overlay" Checked="OnGeneralSettingChange" Name="overlayAll" 
+                        <RadioButton GroupName="overlay" Checked="OnGeneralSettingChange" Name="overlayAll" 
                                          Margin="0,0,0,5" ToolTip="Display preview of all tasks on the canvas">Overlay all tasks</RadioButton>
-                            <RadioButton GroupName="overlay" Checked="OnGeneralSettingChange" Name="overlaySelected" 
+                        <RadioButton GroupName="overlay" Checked="OnGeneralSettingChange" Name="overlaySelected" 
                                          Margin="0,0,0,5" ToolTip="Display preview of selected task on the canvas">Overlay selected task</RadioButton>
-                        </StackPanel>
-                    </Expander>
-                </Border>
+                    </StackPanel>
+                </Expander>
 
-                <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
+                <Border Margin="5" BorderBrush="{StaticResource Borders}" BorderThickness="1">
                     <Expander Header="Other" IsExpanded="True">
                         <StackPanel Margin="5">
                             <Button Click="OnClearBrushQueue" Margin="5">Clear brush queue</Button>
@@ -90,45 +91,43 @@
         <ScrollViewer Name="rightColumn" Grid.Column="4">
             <StackPanel>
                 <local:UserPanel x:Name="usersPanel"></local:UserPanel>
+                <Expander Header="Chat" IsExpanded="True" BorderBrush="{StaticResource Borders}" BorderThickness="1" Margin="5">
+                    <StackPanel Margin="5">
+                        <DockPanel>
+                            <RadioButton GroupName="chatMode" Margin="0,0,5,0" Checked="OnChangeChatMode" Name="globalChatMode">Global chat</RadioButton>
+                            <RadioButton GroupName="chatMode" Checked="OnChangeChatMode" Name="localChatMode">Current canvas</RadioButton>
+                        </DockPanel>
+                        <Border BorderBrush="{StaticResource Borders}" Margin="5" BorderThickness="1">
+                            <StackPanel>
+                                <ScrollViewer Name="chatScrollGlobal" Width="auto" Height="230" Visibility="Visible">
+                                    <StackPanel Name="chatGlobal">
+                                    </StackPanel>
+                                </ScrollViewer>
+                                <ScrollViewer Name="chatScrollLocal" Width="auto" Height="230" Visibility="Collapsed">
+                                    <StackPanel Name="chatLocal">
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Border>
+                        <Grid Margin="5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="32" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Name="chatTextBox" VerticalContentAlignment="Center" KeyUp="OnChatTextBoxKeyUp"/>
+                            <Button Grid.Column="1" HorizontalAlignment="Right" Click="OnChatSend">
+                                Send
+                                <Button.ToolTip>
+                                    <ToolTip>
+                                        Sends a message to the General chat
+                                    </ToolTip>
+                                </Button.ToolTip>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Expander>
 
-                <Border BorderBrush="Gray" BorderThickness="1" Margin="5">
-                    <Expander Header="Chat" IsExpanded="True">
-                        <StackPanel Margin="5">
-                            <DockPanel>
-                                <RadioButton GroupName="chatMode" Margin="0,0,5,0" Checked="OnChangeChatMode" Name="globalChatMode">Global chat</RadioButton>
-                                <RadioButton GroupName="chatMode" Checked="OnChangeChatMode" Name="localChatMode">Current canvas</RadioButton>
-                            </DockPanel>
-                            <Border BorderBrush="Gray" Margin="5" BorderThickness="1">
-                                <StackPanel>
-                                    <ScrollViewer Name="chatScrollGlobal" Width="auto" Height="230" Visibility="Visible">
-                                        <StackPanel Name="chatGlobal">
-                                        </StackPanel>
-                                    </ScrollViewer>
-                                    <ScrollViewer Name="chatScrollLocal" Width="auto" Height="230" Visibility="Collapsed">
-                                        <StackPanel Name="chatLocal">
-                                        </StackPanel>
-                                    </ScrollViewer>
-                                </StackPanel>
-                            </Border>
-                            <Grid Margin="5">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="31" />
-                                </Grid.ColumnDefinitions>
-                                <TextBox Grid.Column="0" Name="chatTextBox" VerticalContentAlignment="Center" KeyUp="OnChatTextBoxKeyUp"/>
-                                <Button Grid.Column="1" HorizontalAlignment="Right" Click="OnChatSend">
-                                    Send
-                                    <Button.ToolTip>
-                                        <ToolTip>
-                                            Sends a message to the General chat
-                                        </ToolTip>
-                                    </Button.ToolTip>
-                                </Button>
-                            </Grid>
-                        </StackPanel>
-                    </Expander>
-                </Border>
-                <Border Margin="5" BorderBrush="Gray" BorderThickness="1">
+                <Border Margin="5" BorderBrush="{StaticResource Borders}" BorderThickness="1">
                     <Expander Header="Speed" IsExpanded="True">
                         <StackPanel Margin="5,0,5,5">
 
@@ -138,7 +137,7 @@
                                 </Button>
                             </DockPanel>
 
-                            <Border Name="speedCannvas"  BorderBrush="Gray" BorderThickness="1" MinWidth="130" MinHeight="30">
+                            <Border Name="speedCannvas" BorderBrush="{StaticResource Borders}" BorderThickness="1" MinWidth="130" MinHeight="30">
                                 <Grid Name="speedPanelGrid">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -156,10 +155,7 @@
             </StackPanel>
         </ScrollViewer>
 
-        <StackPanel Grid.Column="2">
-            <Border BorderBrush="LightGray" BorderThickness="2" Height="{Binding ElementName=mainGrid, Path=ActualHeight}">
-                <local:PixelCanvas x:Name="pixelCanvas" Margin="0,2,0,-2"/>
-            </Border>
-        </StackPanel>
+        <local:PixelCanvas Grid.Column="2" x:Name="pixelCanvas" Margin="0,2,0,-2"/>
+
     </Grid>
 </Window>

@@ -44,17 +44,17 @@ namespace GUIPixelPainter.GUI
         {
             Debug.Assert(DataExchange != null && Helper != null && Launcher != null);
 
-            chatLocal.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
-            chatGlobal.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
+            //chatLocal.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
+            //chatGlobal.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
             globalChatMode.IsChecked = true;
 
-            speedPanelGrid.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
+            //speedPanelGrid.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xDD, 0xDD, 0xDD));
 
-            textShadow.Color = System.Windows.Media.Color.FromRgb(0, 0, 0);
+            textShadow.Color = System.Windows.Media.Color.FromRgb(255, 255, 255);
             textShadow.Direction = 320;
-            textShadow.ShadowDepth = 1;
-            textShadow.Opacity = 0.5;
-            textShadow.BlurRadius = 0.5;
+            textShadow.ShadowDepth = 0.5;
+            textShadow.Opacity = 1.0;
+            textShadow.BlurRadius = 2.0;
             textShadow.Freeze(); //possibly fix memory leak
 
             var updateTimer = new Timer(500);

@@ -25,6 +25,7 @@ namespace GUIPixelPainter.GUI
 
         private List<User> users = new List<User>();
         private bool ignoreEvents = false;
+        private System.Windows.Media.Brush inactiveTask = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xcc, 0xcc, 0xcc));
 
         public GUIDataExchange DataExchange { get; set; }
         public Launcher Launcher { get; set; }
@@ -152,7 +153,7 @@ namespace GUIPixelPainter.GUI
                         else if (user.status == Status.CLOSEDDISCONNECT || user.status == Status.CLOSEDERROR)
                             itemText.Foreground = Brushes.Red;
                         else
-                            itemText.Foreground = Brushes.Black;
+                            itemText.Foreground = inactiveTask;
                         break;
                     }
                 }

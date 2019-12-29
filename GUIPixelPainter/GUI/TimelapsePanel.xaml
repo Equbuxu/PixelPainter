@@ -6,33 +6,31 @@
              xmlns:local="clr-namespace:GUIPixelPainter.GUI"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="220">
-    <Border BorderBrush="Gray" BorderThickness="1" Margin="5" Name="border">
-        <Expander Header="Timelapse recording" IsExpanded="True">
-            <StackPanel>
-                <DockPanel>
-                    <TextBlock VerticalAlignment="Center"  Margin="5">Final video FPS</TextBlock>
-                    <TextBox Margin="5,0,0,0" Text="{Binding FPS}" IsEnabled="{Binding NotRecording}" VerticalContentAlignment="Center"></TextBox>
-                </DockPanel>
+    <Expander Header="Timelapse recording" IsExpanded="True" BorderBrush="{StaticResource Borders}" BorderThickness="1" Margin="5" Name="expander">
+        <StackPanel>
+            <DockPanel>
+                <TextBlock VerticalAlignment="Center" Style="{StaticResource TextBlockStyle}" Margin="5">Final video FPS</TextBlock>
+                <TextBox Margin="5,0,0,0" Text="{Binding FPS}" IsEnabled="{Binding NotRecording}" VerticalContentAlignment="Center"></TextBox>
+            </DockPanel>
 
-                <DockPanel Margin="0,5,0,0">
-                    <TextBlock VerticalAlignment="Center" Margin="5">Speed multiplier</TextBlock>
-                    <TextBox Margin="5,0,0,0" Text="{Binding SpeedMult}" IsEnabled="{Binding NotRecording}" VerticalContentAlignment="Center"></TextBox>
-                </DockPanel>
+            <DockPanel Margin="0,5,0,0">
+                <TextBlock VerticalAlignment="Center" Style="{StaticResource TextBlockStyle}" Margin="5">Speed multiplier</TextBlock>
+                <TextBox Margin="5,0,0,0" Text="{Binding SpeedMult}" IsEnabled="{Binding NotRecording}" VerticalContentAlignment="Center"></TextBox>
+            </DockPanel>
 
-                <DockPanel Margin="0,5,0,0">
-                    <TextBlock VerticalAlignment="Center" Margin="5">Target rec. time</TextBlock>
-                    <TextBox Margin="5,0,0,0" Text="{Binding RecTime}" IsEnabled="{Binding NotRecording}" VerticalContentAlignment="Center"></TextBox>
-                </DockPanel>
+            <DockPanel Margin="0,5,0,0">
+                <TextBlock VerticalAlignment="Center" Style="{StaticResource TextBlockStyle}" Margin="5">Target rec. time</TextBlock>
+                <TextBox Margin="5,0,0,0" Text="{Binding RecTime}" IsEnabled="{Binding NotRecording}" VerticalContentAlignment="Center"></TextBox>
+            </DockPanel>
 
-                <CheckBox Margin="5" IsEnabled="{Binding NotRecording}" IsChecked="{Binding RestartRec}">Restart recording on completion</CheckBox>
+            <CheckBox Margin="5" IsEnabled="{Binding NotRecording}" IsChecked="{Binding RestartRec}">Restart recording on completion</CheckBox>
 
-                <DockPanel Margin="5">
-                    <Button Margin="0,5,5,5" Width="92" IsEnabled="{Binding NotRecording}" Command="{Binding StartRec}">Start Recording</Button>
-                    <Button Margin="0,5,0,5" Width="92" IsEnabled="{Binding Recording}" Command="{Binding StopRec}">Stop Recording</Button>
-                </DockPanel>
+            <DockPanel Margin="5">
+                <Button Margin="0,5,5,5" Width="92" IsEnabled="{Binding NotRecording}" Command="{Binding StartRec}">Start Recording</Button>
+                <Button Margin="0,5,0,5" Width="92" IsEnabled="{Binding Recording}" Command="{Binding StopRec}">Stop Recording</Button>
+            </DockPanel>
 
-                <TextBlock Margin="5" Text="{Binding StatusText}"></TextBlock>
-            </StackPanel>
-        </Expander>
-    </Border>
+            <TextBlock Margin="5" Text="{Binding StatusText}"></TextBlock>
+        </StackPanel>
+    </Expander>
 </UserControl>

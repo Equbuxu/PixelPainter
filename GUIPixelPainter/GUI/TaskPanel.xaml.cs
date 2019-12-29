@@ -37,6 +37,7 @@ namespace GUIPixelPainter.GUI
         private Thread converterThread = null;
         private Guid convertingTask = new Guid();
         private int canvasId = 7;
+        private System.Windows.Media.Brush inactiveTask = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 0xcc, 0xcc, 0xcc));
 
         public GUIHelper Helper { get; set; }
         public GUIDataExchange DataExchange { get; set; }
@@ -182,7 +183,7 @@ namespace GUIPixelPainter.GUI
                         if (task.isEnabled)
                             nameLabel.Foreground = System.Windows.Media.Brushes.Green;
                         else
-                            nameLabel.Foreground = System.Windows.Media.Brushes.Black;
+                            nameLabel.Foreground = inactiveTask;
                         break;
                     }
                 }
