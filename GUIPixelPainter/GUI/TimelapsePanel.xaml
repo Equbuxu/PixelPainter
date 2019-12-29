@@ -30,7 +30,7 @@
                 <Button Margin="0,5,0,5" Width="92" IsEnabled="{Binding Recording}" Command="{Binding StopRec}">Stop Recording</Button>
             </DockPanel>
 
-            <TextBlock Margin="5" Text="{Binding StatusText}"></TextBlock>
+            <TextBlock Style="{StaticResource TextBlockStyle}" Margin="5" Text="{Binding StatusText}"></TextBlock>
         </StackPanel>
     </Expander>
 </UserControl>
