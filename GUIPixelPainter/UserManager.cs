@@ -48,10 +48,10 @@ namespace GUIPixelPainter
         }
 
         private List<Connection> users = new List<Connection>();
+        private SocketIO unauthUser; //to be continued....
         private Thread loopThread;
 
         private List<Tuple<string, EventArgs>> eventsToProcess = new List<Tuple<string, EventArgs>>();
-        private List<Tuple<string, EventArgs>> eventsToDispatch = new List<Tuple<string, EventArgs>>();
         private HashSet<Guid> activeUsers = new HashSet<Guid>();
 
         private AutoResetEvent resetEvent = new AutoResetEvent(false);
@@ -66,13 +66,14 @@ namespace GUIPixelPainter
         private Dictionary<int, Dictionary<int, System.Drawing.Color>> palette;
         private Dictionary<int, Dictionary<System.Drawing.Color, int>> invPalette;
 
-        UsefulDataRepresentation guiData;
-        PlacementBehaviour placementBehaviour;
+        private UsefulDataRepresentation guiData;
+        private PlacementBehaviour placementBehaviour;
+        private GUIUpdater guiUpdater;
 
-        public UserManager(UsefulDataRepresentation representation, Dictionary<int, Dictionary<int, System.Drawing.Color>> palette)
+        public UserManager(UsefulDataRepresentation representation, GUIUpdater updater, Dictionary<int, Dictionary<int, System.Drawing.Color>> palette)
         {
             guiData = representation;
-
+            guiUpdater = updater;
             this.palette = palette;
             this.invPalette = palette.Select((a) => new KeyValuePair<int, Dictionary<System.Drawing.Color, int>>(a.Key, a.Value.Select((b) => new KeyValuePair<Color, int>(b.Value, b.Key)).ToDictionary((b) => b.Key, (b) => b.Value))).ToDictionary((a) => a.Key, (a) => a.Value);
 
@@ -82,17 +83,11 @@ namespace GUIPixelPainter
             loopThread.Start();
         }
 
-        public List<Tuple<string, EventArgs>> Update(List<GUIEvent> events)
+        public void Update(List<GUIEvent> events)
         {
             lock (latestGUIEvents)
                 latestGUIEvents.AddRange(events.Select((a) => a).ToList());
             resetEvent.Set();
-            lock (eventsToDispatch)
-            {
-                var copy = eventsToDispatch.Select((a) => a).ToList();
-                eventsToDispatch.Clear();
-                return copy;
-            }
         }
 
         private void Loop()
@@ -106,7 +101,7 @@ namespace GUIPixelPainter
 
                 if (curCanvas != -1) //HACK things should fire in a different order in a way that will allow curCanvas to be set before first resetEvent.
                 {
-                    if ((placementBehaviour == null || placementBehaviour.GetMode() != guiData.PlacementMode) && curCanvas != -1) //HACK curCanvas check is kinda hacky (it is there to avoid crah on start)
+                    if ((placementBehaviour == null || placementBehaviour.GetMode() != guiData.PlacementMode) && curCanvas != -1) //HACK curCanvas check is kinda hacky (it is there to avoid crash on start)
                         ChangePlacementBehaviour();
 
                     UpdatePlacementSpeed();
@@ -131,7 +126,7 @@ namespace GUIPixelPainter
         {
             foreach (Connection conn in users)
             {
-                if (!conn.Client.Premium || conn.Client.GetStatus() != Status.OPEN)
+                if (!conn.Client.Premium || conn.Client.Status != Status.OPEN)
                     continue;
 
                 foreach (int unknownUsername in guiData.UnknownUsernames)
@@ -143,7 +138,7 @@ namespace GUIPixelPainter
 
         private void ManageQueues()
         {
-            var total = users.Where((a) => a.Client.GetStatus() == Status.OPEN).ToList();
+            var total = users.Where((a) => a.Client.Status == Status.OPEN).ToList();
             var completedTasksForEachUser = new List<List<UsefulTask>>();
 
             foreach (Connection conn in total)
@@ -151,7 +146,7 @@ namespace GUIPixelPainter
                 var completedTasks = new List<UsefulTask>();
                 completedTasksForEachUser.Add(completedTasks);
 
-                if (conn.Client.GetStatus() != Status.OPEN)
+                if (conn.Client.Status != Status.OPEN)
                     continue;
                 if (conn.Session.QueueLength() > 80)
                     continue;
@@ -179,7 +174,7 @@ namespace GUIPixelPainter
 
                 foreach (UsefulTask task in commonCompletedTasks)
                 {
-                    CreateEventToDispatch("manager.taskenable", new TaskEnableStateData(task.Id, false));
+                    guiUpdater.PushEvent("manager.taskenable", new TaskEnableStateData(task.Id, false));
                 }
             }
 
@@ -198,14 +193,14 @@ namespace GUIPixelPainter
             //Remove old users
             for (int i = users.Count - 1; i >= 0; i--)
             {
-                if (guiData.Users.Where((a) => a.Id == users[i].Id).Count() == 0 || users[i].Client.GetStatus() == Status.CLOSEDDISCONNECT)
+                if (guiData.Users.Where((a) => a.Id == users[i].Id).Count() == 0 || users[i].Client.Status == Status.CLOSEDDISCONNECT)
                 {
                     Console.WriteLine("user connection removed");
                     users[i].Session.ClearQueue();
                     users[i].Session.Close();
-                    if (users[i].Client.GetStatus() != Status.CLOSEDERROR && users[i].Client.GetStatus() != Status.CLOSEDDISCONNECT)
+                    if (users[i].Client.Status != Status.CLOSEDERROR && users[i].Client.Status != Status.CLOSEDDISCONNECT)
                         users[i].Client.Disconnect();
-                    CreateEventToDispatch("manager.status", new UserStatusData(users[i].Id, Status.NOTOPEN));
+                    guiUpdater.PushEvent("manager.status", new UserStatusData(users[i].Id, Status.NOTOPEN));
                     users.RemoveAt(i);
                 }
             }
@@ -217,11 +212,11 @@ namespace GUIPixelPainter
                 {
                     Console.WriteLine("user connection created, there was {0} users in total", users.Count);
                     SocketIO server = CreateSocketIO(user);
-                    server.StartConnect();
+                    server.Connect();
                     UserSession newUser = new UserSession(server);
                     Connection connection = new Connection(server, newUser, user.Id);
                     users.Add(connection);
-                    CreateEventToDispatch("manager.status", new UserStatusData(connection.Id, Status.OPEN));
+                    guiUpdater.PushEvent("manager.status", new UserStatusData(connection.Id, Status.OPEN));
                     lastUserConnectionTime = DateTime.UtcNow;
                 }
             }
@@ -229,10 +224,10 @@ namespace GUIPixelPainter
             //send status for disconnected users
             foreach (Connection user in users)
             {
-                var status = user.Client.GetStatus();
+                var status = user.Client.Status;
                 if (status == Status.CLOSEDDISCONNECT || status == Status.CLOSEDERROR)
                 {
-                    CreateEventToDispatch("manager.status", new UserStatusData(user.Id, status));
+                    guiUpdater.PushEvent("manager.status", new UserStatusData(user.Id, status));
                 }
             }
         }
@@ -306,10 +301,10 @@ namespace GUIPixelPainter
                 Console.WriteLine("user connection removed");
                 users[i].Session.ClearQueue();
                 users[i].Session.Close();
-                if (users[i].Client.GetStatus() != Status.CLOSEDERROR && users[i].Client.GetStatus() != Status.CLOSEDDISCONNECT)
+                if (users[i].Client.Status != Status.CLOSEDERROR && users[i].Client.Status != Status.CLOSEDDISCONNECT)
                 {
                     users[i].Client.Disconnect();
-                    CreateEventToDispatch("manager.status", new UserStatusData(users[i].Id, Status.NOTOPEN));
+                    guiUpdater.PushEvent("manager.status", new UserStatusData(users[i].Id, Status.NOTOPEN));
                 }
                 users.RemoveAt(i);
             }
@@ -370,17 +365,10 @@ namespace GUIPixelPainter
 
         private SocketIO CreateSocketIO(UsefulUser user)
         {
-            SocketIO socket = new SocketIO(user.AuthKey, user.AuthToken, user.PhpSessId, guiData.CanvasId, user.Proxy);
+            SocketIO socket = new SocketIO(user.AuthKey, user.AuthToken, user.PhpSessId, guiData.CanvasId);
+            //SocketIO socket = new SocketIO(guiData.CanvasId);
             socket.OnEvent += (a, b) => { OnSocketEvent(a, b, user.Id); };
             return socket;
-        }
-
-        private void CreateEventToDispatch(string type, EventArgs data)
-        {
-            lock (eventsToDispatch)
-            {
-                eventsToDispatch.Add(new Tuple<string, EventArgs>(type, data));
-            }
         }
 
         private void OnSocketEvent(string type, EventArgs args, Guid user)
@@ -400,7 +388,7 @@ namespace GUIPixelPainter
             if (user != currentActiveUser && type != "tokens" && type != "nickname")
             {
                 var curactive = users.Where((a) => a.Id == currentActiveUser).ToList();
-                if (curactive.Count == 0 || curactive[0].Client.GetStatus() != Status.OPEN)
+                if (curactive.Count == 0 || curactive[0].Client.Status != Status.OPEN)
                 {
                     currentActiveUser = user;
                     Console.WriteLine("Listening to {0}", user);
@@ -421,10 +409,8 @@ namespace GUIPixelPainter
             {
                 eventsToProcess.Add(new Tuple<string, EventArgs>(type, args));
             }
-            lock (eventsToDispatch)
-            {
-                eventsToDispatch.Add(new Tuple<string, EventArgs>(type, args));
-            }
+
+            guiUpdater.PushEvent(type, args);
         }
     }
 }

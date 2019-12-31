@@ -14,11 +14,10 @@ namespace GUIPixelPainter
 
     public class GUIUser
     {
-        public GUIUser(Guid internalId, string name, string proxy, string authKey, string authToken, string phpSessId, Status status, bool enabled)
+        public GUIUser(Guid internalId, string name, string authKey, string authToken, string phpSessId, Status status, bool enabled)
         {
             InternalId = internalId;
             Name = name;
-            Proxy = proxy;
             AuthKey = authKey;
             AuthToken = authToken;
             Status = status;
@@ -27,7 +26,6 @@ namespace GUIPixelPainter
         }
         public Guid InternalId { get; }
         public string Name { get; }
-        public string Proxy { get; }
         public string AuthKey { get; }
         public string AuthToken { get; }
         public string PhpSessId { get; }
@@ -349,6 +347,7 @@ namespace GUIPixelPainter
 
             manualTask.Add(pixel);
             UsefulData.UpdateManualPixel(pixel);
+            Updater.Update();//TODO temporary!!
         }
 
         public void CreateUpdate()

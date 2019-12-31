@@ -15,7 +15,6 @@ namespace GUIPixelPainter.GUI
         {
             public Guid internalId;
             public string name;
-            public string proxyUrl;
             public string authKey;
             public string authToken;
             public string phpSessId;
@@ -44,7 +43,7 @@ namespace GUIPixelPainter.GUI
             List<GUIUser> converted = new List<GUIUser>();
             foreach (User user in users)
             {
-                converted.Add(new GUIUser(user.internalId, user.name, user.proxyUrl, user.authKey, user.authToken, user.phpSessId, user.status, user.isEnabled));
+                converted.Add(new GUIUser(user.internalId, user.name, user.authKey, user.authToken, user.phpSessId, user.status, user.isEnabled));
             }
             return converted;
         }
@@ -85,7 +84,6 @@ namespace GUIPixelPainter.GUI
             {
                 internalId = user.InternalId,
                 name = user.Name,
-                proxyUrl = user.Proxy,
                 authKey = user.AuthKey,
                 authToken = user.AuthToken,
                 phpSessId = user.PhpSessId,
@@ -198,7 +196,6 @@ namespace GUIPixelPainter.GUI
             User selectedUser = GetSelectedUser();
 
             userName.Text = selectedUser.name;
-            userProxy.Text = selectedUser.proxyUrl;
             authKey.Text = selectedUser.authKey;
             authToken.Text = selectedUser.authToken;
             phpSessId.Text = selectedUser.phpSessId;
@@ -252,7 +249,6 @@ namespace GUIPixelPainter.GUI
             User selectedUser = GetSelectedUser();
 
             selectedUser.name = userName.Text;
-            selectedUser.proxyUrl = userProxy.Text;
             selectedUser.authKey = authKey.Text;
             selectedUser.authToken = authToken.Text;
             selectedUser.phpSessId = phpSessId.Text;

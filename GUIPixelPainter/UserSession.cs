@@ -105,9 +105,10 @@ namespace GUIPixelPainter
         {
             int queueCount;
             lock (queue) queueCount = queue.Count;
-            if (queueCount == 0 || server.GetStatus() != Status.OPEN)
+            if (queueCount == 0 || server.Status != Status.OPEN)
             {
                 Thread.Sleep(packetDelay);
+                //Thread.Sleep(10);
                 return false;
             }
 
@@ -128,9 +129,10 @@ namespace GUIPixelPainter
             }
             lastPacketTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
 
-            if (server.GetStatus() == Status.OPEN)
+            if (server.Status == Status.OPEN)
             {
                 server.SendPixels(toPlace, SendCallback);
+                //server.TryPoll();
                 packetSent.WaitOne();
                 lastRecieveTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
             }

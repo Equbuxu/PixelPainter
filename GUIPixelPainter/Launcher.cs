@@ -164,8 +164,8 @@ namespace GUIPixelPainter
             helper = new GUIHelper(GUIPalette);
             dataExchange = new GUIDataExchange(window.usersPanel, window.taskList, window.pixelCanvas, window, window.timelapsePanel, helper);
             representation = new UsefulDataRepresentation(dataExchange);
-            manager = new UserManager(representation, palette);
             updater = new GUIUpdater(palette);
+            manager = new UserManager(representation, updater, palette);
             loader = new DataLoader(dataExchange, helper);
 
             //Set window properties

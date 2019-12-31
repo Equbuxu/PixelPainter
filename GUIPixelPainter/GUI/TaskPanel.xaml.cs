@@ -194,7 +194,7 @@ namespace GUIPixelPainter.GUI
                 if (task.isEnabled)
                     label.Foreground = System.Windows.Media.Brushes.Green;
                 else
-                    label.Foreground = System.Windows.Media.Brushes.Black;
+                    label.Foreground = inactiveTask;
                 TextBlock id = new TextBlock() { Text = task.internalId.ToString(), Visibility = Visibility.Collapsed };
                 StackPanel panel = new StackPanel();
                 panel.Children.Add(label);

@@ -47,67 +47,76 @@ namespace GUIPixelPainter
             events.Add(@event);
         }
 
+        public void PushEvent(string type, EventArgs args)
+        {
+            App.Current.Dispatcher.InvokeAsync(() =>
+            {
+                ProcessEvent(type, args);
+            }
+            );
+        }
+
         public void Update()
         {
-            var newEvents = Manager.Update(events);
+            Manager.Update(events);
             events.Clear();
+        }
 
-            foreach (Tuple<string, EventArgs> eventTuple in newEvents)
+        public void ProcessEvent(string type, EventArgs args)
+        {
+            if (type == "chat.user.message")
             {
-                if (eventTuple.Item1 == "chat.user.message")
-                {
-                    var message = eventTuple.Item2 as ChatMessagePacket;
+                var message = args as ChatMessagePacket;
 
-                    if (message.chat != 0 && message.chat != DataExchange.CanvasId)
-                        continue;
+                if (message.chat != 0 && message.chat != DataExchange.CanvasId)
+                    return;
 
-                    string formatted = String.Format("{0}: {1}", message.username, message.message);
-                    if (!String.IsNullOrWhiteSpace(message.guild))
-                        formatted = formatted.Insert(0, String.Format("<{0}>", message.guild));
-                    if (message.admin)
-                        formatted = formatted.Insert(0, "[🔧]");
-                    if (message.mod)
-                        formatted = formatted.Insert(0, "[🔨]");
-                    if (message.premium)
-                        formatted = formatted.Insert(0, "[💎]");
-                    if (message.boardId != DataExchange.CanvasId)
-                        formatted = formatted.Insert(0, "[" + message.boardId.ToString() + "]");
+                string formatted = String.Format("{0}: {1}", message.username, message.message);
+                if (!String.IsNullOrWhiteSpace(message.guild))
+                    formatted = formatted.Insert(0, String.Format("<{0}>", message.guild));
+                if (message.admin)
+                    formatted = formatted.Insert(0, "[🔧]");
+                if (message.mod)
+                    formatted = formatted.Insert(0, "[🔨]");
+                if (message.premium)
+                    formatted = formatted.Insert(0, "[💎]");
+                if (message.boardId != DataExchange.CanvasId)
+                    formatted = formatted.Insert(0, "[" + message.boardId.ToString() + "]");
 
-                    int boardId = message.boardId;
-                    if (!palette.ContainsKey(boardId))
-                        boardId = 7;
-                    Color color = palette[boardId][message.color];
-                    DataExchange.PushChatMessage(formatted, message.chat != 0, System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B));
-                }
-                else if (eventTuple.Item1 == "pixels")
-                {
-                    PixelPacket pixel = eventTuple.Item2 as PixelPacket;
-                    int boardId = pixel.boardId;
-                    if (!palette.ContainsKey(boardId))
-                        boardId = 7;
-                    Color actualColor = palette[boardId][pixel.color];
-                    DataExchange.PushPixel(pixel.x, pixel.y, actualColor, pixel.boardId, pixel.userId, pixel.userId == pixel.socketUserId);
-                }
-                else if (eventTuple.Item1 == "manager.status")
-                {
-                    UserStatusData data = eventTuple.Item2 as UserStatusData;
-                    DataExchange.PushUserStatus(data);
-                }
-                else if (eventTuple.Item1 == "manager.taskenable")
-                {
-                    TaskEnableStateData data = eventTuple.Item2 as TaskEnableStateData;
-                    DataExchange.PushTaskEnabledState(data);
-                }
-                else if (eventTuple.Item1 == "nickname")
-                {
-                    NicknamePacket data = eventTuple.Item2 as NicknamePacket;
-                    DataExchange.PushNewUsername(data.id, data.nickname);
-                }
-                else if (eventTuple.Item1 == "tokens")
-                {
-                    TokenPacket data = eventTuple.Item2 as TokenPacket;
-                    DataExchange.PushTokens(data.phpSessId, data.authToken, data.id);
-                }
+                int boardId = message.boardId;
+                if (!palette.ContainsKey(boardId))
+                    boardId = 7;
+                Color color = palette[boardId][message.color];
+                DataExchange.PushChatMessage(formatted, message.chat != 0, System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B));
+            }
+            else if (type == "pixels")
+            {
+                PixelPacket pixel = args as PixelPacket;
+                int boardId = pixel.boardId;
+                if (!palette.ContainsKey(boardId))
+                    boardId = 7;
+                Color actualColor = palette[boardId][pixel.color];
+                DataExchange.PushPixel(pixel.x, pixel.y, actualColor, pixel.boardId, pixel.userId, pixel.userId == pixel.socketUserId);
+            }
+            else if (type == "manager.status")
+            {
+                UserStatusData data = args as UserStatusData;
+                DataExchange.PushUserStatus(data);
+            }
+            else if (type == "manager.taskenable")
+            {
+                TaskEnableStateData data = args as TaskEnableStateData;
+                DataExchange.PushTaskEnabledState(data);
+            }
+            else if (type == "nickname")
+            {
+                NicknamePacket data = args as NicknamePacket;
+                DataExchange.PushNewUsername(data.id, data.nickname);
+            }
+            else if (type == "tokens")
+            {
+                TokenPacket data = args as TokenPacket;
+                DataExchange.PushTokens(data.phpSessId, data.authToken, data.id);
             }
         }
     }

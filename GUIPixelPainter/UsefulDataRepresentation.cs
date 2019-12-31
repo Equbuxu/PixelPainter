@@ -24,19 +24,17 @@ namespace GUIPixelPainter
 
     public class UsefulUser
     {
-        public UsefulUser(Guid id, string authKey, string authToken, string phpSessId, string proxy)
+        public UsefulUser(Guid id, string authKey, string authToken, string phpSessId)
         {
             Id = id;
             AuthKey = authKey;
             AuthToken = authToken;
             PhpSessId = phpSessId;
-            Proxy = proxy;
         }
         public Guid Id { get; }
         public string AuthToken { get; }
         public string PhpSessId { get; }
         public string AuthKey { get; }
-        public string Proxy { get; }
     }
 
     public class UsefulPixel
@@ -207,7 +205,7 @@ namespace GUIPixelPainter
                 {
                     if (!user.Enabled || string.IsNullOrEmpty(user.PhpSessId) || string.IsNullOrEmpty(user.AuthKey) || string.IsNullOrEmpty(user.AuthToken))
                         continue;
-                    UsefulUser newUser = new UsefulUser(user.InternalId, user.AuthKey, user.AuthToken, user.PhpSessId, user.Proxy);
+                    UsefulUser newUser = new UsefulUser(user.InternalId, user.AuthKey, user.AuthToken, user.PhpSessId);
                     users.Add(newUser);
                 }
             }

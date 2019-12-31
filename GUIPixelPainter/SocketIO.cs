@@ -133,31 +133,28 @@ namespace GUIPixelPainter
             public int pingTimeout = 0;
         }
 
-        private static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private static readonly char[] characters = new char[] {
+        private readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        private readonly char[] characters = new char[] {
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
             'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
             'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
             'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '-', '_'
         };
-        private static readonly string urlBase = "https://canvas.pixelplace.io:7777/socket.io/?EIO=3&transport=polling&t=";
+        private const string urlBase = "https://canvas.pixelplace.io:7777/socket.io/?EIO=3&transport=polling&t=";
 
-        private int boardId;
-        private string authKey;
+        private readonly int boardId;
+        private readonly string authKey;
+        private readonly bool authenticate;
+
         private string authToken;
         private string phpSessId;
-        private string proxy;
 
-        private bool premium;
-        private string username;
-        private int pixelId;
-
-        public bool Premium { get { return premium; } }
-        public string Username { get { return username; } }
-        public int PixelId { get { return pixelId; } }
+        public bool Premium { get; private set; }
+        public string Username { get; private set; }
+        public int PixelId { get; private set; }
+        public Status Status { get; private set; }
 
         private string id;
-        private Status status;
         private Thread thread;
         private bool abortRequested = false;
 
@@ -166,51 +163,107 @@ namespace GUIPixelPainter
 
         private List<Tuple<Task<HttpResponseMessage>, bool>> tasks = new List<Tuple<Task<HttpResponseMessage>, bool>>();
         private HttpClient client;
+        private int updateResponsesRecieved;
 
-        public SocketIO(string authKey, string authToken, string phpSessId, int boardId, string proxy)
+        public SocketIO(string authKey, string authToken, string phpSessId, int boardId)
         {
             this.authKey = authKey;
             this.authToken = authToken;
             this.phpSessId = phpSessId;
             this.boardId = boardId;
-            this.proxy = proxy;
+
+            this.authenticate = true;
         }
 
-        public void StartConnect()
+        public SocketIO(int boardId)
         {
-            thread = new Thread(Connect);
+            this.boardId = boardId;
+            this.authenticate = false;
+        }
+
+        public void Connect()
+        {
+            thread = new Thread(StartConnecting);
             thread.Name = "SocketIO polling";
             thread.IsBackground = true;
             thread.Start();
         }
 
-        private void Connect()
+        public void Disconnect()
         {
-            if (status != Status.NOTOPEN)
+            if (Status == Status.OPEN || Status == Status.CONNECTING)
+                abortRequested = true;
+            else if (Status == Status.NOTOPEN)
+                throw new Exception("can't disconnect if there is no connection");
+            else if (Status == Status.CLOSEDDISCONNECT || Status == Status.CLOSEDERROR)
+                throw new Exception("already closed");
+        }
+
+
+        private void SendGetRequest(string address, bool isPollingRequest)
+        {
+            Task<HttpResponseMessage> task = client.GetAsync(address);
+            task.ContinueWith(OnTaskCompletion);
+            lock (tasks)
+                tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(task, isPollingRequest));
+        }
+
+        private void SendPostRequest(string address, string data, Action<Task> callback = null)
+        {
+            StringContent content = new StringContent(data);
+            Task<HttpResponseMessage> task = client.PostAsync(address, content);
+            task.ContinueWith(OnTaskCompletion);
+            if (callback != null)
+                task.ContinueWith(callback);
+            lock (tasks)
+                tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(task, false));
+        }
+
+        private void OnTaskCompletion(Task<HttpResponseMessage> task)
+        {
+            if (task.IsFaulted)
+            {
+                Console.WriteLine("Faulted task: {0}", task.Exception);
+                Status = Status.CLOSEDDISCONNECT;
+                abortRequested = true;
+                return;
+            }
+
+            string response = task.Result.Content.ReadAsStringAsync().Result;
+            if (response.Contains("Session ID unknown")) //HACK shouldnt be here
+            {
+                Console.WriteLine("Session ID unknown err");
+                Status = Status.CLOSEDDISCONNECT;
+                abortRequested = true;
+                return;
+            }
+            if (!ProcessMessage(response, task.Result.RequestMessage.RequestUri.ToString()))
+            {
+                Status = Status.CLOSEDERROR;
+                abortRequested = true;
+                return;
+            }
+        }
+
+        private void StartConnecting()
+        {
+            if (Status != Status.NOTOPEN)
                 throw new Exception("already connected");
-            status = Status.CONNECTING;
+            Status = Status.CONNECTING;
 
             CookieContainer cookies = new CookieContainer();
-            cookies.Add(new Cookie("PHPSESSID", phpSessId, "/", "pixelplace.io"));
-            cookies.Add(new Cookie("authKey", authKey, "/", "pixelplace.io"));
-            cookies.Add(new Cookie("authToken", authToken, "/", "pixelplace.io"));
-
-            HttpClientHandler handler;
-            if (string.IsNullOrWhiteSpace(proxy))
-                handler = new HttpClientHandler() { CookieContainer = cookies };
-            else
+            if (authenticate)
             {
-                handler = new HttpClientHandler()
-                {
-                    UseProxy = true,
-                    Proxy = new WebProxy(proxy)
-                };
+                cookies.Add(new Cookie("PHPSESSID", phpSessId, "/", "pixelplace.io"));
+                cookies.Add(new Cookie("authKey", authKey, "/", "pixelplace.io"));
+                cookies.Add(new Cookie("authToken", authToken, "/", "pixelplace.io"));
             }
+
+            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookies };
             client = new HttpClient(handler);
 
-
             ConnectSequence();
-            if (status == Status.CLOSEDDISCONNECT || status == Status.CLOSEDERROR)
+            if (Status == Status.CLOSEDDISCONNECT || Status == Status.CLOSEDERROR)
                 return;
 
             ConnectLoop();
@@ -220,195 +273,217 @@ namespace GUIPixelPainter
         {
             try
             {
-                //Get ID
-                {
-                    HttpResponseMessage resp = client.GetAsync(urlBase + CalcTime()).Result;
-                    string response = resp.Content.ReadAsStringAsync().Result;
-                    response = response.Remove(0, response.IndexOf('{'));
-                    int index = response.IndexOf('}');
-                    response = response.Remove(index + 1, response.Length - index - 1);
-                    IdResponce result = JsonConvert.DeserializeObject<IdResponce>(response);
-                    this.id = result.sid;
-                }
-                //Get premium status, username, new AuthToken and PHPSESSID
-                {
-                    var page = client.GetAsync("https://pixelplace.io/").Result;
+                HttpResponseMessage page = client.GetAsync("https://pixelplace.io/").Result;
+                MakeSidRequest();
 
-                    IEnumerable<string> values;
-                    if (page.Headers.TryGetValues("Set-Cookie", out values))
-                    {
-                        bool changed = false;
-                        foreach (string s in values)
-                        {
-                            if (s.StartsWith("authToken"))
-                            {
-                                string[] data = s.Split('=', ';');
-                                if (data[1] != authToken)
-                                {
-                                    changed = true;
-                                    authToken = data[1];
-                                }
-                            }
-                            else if (s.StartsWith("PHPSESSID"))
-                            {
-                                string[] data = s.Split('=', ';');
-                                if (data[1] != phpSessId)
-                                {
-                                    changed = true;
-                                    phpSessId = data[1];
-                                }
-                            }
-                        }
-                        if (changed)
-                        {
-                            TokenPacket packet = new TokenPacket() { authToken = authToken, phpSessId = phpSessId };
-                            OnEvent("tokens", packet);
-                        }
-                    }
-
+                if (authenticate)
+                {
+                    UpdateCookiesFromPage(page);
                     if (authToken == "deleted")
                     {
-                        status = Status.CLOSEDERROR;
+                        Status = Status.CLOSEDERROR;
                         return;
                     }
-
-                    string content = page.Content.ReadAsStringAsync().Result;
-                    int configStart = content.IndexOf(@"var CONFIG = {");
-                    int userStart = content.IndexOf("user: {", configStart);
-
-                    int idStart = content.IndexOf(@"id:", userStart);
-                    string idToken = content.Substring(idStart, content.IndexOf(',', idStart) - idStart);
-                    string idString = idToken.Substring(3, idToken.Length - 3);
-                    if (idString == "null")
-                    {
-                        status = Status.CLOSEDERROR;
-                        return;
-                    }
-                    pixelId = int.Parse(idString);
-
-                    int usernameStart = content.IndexOf(@"username:", userStart);
-                    string usernameToken = content.Substring(usernameStart, content.IndexOf(',', usernameStart) - usernameStart);
-                    username = usernameToken.Substring(11, usernameToken.Length - 12);
-
-                    int premiumStart = content.IndexOf(@"premium:", userStart);
-                    string premiumToken = content.Substring(premiumStart, content.IndexOf(',', premiumStart) + 1 - premiumStart);
-                    premium = premiumToken.Contains("true");
-
-                    Console.WriteLine("premium={0} ({1}) for {2}", premium, premiumToken, username);
-                    if (!premium)
-                    {
-                        int modStart = content.IndexOf(@"mod:", userStart);
-                        string modToken = content.Substring(modStart, content.IndexOf(',', modStart) + 1 - modStart);
-                        premium = modToken.Contains("true");
-
-                        Console.WriteLine("mod={1} ({0}) for {2}", modToken, premium, username);
-                    }
-
+                    ParsePremiumAndUsername(page);
+                    SendAuthKeyAuthToken();
                 }
-                //Send authKey and authToken
+                else
                 {
-                    StringBuilder sb = new StringBuilder();
-                    StringWriter sw = new StringWriter(sb);
-
-                    using (JsonWriter writer = new JsonTextWriter(sw))
-                    {
-                        writer.Formatting = Formatting.None;
-                        writer.WriteStartArray();
-                        writer.WriteValue("init");
-                        writer.WriteStartObject();
-                        writer.WritePropertyName("authKey");
-                        writer.WriteValue(authKey);
-                        writer.WritePropertyName("authToken");
-                        writer.WriteValue(authToken);
-                        writer.WritePropertyName("boardId");
-                        writer.WriteValue(boardId);
-                        writer.WriteEndObject();
-                        writer.WriteEnd();
-                    }
-                    string resultJson = sb.ToString();
-                    StringContent request = new StringContent((resultJson.Length + 2).ToString() + ":42" + resultJson);
-                    HttpResponseMessage response = client.PostAsync(urlBase + CalcTime() + "&sid=" + id, request).Result;
+                    SendEmptyInitRequest();
                 }
+
             }
             catch (HttpRequestException)
             {
-                status = Status.CLOSEDDISCONNECT;
+                Status = Status.CLOSEDDISCONNECT;
             }
             catch (AggregateException)
             {
-                status = Status.CLOSEDDISCONNECT;
+                Status = Status.CLOSEDDISCONNECT;
             }
+        }
+
+        private void UpdateCookiesFromPage(HttpResponseMessage page)
+        {
+            IEnumerable<string> values;
+            if (page.Headers.TryGetValues("Set-Cookie", out values))
+            {
+                bool changed = false;
+                foreach (string s in values)
+                {
+                    if (s.StartsWith("authToken"))
+                    {
+                        string[] data = s.Split('=', ';');
+                        if (data[1] != authToken)
+                        {
+                            changed = true;
+                            authToken = data[1];
+                        }
+                    }
+                    else if (s.StartsWith("PHPSESSID"))
+                    {
+                        string[] data = s.Split('=', ';');
+                        if (data[1] != phpSessId)
+                        {
+                            changed = true;
+                            phpSessId = data[1];
+                        }
+                    }
+                }
+                if (changed)
+                {
+                    TokenPacket packet = new TokenPacket() { authToken = authToken, phpSessId = phpSessId };
+                    OnEvent("tokens", packet);
+                }
+            }
+        }
+
+        private void ParsePremiumAndUsername(HttpResponseMessage page)
+        {
+            string content = page.Content.ReadAsStringAsync().Result;
+            int configStart = content.IndexOf(@"var CONFIG = {");
+            int userStart = content.IndexOf("user: {", configStart);
+
+            int idStart = content.IndexOf(@"id:", userStart);
+            string idToken = content.Substring(idStart, content.IndexOf(',', idStart) - idStart);
+            string idString = idToken.Substring(3, idToken.Length - 3);
+            if (idString == "null")
+            {
+                Status = Status.CLOSEDERROR;
+                return;
+            }
+            PixelId = int.Parse(idString);
+
+            int usernameStart = content.IndexOf(@"username:", userStart);
+            string usernameToken = content.Substring(usernameStart, content.IndexOf(',', usernameStart) - usernameStart);
+            Username = usernameToken.Substring(11, usernameToken.Length - 12);
+
+            int premiumStart = content.IndexOf(@"premium:", userStart);
+            string premiumToken = content.Substring(premiumStart, content.IndexOf(',', premiumStart) + 1 - premiumStart);
+            Premium = premiumToken.Contains("true");
+
+            Console.WriteLine("premium={0} ({1}) for {2}", Premium, premiumToken, Username);
+            if (!Premium)
+            {
+                int modStart = content.IndexOf(@"mod:", userStart);
+                string modToken = content.Substring(modStart, content.IndexOf(',', modStart) + 1 - modStart);
+                Premium = modToken.Contains("true");
+
+                Console.WriteLine("mod={1} ({0}) for {2}", modToken, Premium, Username);
+            }
+        }
+
+        private void MakeSidRequest()
+        {
+            HttpResponseMessage resp = client.GetAsync(urlBase + CalcTime()).Result;
+            string response = resp.Content.ReadAsStringAsync().Result;
+
+            response = response.Remove(0, response.IndexOf('{'));
+            int index = response.IndexOf('}');
+            response = response.Remove(index + 1, response.Length - index - 1);
+            IdResponce result = JsonConvert.DeserializeObject<IdResponce>(response);
+            id = result.sid;
+        }
+
+        private void SendAuthKeyAuthToken()
+        {
+            StringBuilder sb = new StringBuilder();
+            StringWriter sw = new StringWriter(sb);
+
+            using (JsonWriter writer = new JsonTextWriter(sw))
+            {
+                writer.Formatting = Formatting.None;
+                writer.WriteStartArray();
+                writer.WriteValue("init");
+                writer.WriteStartObject();
+                writer.WritePropertyName("authKey");
+                writer.WriteValue(authKey);
+                writer.WritePropertyName("authToken");
+                writer.WriteValue(authToken);
+                writer.WritePropertyName("boardId");
+                writer.WriteValue(boardId);
+                writer.WriteEndObject();
+                writer.WriteEnd();
+            }
+            string resultJson = sb.ToString();
+            StringContent request = new StringContent((resultJson.Length + 2).ToString() + ":42" + resultJson);
+            HttpResponseMessage response = client.PostAsync(urlBase + CalcTime() + "&sid=" + id, request).Result;
+        }
+
+        private void SendEmptyInitRequest()
+        {
+            StringBuilder sb = new StringBuilder();
+            StringWriter sw = new StringWriter(sb);
+
+            using (JsonWriter writer = new JsonTextWriter(sw))
+            {
+                writer.Formatting = Formatting.None;
+                writer.WriteStartArray();
+                writer.WriteValue("init");
+                writer.WriteStartObject();
+                writer.WritePropertyName("boardId");
+                writer.WriteValue(boardId);
+                writer.WriteEndObject();
+                writer.WriteEnd();
+            }
+            string resultJson = sb.ToString();
+            StringContent request = new StringContent((resultJson.Length + 2).ToString() + ":42" + resultJson);
+            HttpResponseMessage response = client.PostAsync(urlBase + CalcTime() + "&sid=" + id, request).Result;
         }
 
         private void ConnectLoop()
         {
-            status = Status.OPEN;
+            Status = Status.OPEN;
 
             DateTime lastUpdate;
 
-            int updateResponsesRecieved = 1;
+            updateResponsesRecieved = 1;
             int updateCount = 0;
             while (true)
             {
                 lastUpdate = DateTime.Now;
 
-                if (abortRequested || status != Status.OPEN)
+                if (abortRequested || Status != Status.OPEN)
                     return;
 
                 try
                 {
-                    //Process responses
-                    for (int i = tasks.Count - 1; i >= 0; i--)
-                    {
-                        if (!tasks[i].Item1.IsCompleted)
-                            continue;
-                        if (tasks[i].Item1.IsFaulted)
+                    //Look for completed polling requests
+                    lock (tasks)
+                        for (int i = tasks.Count - 1; i >= 0; i--)
                         {
-                            Console.WriteLine("Faulted task: {0}", tasks[i].Item1.Exception);
-                            status = Status.CLOSEDDISCONNECT;
-                            return;
+                            if (!tasks[i].Item1.IsCompleted)
+                                continue;
+                            if (tasks[i].Item2)
+                                updateResponsesRecieved++;
+                            tasks.RemoveAt(i);
                         }
-                        string response = tasks[i].Item1.Result.Content.ReadAsStringAsync().Result;
-                        if (response.Contains("Session ID unknown")) //HACK shouldnt be here
-                        {
-                            Console.WriteLine("Session ID unknown err");
-                            status = Status.CLOSEDDISCONNECT;
-                            return;
-                        }
-                        if (!ProcessMessage(response, tasks[i].Item1.Result.RequestMessage.RequestUri.ToString()))
-                        {
-                            status = Status.CLOSEDERROR;
-                            return;
-                        }
-
-                        if (tasks[i].Item2)
-                            updateResponsesRecieved++;
-                        tasks.RemoveAt(i);
-                    }
 
 
                     //Request update
                     if (updateResponsesRecieved > 0)
                     {
-                        tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.GetAsync(urlBase + CalcTime() + "&sid=" + id), true));
+                        //tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.GetAsync(urlBase + CalcTime() + "&sid=" + id), true));
+                        SendGetRequest(urlBase + CalcTime() + "&sid=" + id, true);
                         updateResponsesRecieved--;
                     }
 
                     //Ping
                     if (updateCount % 25 == 24)
                     {
-                        StringContent pingContent = new StringContent("1:2");
-                        tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, pingContent), false));
+                        //StringContent pingContent = new StringContent("1:2");
+                        //tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, pingContent), false));
+                        SendPostRequest(urlBase + CalcTime() + "&sid=" + id, "1:2");
                     }
                 }
                 catch (HttpRequestException)
                 {
-                    status = Status.CLOSEDDISCONNECT;
+                    Status = Status.CLOSEDDISCONNECT;
                     return;
                 }
                 catch (AggregateException)
                 {
-                    status = Status.CLOSEDDISCONNECT;
+                    Status = Status.CLOSEDDISCONNECT;
                     return;
                 }
 
@@ -420,37 +495,24 @@ namespace GUIPixelPainter
             }
         }
 
-        public Status GetStatus()
-        {
-            return status;
-        }
-
-        public void Disconnect()
-        {
-            if (status == Status.OPEN || status == Status.CONNECTING)
-                abortRequested = true;
-            else if (status == Status.NOTOPEN)
-                throw new Exception("can't disconnect if there is no connection");
-            else if (status == Status.CLOSEDDISCONNECT || status == Status.CLOSEDERROR)
-                throw new Exception("already closed");
-        }
-
         public bool SendNicknameRequest(int userId)
         {
-            if (status != Status.OPEN)
+            if (Status != Status.OPEN || !authenticate)
             {
                 Console.WriteLine("Failed to username request");
                 return false;
             }
 
+
             try
             {
-                tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.GetAsync("https://pixelplace.io/back/modalsV2.php?getUsernameById=true&id=" + userId), false));
+                //tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.GetAsync("https://pixelplace.io/back/modalsV2.php?getUsernameById=true&id=" + userId), false));
+                SendGetRequest("https://pixelplace.io/back/modalsV2.php?getUsernameById=true&id=" + userId, false);
                 Console.WriteLine("Requested {0}'s nickname", userId);
             }
             catch (HttpRequestException)
             {
-                status = Status.CLOSEDDISCONNECT;
+                Status = Status.CLOSEDDISCONNECT;
                 return false;
             }
             return true;
@@ -458,7 +520,7 @@ namespace GUIPixelPainter
 
         public bool SendPixels(IReadOnlyCollection<IdPixel> pixels, Action<Task> callback)
         {
-            if (status != Status.OPEN)
+            if (Status != Status.OPEN || !authenticate)
             {
                 Console.WriteLine("Failed to send pixels");
                 return false;
@@ -470,22 +532,20 @@ namespace GUIPixelPainter
                 string pixelMessage = String.Format("42[\"place\",{{\"x\":{0},\"y\":{1},\"c\":{2}}}]", pixel.X, pixel.Y, pixel.Color);
                 builder.Append(String.Format("{0}:{1}", pixelMessage.Length, pixelMessage));
             }
-            StringContent content = new StringContent(builder.ToString());
+            //StringContent content = new StringContent(builder.ToString());
             try
             {
-                Task<HttpResponseMessage> sent = client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content);
-                sent.ContinueWith(callback);
-                tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(sent, false));
+                SendPostRequest(urlBase + CalcTime() + "&sid=" + id, builder.ToString(), callback);
+                //Task<HttpResponseMessage> sent = client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content);
+                //sent.ContinueWith(callback);
+                //sent.ContinueWith(OnTaskCompletion);
+                //tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(sent, false));
                 Console.Write("Sent {0} pixels", pixels.Count);
-                foreach (IdPixel px in pixels)
-                {
-                    Console.Write("[{0}]", px.Color);
-                }
                 Console.Write("\n");
             }
             catch (HttpRequestException)
             {
-                status = Status.CLOSEDDISCONNECT;
+                Status = Status.CLOSEDDISCONNECT;
                 return false;
             }
             return true;
@@ -493,25 +553,38 @@ namespace GUIPixelPainter
 
         public bool SendChatMessage(string message, int color, int chat)
         {
-            if (status != Status.OPEN)
+            if (Status != Status.OPEN || !authenticate)
             {
                 Console.WriteLine("Failed to send chat message: {0}", message);
                 return false;
             }
 
+            Console.WriteLine(message);
             string data = String.Format("42[\"chat.message\",{{\"message\":\"{0}\",\"color\":{1},\"chat\":{2}}}]", message, color, chat);
             string packet = String.Format("{0}:{1}", data.Length, data);
-            StringContent content = new StringContent(packet);
+            //StringContent content = new StringContent(packet);
             try
             {
-                tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content), false));
+                SendPostRequest(urlBase + CalcTime() + "&sid=" + id, packet);
+                //tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content), false));
             }
             catch (HttpRequestException)
             {
-                status = Status.CLOSEDDISCONNECT;
+                Status = Status.CLOSEDDISCONNECT;
                 return false;
             }
             return true;
+        }
+
+        public bool TryPoll()
+        {
+            if (updateResponsesRecieved > 0)
+            {
+                SendGetRequest(urlBase + CalcTime() + "&sid=" + id, true);
+                updateResponsesRecieved--;
+                return true;
+            }
+            return false;
         }
 
         private string CalcTime()
@@ -538,7 +611,7 @@ namespace GUIPixelPainter
                 string suc = data.Substring(11, 5);
                 if (suc == "false")
                 {
-                    premium = false;
+                    Premium = false;
                     Console.WriteLine("failed to get username, no premium");
                     return true;
                 }
@@ -608,7 +681,7 @@ namespace GUIPixelPainter
                         {
                             foreach (PixelPacket pixel in pixels)
                             {
-                                pixel.socketUserId = pixelId;
+                                pixel.socketUserId = PixelId;
                                 OnEvent("pixels", pixel);
                             }
                         }
