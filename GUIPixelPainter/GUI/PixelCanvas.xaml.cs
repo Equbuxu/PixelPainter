@@ -111,7 +111,7 @@ namespace GUIPixelPainter.GUI
 
                 canvasId = id;
                 bool success = false;
-                Console.WriteLine("loading canvas {0} in PixelCanvas", id);
+                Logger.Info("Loading canvas {0} in PixelCanvas", id);
 
                 System.Net.WebResponse response = null;
                 System.IO.Stream responseStream = null;
@@ -130,7 +130,7 @@ namespace GUIPixelPainter.GUI
                 }
                 catch (System.Net.WebException)
                 {
-                    Console.WriteLine("could not load canvas in pixelcanvas");
+                    Logger.Warning("Could not load canvas in pixelcanvas");
                     responseStream?.Dispose();
                 }
 

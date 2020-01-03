@@ -107,8 +107,8 @@ namespace GUIPixelPainter
             lock (queue) queueCount = queue.Count;
             if (queueCount == 0 || server.Status != Status.OPEN)
             {
-                Thread.Sleep(packetDelay);
-                //Thread.Sleep(10);
+                //Thread.Sleep(packetDelay);
+                Thread.Sleep(10);
                 return false;
             }
 
@@ -132,12 +132,11 @@ namespace GUIPixelPainter
             if (server.Status == Status.OPEN)
             {
                 server.SendPixels(toPlace, SendCallback);
-                //server.TryPoll();
                 packetSent.WaitOne();
                 lastRecieveTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
             }
             else
-                Console.WriteLine("Failed to send pixels");
+                Logger.Warning("Failed to send pixels");
             return true;
         }
 

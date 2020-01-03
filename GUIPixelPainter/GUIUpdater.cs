@@ -49,11 +49,15 @@ namespace GUIPixelPainter
 
         public void PushEvent(string type, EventArgs args)
         {
-            App.Current.Dispatcher.InvokeAsync(() =>
+            try
             {
-                ProcessEvent(type, args);
+                App.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    ProcessEvent(type, args);
+                }
+                );
             }
-            );
+            catch (NullReferenceException) { }
         }
 
         public void Update()
@@ -96,7 +100,7 @@ namespace GUIPixelPainter
                 if (!palette.ContainsKey(boardId))
                     boardId = 7;
                 Color actualColor = palette[boardId][pixel.color];
-                DataExchange.PushPixel(pixel.x, pixel.y, actualColor, pixel.boardId, pixel.userId, pixel.userId == pixel.socketUserId);
+                DataExchange.PushPixel(pixel.x, pixel.y, actualColor, pixel.boardId, pixel.userId, pixel.instantPixel);
             }
             else if (type == "manager.status")
             {

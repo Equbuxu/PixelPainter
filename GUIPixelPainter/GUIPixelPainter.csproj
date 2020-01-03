@@ -95,6 +95,7 @@
     <Compile Include="GUI\PixelCanvas.xaml.cs">
       <DependentUpon>PixelCanvas.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Logger.cs" />
     <Compile Include="OrderedSet.cs" />
     <Compile Include="PlacementBehaviour.cs" />
     <Compile Include="SocketIO.cs" />

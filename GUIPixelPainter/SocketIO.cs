@@ -93,11 +93,11 @@ namespace GUIPixelPainter
         [JsonProperty(PropertyName = "b")]
         public int boardId = 0;
         [JsonIgnore]
-        public int socketUserId = 0;
+        public bool instantPixel = false;
 
         public override int GetHashCode()
         {
-            return x.GetHashCode() ^ y.GetHashCode() ^ color.GetHashCode() ^ userId.GetHashCode() ^ boardId.GetHashCode() ^ socketUserId.GetHashCode();
+            return x.GetHashCode() ^ y.GetHashCode() ^ color.GetHashCode() ^ userId.GetHashCode() ^ boardId.GetHashCode() ^ instantPixel.GetHashCode();
         }
 
         public override bool Equals(object obj)
@@ -120,6 +120,28 @@ namespace GUIPixelPainter
         public int Color { get; }
         public int X { get; }
         public int Y { get; }
+    }
+
+    class LockBool
+    {
+        private bool val;
+        public bool Value
+        {
+            set
+            {
+                lock (this)
+                    val = value;
+            }
+            get
+            {
+                lock (this)
+                    return val;
+            }
+        }
+        public LockBool(bool value)
+        {
+            Value = value;
+        }
     }
 
     //TODO make disposable to get rid of the client
@@ -156,14 +178,17 @@ namespace GUIPixelPainter
 
         private string id;
         private Thread thread;
-        private bool abortRequested = false;
+        private LockBool saveNextPoll = new LockBool(false);
+        private LockBool abortRequested = new LockBool(false);
+        private LockBool canSendRequest = new LockBool(true);
+        private Task<HttpResponseMessage> pollingTask;
+        private StringBuilder messageQueue = new StringBuilder();
+        private List<Action<Task<HttpResponseMessage>>> callbackQueue = new List<Action<Task<HttpResponseMessage>>>();
 
         public event OnEventHandler OnEvent;
         public delegate void OnEventHandler(string type, EventArgs args);
 
-        private List<Tuple<Task<HttpResponseMessage>, bool>> tasks = new List<Tuple<Task<HttpResponseMessage>, bool>>();
         private HttpClient client;
-        private int updateResponsesRecieved;
 
         public SocketIO(string authKey, string authToken, string phpSessId, int boardId)
         {
@@ -192,7 +217,7 @@ namespace GUIPixelPainter
         public void Disconnect()
         {
             if (Status == Status.OPEN || Status == Status.CONNECTING)
-                abortRequested = true;
+                abortRequested.Value = true;
             else if (Status == Status.NOTOPEN)
                 throw new Exception("can't disconnect if there is no connection");
             else if (Status == Status.CLOSEDDISCONNECT || Status == Status.CLOSEDERROR)
@@ -200,23 +225,23 @@ namespace GUIPixelPainter
         }
 
 
-        private void SendGetRequest(string address, bool isPollingRequest)
+        private Task<HttpResponseMessage> SendGetRequest(string address)
         {
             Task<HttpResponseMessage> task = client.GetAsync(address);
             task.ContinueWith(OnTaskCompletion);
-            lock (tasks)
-                tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(task, isPollingRequest));
+            return task;
         }
 
-        private void SendPostRequest(string address, string data, Action<Task> callback = null)
+        private void SendPostRequest(string address, string data, List<Action<Task<HttpResponseMessage>>> additionalCallbacks = null)
         {
             StringContent content = new StringContent(data);
             Task<HttpResponseMessage> task = client.PostAsync(address, content);
             task.ContinueWith(OnTaskCompletion);
-            if (callback != null)
-                task.ContinueWith(callback);
-            lock (tasks)
-                tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(task, false));
+            if (additionalCallbacks != null)
+            {
+                foreach (var callback in additionalCallbacks)
+                    task.ContinueWith(callback);
+            }
         }
 
         private void OnTaskCompletion(Task<HttpResponseMessage> task)
@@ -224,27 +249,41 @@ namespace GUIPixelPainter
             if (task.IsFaulted)
             {
                 string message = task.Exception.ToString();
-                if (message.Length > 20)
-                    message = message.Substring(0, 20);
-                Console.WriteLine("Faulted task for {1}: {0}", message, Username);
+                if (message.Length > 120)
+                    message = message.Substring(0, 120);
+                Logger.Error("Faulted task for {1}: {0}", message, Username);
                 Status = Status.CLOSEDDISCONNECT;
-                abortRequested = true;
+                abortRequested.Value = true;
                 return;
             }
 
             string response = task.Result.Content.ReadAsStringAsync().Result;
             if (response.Contains("Session ID unknown")) //HACK shouldnt be here
             {
-                Console.WriteLine("Session ID unknown err for {0}", Username);
+                Logger.Warning("Session ID unknown err for {0}", Username);
                 Status = Status.CLOSEDDISCONNECT;
-                abortRequested = true;
+                abortRequested.Value = true;
                 return;
             }
+
             if (!ProcessMessage(response, task.Result.RequestMessage.RequestUri.ToString()))
             {
                 Status = Status.CLOSEDERROR;
-                abortRequested = true;
+                abortRequested.Value = true;
                 return;
+            }
+
+            if (!abortRequested.Value && task == pollingTask)
+            {
+                task.Dispose();
+                pollingTask = SendGetRequest(urlBase + CalcTime() + "&sid=" + id);
+                canSendRequest.Value = true;
+                if (messageQueue.Length > 0)
+                    TrySendRequest("");
+            }
+            else
+            {
+                task.Dispose();
             }
         }
 
@@ -365,14 +404,14 @@ namespace GUIPixelPainter
             string premiumToken = content.Substring(premiumStart, content.IndexOf(',', premiumStart) + 1 - premiumStart);
             Premium = premiumToken.Contains("true");
 
-            Console.WriteLine("premium={0} ({1}) for {2}", Premium, premiumToken, Username);
+            Logger.Info("premium={0} ({1}) for {2}", Premium, premiumToken, Username);
             if (!Premium)
             {
                 int modStart = content.IndexOf(@"mod:", userStart);
                 string modToken = content.Substring(modStart, content.IndexOf(',', modStart) + 1 - modStart);
                 Premium = modToken.Contains("true");
 
-                Console.WriteLine("mod={1} ({0}) for {2}", modToken, Premium, Username);
+                Logger.Info("mod={1} ({0}) for {2}", modToken, Premium, Username);
             }
         }
 
@@ -437,47 +476,17 @@ namespace GUIPixelPainter
         private void ConnectLoop()
         {
             Status = Status.OPEN;
+            pollingTask = SendGetRequest(urlBase + CalcTime() + "&sid=" + id);
 
-            DateTime lastUpdate;
-
-            updateResponsesRecieved = 1;
-            int updateCount = 0;
             while (true)
             {
-                lastUpdate = DateTime.Now;
-
-                if (abortRequested || Status != Status.OPEN)
+                if (abortRequested.Value || Status != Status.OPEN)
                     return;
 
                 try
                 {
-                    //Look for completed polling requests
-                    lock (tasks)
-                        for (int i = tasks.Count - 1; i >= 0; i--)
-                        {
-                            if (!tasks[i].Item1.IsCompleted)
-                                continue;
-                            if (tasks[i].Item2)
-                                updateResponsesRecieved++;
-                            tasks.RemoveAt(i);
-                        }
-
-
-                    //Request update
-                    if (updateResponsesRecieved > 0)
-                    {
-                        //tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.GetAsync(urlBase + CalcTime() + "&sid=" + id), true));
-                        SendGetRequest(urlBase + CalcTime() + "&sid=" + id, true);
-                        updateResponsesRecieved--;
-                    }
-
                     //Ping
-                    if (updateCount % 25 == 24)
-                    {
-                        //StringContent pingContent = new StringContent("1:2");
-                        //tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, pingContent), false));
-                        SendPostRequest(urlBase + CalcTime() + "&sid=" + id, "1:2");
-                    }
+                    SendPostRequest(urlBase + CalcTime() + "&sid=" + id, "1:2");
                 }
                 catch (HttpRequestException)
                 {
@@ -490,11 +499,24 @@ namespace GUIPixelPainter
                     return;
                 }
 
-                updateCount++;
+                Thread.Sleep(25000);
+            }
+        }
 
-                int delay = 500 - (DateTime.Now - lastUpdate).Milliseconds;
-                if (delay > 0)
-                    Thread.Sleep(delay);
+        private void TrySendRequest(string packet, Action<Task<HttpResponseMessage>> callback = null)
+        {
+            lock (messageQueue)
+            {
+                messageQueue.Append(packet);
+                if (callback != null)
+                    callbackQueue.Add(callback);
+                if (canSendRequest.Value)
+                {
+                    SendPostRequest(urlBase + CalcTime() + "&sid=" + id, messageQueue.ToString(), callbackQueue);
+                    messageQueue.Clear();
+                    callbackQueue.Clear();
+                    canSendRequest.Value = false;
+                }
             }
         }
 
@@ -502,16 +524,14 @@ namespace GUIPixelPainter
         {
             if (Status != Status.OPEN || !authenticate)
             {
-                Console.WriteLine("Failed to request username ({0})", Username);
+                Logger.Warning("Failed to request username ({0})", Username);
                 return false;
             }
 
-
             try
             {
-                //tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.GetAsync("https://pixelplace.io/back/modalsV2.php?getUsernameById=true&id=" + userId), false));
-                SendGetRequest("https://pixelplace.io/back/modalsV2.php?getUsernameById=true&id=" + userId, false);
-                Console.WriteLine("Requested {0}'s nickname (using {1})", userId, Username);
+                SendGetRequest("https://pixelplace.io/back/modalsV2.php?getUsernameById=true&id=" + userId);
+                Logger.Info("Requested {0}'s nickname (using {1})", userId, Username);
             }
             catch (HttpRequestException)
             {
@@ -521,11 +541,11 @@ namespace GUIPixelPainter
             return true;
         }
 
-        public bool SendPixels(IReadOnlyCollection<IdPixel> pixels, Action<Task> callback)
+        public bool SendPixels(IReadOnlyCollection<IdPixel> pixels, Action<Task<HttpResponseMessage>> callback)
         {
             if (Status != Status.OPEN || !authenticate)
             {
-                Console.WriteLine("Failed to send pixels for {0}", Username);
+                Logger.Warning("Failed to send pixels for {0}", Username);
                 return false;
             }
 
@@ -535,16 +555,12 @@ namespace GUIPixelPainter
                 string pixelMessage = String.Format("42[\"place\",{{\"x\":{0},\"y\":{1},\"c\":{2}}}]", pixel.X, pixel.Y, pixel.Color);
                 builder.Append(String.Format("{0}:{1}", pixelMessage.Length, pixelMessage));
             }
-            //StringContent content = new StringContent(builder.ToString());
             try
             {
-                SendPostRequest(urlBase + CalcTime() + "&sid=" + id, builder.ToString(), callback);
-                //Task<HttpResponseMessage> sent = client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content);
-                //sent.ContinueWith(callback);
-                //sent.ContinueWith(OnTaskCompletion);
-                //tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(sent, false));
-                Console.Write("Sent {0} pixels for {1}", pixels.Count, Username);
-                Console.Write("\n");
+                TrySendRequest(builder.ToString(), callback);
+                saveNextPoll.Value = true;
+                //SendPostRequest(urlBase + CalcTime() + "&sid=" + id, builder.ToString(), callback);
+                Logger.Info("Sent {0} pixels for {1}", pixels.Count, Username);
             }
             catch (HttpRequestException)
             {
@@ -558,7 +574,7 @@ namespace GUIPixelPainter
         {
             if (Status != Status.OPEN || !authenticate)
             {
-                Console.WriteLine("Failed to send chat message for {1}: {0}", message, Username);
+                Logger.Warning("Failed to send chat message for {1}: {0}", message, Username);
                 return false;
             }
 
@@ -567,7 +583,8 @@ namespace GUIPixelPainter
             //StringContent content = new StringContent(packet);
             try
             {
-                SendPostRequest(urlBase + CalcTime() + "&sid=" + id, packet);
+                TrySendRequest(packet);
+                //SendPostRequest(urlBase + CalcTime() + "&sid=" + id, packet);
                 //tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.PostAsync(urlBase + CalcTime() + "&sid=" + id, content), false));
             }
             catch (HttpRequestException)
@@ -576,17 +593,6 @@ namespace GUIPixelPainter
                 return false;
             }
             return true;
-        }
-
-        public bool TryPoll()
-        {
-            if (updateResponsesRecieved > 0)
-            {
-                SendGetRequest(urlBase + CalcTime() + "&sid=" + id, true);
-                updateResponsesRecieved--;
-                return true;
-            }
-            return false;
         }
 
         private string CalcTime()
@@ -605,48 +611,85 @@ namespace GUIPixelPainter
 
         private bool ProcessMessage(string data, string requestUri)
         {
+            bool saveNext = saveNextPoll.Value;
             if (data.Contains("\"success\"") && data.Contains("\"data\""))
-            {
-                int id = int.Parse(requestUri.Substring(requestUri.LastIndexOf("=") + 1));
-
-                //username request response
-                string suc = data.Substring(11, 5);
-                if (suc == "false")
-                {
-                    Premium = false;
-                    Console.WriteLine("Failed to get username, no premium for {0}", Username);
-                    return true;
-                }
-                if (data.Contains("User not found"))
-                {
-                    Console.WriteLine("Failed to get username, user not found (req:{0} using:{1})", id, Username);
-                    return true;
-                }
-                else if (data.Contains("You need to be connected"))
-                {
-                    Console.WriteLine("Failed to get username, you need to be connected for {0}", Username);
-                    return true;
-                }
-
-                int startPos = data.IndexOf("\"username\":\"") + 1 + 11;
-                int endPos = data.IndexOf("\"}}");
-                if (endPos == -1)
-                {
-                    Console.WriteLine("failed to get username, parsing error for {0}, response: {1}", Username, data);
-                    return true;
-                }
-                string name = data.Substring(startPos, endPos - startPos);
-                NicknamePacket packet = new NicknamePacket() { nickname = name, id = id };
-                OnEvent("nickname", packet);
-                return true;
-            }
+                return ProcessUsernameResponce(data, requestUri);
 
             if (!data.Contains('['))
             {
+                //"ok" responce
                 return true;
             }
 
+            List<string> packets = SplitIntoPackets(data);
+
+            bool success = true;
+            foreach (string packet in packets)
+            {
+                JArray objects = JArray.Parse(packet);
+
+                switch (objects[0].ToString())
+                {
+                    case "canvas":
+                    case "pixels":
+                        string type = objects[0].ToString();
+                        List<PixelPacket> pixels = objects[1].ToObject<List<PixelPacket>>();
+                        if (OnEvent != null)
+                        {
+                            foreach (PixelPacket pixel in pixels)
+                            {
+                                pixel.instantPixel = saveNext;
+                                OnEvent("pixels", pixel);
+                            }
+                        }
+                        break;
+                    case "cooldown":
+                        OnEvent?.Invoke("cooldown", null);
+                        break;
+                    case "protection":
+                        OnEvent?.Invoke("protection", null);
+                        break;
+                    case "canvas.access.requested":
+                        break;
+                    case "canvas.alert":
+                        break;
+                    case "throw.error":
+                        int errorId = objects[1].ToObject<int>();
+                        if (OnEvent != null)
+                        {
+                            ErrorPacket eventArgs = new ErrorPacket();
+                            eventArgs.id = errorId;
+                            OnEvent("throw.error", eventArgs);
+                            Logger.Error("Error {0} for {1}", errorId, Username);
+                        }
+                        if (errorId == 0 || errorId == 1 || errorId == 2 || errorId == 6 || errorId == 7 || errorId == 9 || errorId == 10 || errorId == 18 || errorId == 19 || errorId == 20)
+                        {
+                            Logger.Error("Site error {0} for {1}", errorId, Username);
+                            success = false;
+                        }
+                        break;
+                    case "chat.user.message":
+                        ChatMessagePacket message = objects[1].ToObject<ChatMessagePacket>();
+                        OnEvent?.Invoke("chat.user.message", message);
+                        break;
+                    case "chat.system.message":
+                        break;
+                    case "chat.system.delete":
+                        break;
+                    case "chat.system.announce":
+                        break;
+                }
+            }
+            if (saveNext)
+                saveNextPoll.Value = false;
+
+            return success;
+        }
+
+        private List<string> SplitIntoPackets(string data)
+        {
             List<string> packets = new List<string>();
+
             if (data.IndexOf('[') > data.IndexOf(':') && data.Contains(':'))
             {
                 while (data.Length > 0)
@@ -675,66 +718,42 @@ namespace GUIPixelPainter
                 packets.Add(data.Substring(leftmost));
             }
 
-            foreach (string packet in packets)
-            {
-                JArray objects = JArray.Parse(packet);
+            return packets;
+        }
 
-                switch (objects[0].ToString())
-                {
-                    case "canvas":
-                    case "pixels":
-                        string type = objects[0].ToString();
-                        List<PixelPacket> pixels = objects[1].ToObject<List<PixelPacket>>();
-                        if (OnEvent != null)
-                        {
-                            foreach (PixelPacket pixel in pixels)
-                            {
-                                pixel.socketUserId = PixelId;
-                                OnEvent("pixels", pixel);
-                            }
-                        }
-                        break;
-                    case "cooldown":
-                        OnEvent?.Invoke("cooldown", null);
-                        break;
-                    case "protection":
-                        OnEvent?.Invoke("protection", null);
-                        break;
-                    case "canvas.access.requested":
-                        break;
-                    case "canvas.alert":
-                        break;
-                    case "throw.error":
-                        int errorId = objects[1].ToObject<int>();
-                        if (OnEvent != null)
-                        {
-                            ErrorPacket eventArgs = new ErrorPacket();
-                            eventArgs.id = errorId;
-                            OnEvent("throw.error", eventArgs);
-                            Console.WriteLine("Error {0} for {1}", errorId, Username);
-                        }
-                        if (errorId == 0 || errorId == 1 || errorId == 2 || errorId == 6 || errorId == 7 || errorId == 9 || errorId == 10 || errorId == 18 || errorId == 19 || errorId == 20)
-                        {
-                            Console.WriteLine("\a");
-                            Console.WriteLine("Site error {0} for {1}", errorId, Username);
-                            return false;
-                        }
-                        break;
-                    case "chat.user.message":
-                        ChatMessagePacket message = objects[1].ToObject<ChatMessagePacket>();
-                        if (OnEvent != null)
-                        {
-                            OnEvent("chat.user.message", message);
-                        }
-                        break;
-                    case "chat.system.message":
-                        break;
-                    case "chat.system.delete":
-                        break;
-                    case "chat.system.announce":
-                        break;
-                }
+        public bool ProcessUsernameResponce(string data, string requestUri)
+        {
+            int id = int.Parse(requestUri.Substring(requestUri.LastIndexOf("=") + 1));
+
+            //username request response
+            string suc = data.Substring(11, 5);
+            if (suc == "false")
+            {
+                Premium = false;
+                Logger.Error("Failed to get username, no premium for {0}", Username);
+                return true;
             }
+            if (data.Contains("User not found"))
+            {
+                Logger.Error("Failed to get username, user not found (req:{0} using:{1})", id, Username);
+                return true;
+            }
+            else if (data.Contains("You need to be connected"))
+            {
+                Logger.Error("Failed to get username, you need to be connected for {0}", Username);
+                return true;
+            }
+
+            int startPos = data.IndexOf("\"username\":\"") + 1 + 11;
+            int endPos = data.IndexOf("\"}}");
+            if (endPos == -1)
+            {
+                Logger.Error("Failed to get username, parsing error for {0}, response: {1}", Username, data);
+                return true;
+            }
+            string name = data.Substring(startPos, endPos - startPos);
+            NicknamePacket packet = new NicknamePacket() { nickname = name, id = id };
+            OnEvent?.Invoke("nickname", packet);
             return true;
         }
     }

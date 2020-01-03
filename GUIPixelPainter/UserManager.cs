@@ -195,7 +195,7 @@ namespace GUIPixelPainter
             {
                 if ((users[i].Id != Guid.Empty && guiData.Users.Where((a) => a.Id == users[i].Id).Count() == 0) || users[i].Client.Status == Status.CLOSEDDISCONNECT)
                 {
-                    Console.WriteLine("{0} disconnected", users[i].Client.Username);
+                    Logger.Info("{0} disconnected", users[i].Client.Username);
                     if (users[i].Session != null)
                     {
                         users[i].Session.ClearQueue();
@@ -214,7 +214,7 @@ namespace GUIPixelPainter
             {
                 if (users.Find((a) => a.Id == user.Id) == null)
                 {
-                    Console.WriteLine("User connected, there was {0} users in total", users.Count);
+                    Logger.Info("User connected, there was {0} users in total", users.Count);
                     SocketIO server = CreateSocketIO(user);
                     server.Connect();
                     UserSession newUser = new UserSession(server);
@@ -226,7 +226,7 @@ namespace GUIPixelPainter
             }
             if (users.Find(a => a.Id == Guid.Empty) == null)
             {
-                Console.WriteLine("Unauthenticated user connected, there was {0} users in total", users.Count);
+                Logger.Info("Unauthenticated user connected, there was {0} users in total", users.Count);
                 SocketIO server = CreateSocketIO();
                 server.Connect();
                 Connection connection = new Connection(server, null, Guid.Empty);
@@ -270,7 +270,8 @@ namespace GUIPixelPainter
                     {
                         foreach (Connection user in users)
                         {
-                            user.Session.ClearQueue();
+                            if (user.Session != null)
+                                user.Session.ClearQueue();
                         }
                         latestGUIEvents.RemoveAt(i);
                     }
@@ -306,18 +307,22 @@ namespace GUIPixelPainter
         private void ChangeCanvas()
         {
             curCanvas = guiData.CanvasId;
-            Console.WriteLine("loading canvas {0} in UserManager", curCanvas);
+            Logger.Info("Loading canvas {0} in UserManager", curCanvas);
 
             //Disconnect everyone
             for (int i = users.Count - 1; i >= 0; i--)
             {
-                Console.WriteLine("user connection removed");
-                users[i].Session.ClearQueue();
-                users[i].Session.Close();
+                Logger.Info("{0} disconnected", users[i].Client.Username);
+                if (users[i].Session != null)
+                {
+                    users[i].Session.ClearQueue();
+                    users[i].Session.Close();
+                }
                 if (users[i].Client.Status != Status.CLOSEDERROR && users[i].Client.Status != Status.CLOSEDDISCONNECT)
                 {
                     users[i].Client.Disconnect();
-                    guiUpdater.PushEvent("manager.status", new UserStatusData(users[i].Id, Status.NOTOPEN));
+                    if (users[i].Id != Guid.Empty)
+                        guiUpdater.PushEvent("manager.status", new UserStatusData(users[i].Id, Status.NOTOPEN));
                 }
                 users.RemoveAt(i);
             }
@@ -334,7 +339,7 @@ namespace GUIPixelPainter
             }
             catch (System.Net.WebException)
             {
-                Console.WriteLine("invalid canvas in usermanager");
+                Logger.Error("Invalid canvas in usermanager");
                 return;
             }
 
@@ -355,7 +360,7 @@ namespace GUIPixelPainter
             eventsToProcess.Clear();
             ChangePlacementBehaviour();
 
-            Console.WriteLine("UserManager canvas loading finished");
+            Logger.Info("UserManager canvas loading finished");
         }
 
         private void ChangePlacementBehaviour()
@@ -398,8 +403,10 @@ namespace GUIPixelPainter
 
                 if (type == "throw.error" && (args as ErrorPacket).id == 11)
                 {
-                    users.Where((a) => a.Id == user).FirstOrDefault()?.Session.Stall(1000);
-                    Console.WriteLine("stall");
+                    var entry = users.Where((a) => a.Id == user).FirstOrDefault();
+                    entry?.Session.Stall(1000);
+                    if (entry != null)
+                        Logger.Warning("Stalling {0} for 1000 ms", entry.Client.Username);
                 }
 
                 if (type == "tokens")
@@ -415,18 +422,19 @@ namespace GUIPixelPainter
                 if (curactive.Count == 0 || curactive[0].Client.Status != Status.OPEN)
                 {
                     currentActiveUser = user;
-                    Console.WriteLine("Listening to {0}", user);
+                    Logger.Info("Listening to {0}", user);
                 }
-                else
+                else if (!(type == "pixels" && (args as PixelPacket).instantPixel))
                 {
                     return;
                 }
             }
 
-            if (type == "pixels" && placementBehaviour.GetMode() == PlacementMode.TOPDOWN)
+            if (type == "pixels")
             {
                 PixelPacket px = args as PixelPacket;
-                (placementBehaviour as TopDownPlacementBehaviour).ResetResendDelay(px.x, px.y);
+                if (placementBehaviour.GetMode() == PlacementMode.TOPDOWN)
+                    (placementBehaviour as TopDownPlacementBehaviour).ResetResendDelay(px.x, px.y);
             }
 
             lock (eventsToProcess)

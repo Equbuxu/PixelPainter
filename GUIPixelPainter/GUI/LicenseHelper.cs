@@ -24,7 +24,7 @@ namespace GUIPixelPainter.GUI
             string mbid = GetMotherboardId();
 
             string result = String.Format("cpu: {0}\ndrive: {1}\ngpu: {2}\nmotherboard: {3}", cpuid, diskid, videoid, mbid);
-            Console.WriteLine(result);
+            Logger.Info(result);
 
             byte[] buffer = Encoding.Default.GetBytes(result);
             string hexString;

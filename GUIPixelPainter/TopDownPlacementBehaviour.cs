@@ -42,11 +42,10 @@ namespace GUIPixelPainter
 
             if (userNumber == 0)
             {
-                //Console.WriteLine("Itercount is now {0}", iterCount);
                 iterCount++;
             }
             if (queue.Count != 0)
-                Console.WriteLine("Made a queue of {0} pixels", queue.Count);
+                Logger.Info("Made a queue of {0} pixels", queue.Count);
             return queue;
         }
 
