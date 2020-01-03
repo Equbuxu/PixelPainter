@@ -223,7 +223,10 @@ namespace GUIPixelPainter
         {
             if (task.IsFaulted)
             {
-                Console.WriteLine("Faulted task: {0}", task.Exception);
+                string message = task.Exception.ToString();
+                if (message.Length > 20)
+                    message = message.Substring(0, 20);
+                Console.WriteLine("Faulted task for {1}: {0}", message, Username);
                 Status = Status.CLOSEDDISCONNECT;
                 abortRequested = true;
                 return;
@@ -232,7 +235,7 @@ namespace GUIPixelPainter
             string response = task.Result.Content.ReadAsStringAsync().Result;
             if (response.Contains("Session ID unknown")) //HACK shouldnt be here
             {
-                Console.WriteLine("Session ID unknown err");
+                Console.WriteLine("Session ID unknown err for {0}", Username);
                 Status = Status.CLOSEDDISCONNECT;
                 abortRequested = true;
                 return;
@@ -489,7 +492,7 @@ namespace GUIPixelPainter
 
                 updateCount++;
 
-                int delay = 1000 - (DateTime.Now - lastUpdate).Milliseconds;
+                int delay = 500 - (DateTime.Now - lastUpdate).Milliseconds;
                 if (delay > 0)
                     Thread.Sleep(delay);
             }
@@ -499,7 +502,7 @@ namespace GUIPixelPainter
         {
             if (Status != Status.OPEN || !authenticate)
             {
-                Console.WriteLine("Failed to username request");
+                Console.WriteLine("Failed to request username ({0})", Username);
                 return false;
             }
 
@@ -508,7 +511,7 @@ namespace GUIPixelPainter
             {
                 //tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(client.GetAsync("https://pixelplace.io/back/modalsV2.php?getUsernameById=true&id=" + userId), false));
                 SendGetRequest("https://pixelplace.io/back/modalsV2.php?getUsernameById=true&id=" + userId, false);
-                Console.WriteLine("Requested {0}'s nickname", userId);
+                Console.WriteLine("Requested {0}'s nickname (using {1})", userId, Username);
             }
             catch (HttpRequestException)
             {
@@ -522,7 +525,7 @@ namespace GUIPixelPainter
         {
             if (Status != Status.OPEN || !authenticate)
             {
-                Console.WriteLine("Failed to send pixels");
+                Console.WriteLine("Failed to send pixels for {0}", Username);
                 return false;
             }
 
@@ -540,7 +543,7 @@ namespace GUIPixelPainter
                 //sent.ContinueWith(callback);
                 //sent.ContinueWith(OnTaskCompletion);
                 //tasks.Add(new Tuple<Task<HttpResponseMessage>, bool>(sent, false));
-                Console.Write("Sent {0} pixels", pixels.Count);
+                Console.Write("Sent {0} pixels for {1}", pixels.Count, Username);
                 Console.Write("\n");
             }
             catch (HttpRequestException)
@@ -555,11 +558,10 @@ namespace GUIPixelPainter
         {
             if (Status != Status.OPEN || !authenticate)
             {
-                Console.WriteLine("Failed to send chat message: {0}", message);
+                Console.WriteLine("Failed to send chat message for {1}: {0}", message, Username);
                 return false;
             }
 
-            Console.WriteLine(message);
             string data = String.Format("42[\"chat.message\",{{\"message\":\"{0}\",\"color\":{1},\"chat\":{2}}}]", message, color, chat);
             string packet = String.Format("{0}:{1}", data.Length, data);
             //StringContent content = new StringContent(packet);
@@ -612,19 +614,25 @@ namespace GUIPixelPainter
                 if (suc == "false")
                 {
                     Premium = false;
-                    Console.WriteLine("failed to get username, no premium");
+                    Console.WriteLine("Failed to get username, no premium for {0}", Username);
                     return true;
                 }
-                if (data.Contains("User not found") || data.Contains("You need to be connected"))
+                if (data.Contains("User not found"))
                 {
-                    Console.WriteLine("failed to get username");
+                    Console.WriteLine("Failed to get username, user not found (req:{0} using:{1})", id, Username);
                     return true;
                 }
+                else if (data.Contains("You need to be connected"))
+                {
+                    Console.WriteLine("Failed to get username, you need to be connected for {0}", Username);
+                    return true;
+                }
+
                 int startPos = data.IndexOf("\"username\":\"") + 1 + 11;
                 int endPos = data.IndexOf("\"}}");
                 if (endPos == -1)
                 {
-                    Console.WriteLine("failed to get username");
+                    Console.WriteLine("failed to get username, parsing error for {0}, response: {1}", Username, data);
                     return true;
                 }
                 string name = data.Substring(startPos, endPos - startPos);
@@ -703,12 +711,12 @@ namespace GUIPixelPainter
                             ErrorPacket eventArgs = new ErrorPacket();
                             eventArgs.id = errorId;
                             OnEvent("throw.error", eventArgs);
-                            Console.WriteLine("err {0}", errorId);
+                            Console.WriteLine("Error {0} for {1}", errorId, Username);
                         }
                         if (errorId == 0 || errorId == 1 || errorId == 2 || errorId == 6 || errorId == 7 || errorId == 9 || errorId == 10 || errorId == 18 || errorId == 19 || errorId == 20)
                         {
                             Console.WriteLine("\a");
-                            Console.WriteLine("site err {0}", errorId);
+                            Console.WriteLine("Site error {0} for {1}", errorId, Username);
                             return false;
                         }
                         break;

@@ -48,7 +48,6 @@ namespace GUIPixelPainter
         }
 
         private List<Connection> users = new List<Connection>();
-        private SocketIO unauthUser; //to be continued....
         private Thread loopThread;
 
         private List<Tuple<string, EventArgs>> eventsToProcess = new List<Tuple<string, EventArgs>>();
@@ -57,7 +56,7 @@ namespace GUIPixelPainter
         private AutoResetEvent resetEvent = new AutoResetEvent(false);
         private List<GUIEvent> latestGUIEvents = new List<GUIEvent>();
 
-        private Guid currentActiveUser = Guid.Empty;
+        private Guid currentActiveUser = Guid.NewGuid();
         private Bitmap borders;
         private Bitmap canvas;
         private int curCanvas = -1;
@@ -118,7 +117,8 @@ namespace GUIPixelPainter
         {
             foreach (Connection conn in users)
             {
-                conn.Session.SetPlacementSpeed(guiData.PlacementSpeed);
+                if (conn.Session != null)
+                    conn.Session.SetPlacementSpeed(guiData.PlacementSpeed);
             }
         }
 
@@ -138,7 +138,7 @@ namespace GUIPixelPainter
 
         private void ManageQueues()
         {
-            var total = users.Where((a) => a.Client.Status == Status.OPEN).ToList();
+            var total = users.Where((a) => a.Client.Status == Status.OPEN && a.Id != Guid.Empty).ToList();
             var completedTasksForEachUser = new List<List<UsefulTask>>();
 
             foreach (Connection conn in total)
@@ -193,14 +193,18 @@ namespace GUIPixelPainter
             //Remove old users
             for (int i = users.Count - 1; i >= 0; i--)
             {
-                if (guiData.Users.Where((a) => a.Id == users[i].Id).Count() == 0 || users[i].Client.Status == Status.CLOSEDDISCONNECT)
+                if ((users[i].Id != Guid.Empty && guiData.Users.Where((a) => a.Id == users[i].Id).Count() == 0) || users[i].Client.Status == Status.CLOSEDDISCONNECT)
                 {
-                    Console.WriteLine("user connection removed");
-                    users[i].Session.ClearQueue();
-                    users[i].Session.Close();
+                    Console.WriteLine("{0} disconnected", users[i].Client.Username);
+                    if (users[i].Session != null)
+                    {
+                        users[i].Session.ClearQueue();
+                        users[i].Session.Close();
+                    }
                     if (users[i].Client.Status != Status.CLOSEDERROR && users[i].Client.Status != Status.CLOSEDDISCONNECT)
                         users[i].Client.Disconnect();
-                    guiUpdater.PushEvent("manager.status", new UserStatusData(users[i].Id, Status.NOTOPEN));
+                    if (users[i].Id != Guid.Empty)
+                        guiUpdater.PushEvent("manager.status", new UserStatusData(users[i].Id, Status.NOTOPEN));
                     users.RemoveAt(i);
                 }
             }
@@ -210,7 +214,7 @@ namespace GUIPixelPainter
             {
                 if (users.Find((a) => a.Id == user.Id) == null)
                 {
-                    Console.WriteLine("user connection created, there was {0} users in total", users.Count);
+                    Console.WriteLine("User connected, there was {0} users in total", users.Count);
                     SocketIO server = CreateSocketIO(user);
                     server.Connect();
                     UserSession newUser = new UserSession(server);
@@ -220,12 +224,21 @@ namespace GUIPixelPainter
                     lastUserConnectionTime = DateTime.UtcNow;
                 }
             }
+            if (users.Find(a => a.Id == Guid.Empty) == null)
+            {
+                Console.WriteLine("Unauthenticated user connected, there was {0} users in total", users.Count);
+                SocketIO server = CreateSocketIO();
+                server.Connect();
+                Connection connection = new Connection(server, null, Guid.Empty);
+                users.Add(connection);
+                lastUserConnectionTime = DateTime.UtcNow;
+            }
 
             //send status for disconnected users
             foreach (Connection user in users)
             {
                 var status = user.Client.Status;
-                if (status == Status.CLOSEDDISCONNECT || status == Status.CLOSEDERROR)
+                if ((status == Status.CLOSEDDISCONNECT || status == Status.CLOSEDERROR) && user.Id != Guid.Empty)
                 {
                     guiUpdater.PushEvent("manager.status", new UserStatusData(user.Id, status));
                 }
@@ -371,18 +384,29 @@ namespace GUIPixelPainter
             return socket;
         }
 
+        private SocketIO CreateSocketIO()
+        {
+            SocketIO socket = new SocketIO(guiData.CanvasId);
+            socket.OnEvent += (a, b) => { OnSocketEvent(a, b, Guid.Empty); }; ;
+            return socket;
+        }
+
         private void OnSocketEvent(string type, EventArgs args, Guid user)
         {
-
-            if (type == "throw.error" && (args as ErrorPacket).id == 11)
+            if (user != Guid.Empty)
             {
-                users.Where((a) => a.Id == user).FirstOrDefault()?.Session.Stall(1000);
-                Console.WriteLine("stall");
-            }
 
-            if (type == "tokens")
-            {
-                (args as TokenPacket).id = user;
+                if (type == "throw.error" && (args as ErrorPacket).id == 11)
+                {
+                    users.Where((a) => a.Id == user).FirstOrDefault()?.Session.Stall(1000);
+                    Console.WriteLine("stall");
+                }
+
+                if (type == "tokens")
+                {
+                    (args as TokenPacket).id = user;
+                }
+
             }
 
             if (user != currentActiveUser && type != "tokens" && type != "nickname")
