@@ -20,6 +20,7 @@ namespace GUIPixelPainter
         bool stalled = false;
         int stallDelay = 0;
         int lastPacketSize = 0;
+        int lastColor = -1;
 
         private LinkedList<IdPixel> queue = new LinkedList<IdPixel>();
         private SocketIO server;
@@ -120,6 +121,8 @@ namespace GUIPixelPainter
             long estimatedRecieveTime = (lastPacketTime + lastRecieveTime) / 2;
 
             int delay = (int)(packetDelay * (lastPacketSize / (double)packetSize));
+            if (lastColor != toPlace.First().Color)
+                delay = packetDelay;
             if (time - estimatedRecieveTime < delay)
             {
                 int sleeptime = (int)(delay - (time - estimatedRecieveTime));
@@ -139,6 +142,7 @@ namespace GUIPixelPainter
             if (server.Status == Status.OPEN)
             {
                 lastPacketSize = toPlace.Count;
+                lastColor = toPlace.First().Color;
                 server.SendPixels(toPlace, SendCallback);
                 packetSent.WaitOne();
                 lastRecieveTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
