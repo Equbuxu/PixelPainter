@@ -45,7 +45,7 @@ namespace GUIPixelPainter.GUI
 
         private static string GetVideoId()
         {
-            return "driverversion:" + GetProp("Win32_VideoController", "DriverVersion") + " name:" + GetProp("Win32_VideoController", "Name");
+            return "name:" + GetProp("Win32_VideoController", "Name");
         }
 
         private static string GetDiskId()

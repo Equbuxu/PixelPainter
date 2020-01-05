@@ -229,7 +229,9 @@ namespace GUIPixelPainter
             ClearDirectory(Path.Combine(folderPath, "converted"));
             ClearDirectory(Path.Combine(folderPath, "dithered"));
 
-            using (StreamWriter file = new StreamWriter(File.Create(configPath)))
+
+
+            using (StringWriter writer = new StringWriter())
             {
                 JsonSerializer serializer = new JsonSerializer();
                 serializer.Formatting = Formatting.Indented;
@@ -250,13 +252,15 @@ namespace GUIPixelPainter
                 List<GUIUser> users = dataExchange.GUIUsers.Select((a) => a).ToList();
                 bool overlayTasks = dataExchange.OverlayTasks;
                 int canvasId = dataExchange.CanvasId;
-                serializer.Serialize(file, new List<object>() {
+
+                serializer.Serialize(writer, new List<object>() {
                     "version1",
                     tasks,
                     users,
                     dataExchangeData,
                     });
 
+                File.WriteAllText(configPath, writer.ToString());
                 //save images
                 foreach (KeyValuePair<int, List<GUITask>> pair in tasks)
                 {

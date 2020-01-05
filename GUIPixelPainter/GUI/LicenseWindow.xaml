@@ -5,11 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GUIPixelPainter.GUI"
         mc:Ignorable="d"
-        Title="License check" Height="240" Width="400">
+        Title="License check" Height="240" Width="400"
+        Style="{StaticResource WindowStyle}">
     <StackPanel Name="mainPanel">
-        <TextBlock Margin="5">Your unique computer id:</TextBlock>
+        <TextBlock Margin="5" Style="{StaticResource TextBlockStyle}">Your unique computer id:</TextBlock>
         <TextBox Margin="5" IsReadOnly="True" TextWrapping="Wrap" MaxLines="3" Text="{Binding HardwareID, Mode=OneWay}"></TextBox>
-        <TextBlock Margin="5">Enter a license key tied to the id:</TextBlock>
+        <TextBlock Margin="5" Style="{StaticResource TextBlockStyle}">Enter a license key tied to the id:</TextBlock>
         <TextBox Margin="5" TextWrapping="Wrap" MaxLines="3" Text="{Binding LicenseKey}"></TextBox>
         <Button Width="200" Click="Check">Check license and launch</Button>
         <TextBlock HorizontalAlignment="Center" Foreground="Red" Visibility="Collapsed" Name="invalidKeyBlock">Invalid key</TextBlock>
