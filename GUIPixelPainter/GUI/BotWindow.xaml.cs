@@ -22,12 +22,9 @@ namespace GUIPixelPainter.GUI
     /// </summary>
     public partial class BotWindow : Window
     {
-        private Dictionary<int, LinkedList<long>> lastUserPlaceTimes = new Dictionary<int, LinkedList<long>>();
-        private Dictionary<int, Label> nicksLabel = new Dictionary<int, Label>();
-        private Dictionary<int, Label> speedsLabel = new Dictionary<int, Label>();
+        private System.Timers.Timer speedLabelTimer;
+        private List<Tuple<int, long, Color>> recentPixels = new List<Tuple<int, long, Color>>();
         private bool ignoreEvents = true;
-        private long lastUpdateTime = -1;
-        private string halfNickname = "";
 
         DropShadowEffect textShadow = new DropShadowEffect();
 
@@ -60,6 +57,11 @@ namespace GUIPixelPainter.GUI
             var updateTimer = new Timer(500);
             updateTimer.Elapsed += (a, b) => { try { Dispatcher.Invoke(() => DataExchange.CreateUpdate()); } catch (TaskCanceledException) { } };
             updateTimer.Start();
+
+            speedLabelTimer = new System.Timers.Timer(1000);
+            speedLabelTimer.AutoReset = true;
+            speedLabelTimer.Elapsed += (a, b) => { try { Dispatcher.Invoke(RecalculateSpeedLabels); } catch (TaskCanceledException) { } };
+            speedLabelTimer.Start();
 
             ignoreEvents = true;
             if (canvasId.Text.Length == 0)
@@ -172,10 +174,11 @@ namespace GUIPixelPainter.GUI
             DataExchange.UpdateGeneralSettingsFromGUI();
         }
 
-        public void ClearChat()
+        public void ClearChatAndSpeed()
         {
             chatLocal.Children.Clear();
             chatGlobal.Children.Clear();
+            recentPixels.Clear();
         }
 
         public void AddChatText(string text, bool isLocal, System.Windows.Media.Color c)
@@ -256,67 +259,10 @@ namespace GUIPixelPainter.GUI
             }
         }
 
-        public void UpdateSpeed(int x, int y, System.Windows.Media.Color c, int userId, bool myOwnPixel)
+        public void UpdateSpeed(System.Windows.Media.Color c, int userId)
         {
-            if (myOwnPixel)
-                halfNickname = Helper.GetUsernameById(userId);
-
-            if (!lastUserPlaceTimes.ContainsKey(userId))
-            {
-                lastUserPlaceTimes.Add(userId, new LinkedList<long>());
-                Label lableNick = new Label();
-                lableNick.FontWeight = FontWeights.Bold;
-                lableNick.Effect = textShadow;
-
-                Label labelSpeed = new Label();
-                labelSpeed.FontWeight = FontWeights.Bold;
-                labelSpeed.Effect = textShadow;
-
-                nicksLabel.Add(userId, lableNick);
-                speedsLabel.Add(userId, labelSpeed);
-
-                speedPanelName.Children.Add(lableNick);
-                speedPanelSpeed.Children.Add(labelSpeed);
-            }
-            var time = DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond;
-
-            lastUserPlaceTimes[userId].AddLast(DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond);
-            nicksLabel[userId].Foreground = new SolidColorBrush(c);
-            speedsLabel[userId].Foreground = new SolidColorBrush(c);
-            while (time - lastUserPlaceTimes[userId].First.Value > 10000)
-                lastUserPlaceTimes[userId].RemoveFirst();
-
-            if (time - lastUpdateTime > 100)
-            {
-                lastUpdateTime = time;
-                List<int> toDelete = new List<int>();
-
-                foreach (KeyValuePair<int, LinkedList<long>> userTime in lastUserPlaceTimes)
-                {
-                    if (time - userTime.Value.Last.Value > 11000)
-                    {
-                        toDelete.Add(userTime.Key);
-                        continue;
-                    }
-                    double dT = (time - userTime.Value.First.Value) / 1000.0;
-                    double speed = userTime.Value.Count / (dT == 0 ? 1 : dT);
-                    string userName = Helper.GetUsernameById(userTime.Key);
-                    if (userName == halfNickname)
-                        speed /= 2;
-                    nicksLabel[userTime.Key].Content = userName.ToString() + ':';
-                    speedsLabel[userTime.Key].Content = speed.ToString("0.00") + " px/s";
-                }
-
-                foreach (int id in toDelete)
-                {
-                    lastUserPlaceTimes.Remove(id);
-                    speedPanelName.Children.Remove(nicksLabel[id]);
-                    speedPanelSpeed.Children.Remove(speedsLabel[id]);
-
-                    nicksLabel.Remove(id);
-                    speedsLabel.Remove(id);
-                }
-            }
+            long curTime = DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond;
+            recentPixels.Add(new Tuple<int, long, Color>(userId, curTime, c));
         }
 
         public void SetLoadingState(bool loading)
@@ -324,6 +270,73 @@ namespace GUIPixelPainter.GUI
             enabled.IsEnabled = !loading;
             canvasId.IsEnabled = !loading;
             enabled.IsChecked = loading ? false : enabled.IsChecked;
+        }
+
+        private void RecalculateSpeedLabels()
+        {
+            int timeFrameMs = 11000;
+            long curTime = DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond;
+            Dictionary<int, Color> userColor = new Dictionary<int, Color>();
+            Dictionary<int, int> userPixelCounts = new Dictionary<int, int>();
+            for (int i = recentPixels.Count - 1; i >= 0; i--)
+            {
+                var pixel = recentPixels[i];
+                if (pixel.Item2 < curTime - timeFrameMs)
+                {
+                    recentPixels.RemoveAt(i);
+                    continue;
+                }
+                if (!userColor.ContainsKey(pixel.Item1))
+                {
+                    userColor.Add(pixel.Item1, pixel.Item3);
+                    userPixelCounts.Add(pixel.Item1, 0);
+                }
+                userPixelCounts[pixel.Item1]++;
+            }
+
+
+            List<Tuple<string, string, SolidColorBrush>> labels = new List<Tuple<string, string, SolidColorBrush>>();
+
+            foreach (KeyValuePair<int, int> pair in userPixelCounts)
+            {
+                labels.Add(new Tuple<string, string, SolidColorBrush>(Helper.GetUsernameById(pair.Key), (pair.Value / (timeFrameMs / 1000.0)).ToString("0.00") + " px/s", new SolidColorBrush(userColor[pair.Key])));
+            }
+
+            labels.Sort((a, b) => a.Item1.CompareTo(b.Item1));
+
+
+            if (speedPanelName.Children.Count > labels.Count)
+            {
+                int diff = speedPanelName.Children.Count - labels.Count;
+                speedPanelName.Children.RemoveRange(labels.Count, diff);
+                speedPanelSpeed.Children.RemoveRange(labels.Count, diff);
+            }
+            else if (speedPanelName.Children.Count < labels.Count)
+            {
+                int diff = labels.Count - speedPanelName.Children.Count;
+
+                for (int i = 0; i < diff; i++)
+                {
+                    Label username = new Label();
+                    username.FontWeight = FontWeights.Bold;
+                    username.Effect = textShadow;
+
+                    Label speed = new Label();
+                    speed.FontWeight = FontWeights.Bold;
+                    speed.Effect = textShadow;
+
+                    speedPanelName.Children.Add(username);
+                    speedPanelSpeed.Children.Add(speed);
+                }
+            }
+
+            for (int i = 0; i < labels.Count; i++)
+            {
+                var label = labels[i];
+                (speedPanelName.Children[i] as Label).Foreground = label.Item3;
+                (speedPanelName.Children[i] as Label).Content = label.Item1;
+                (speedPanelSpeed.Children[i] as Label).Content = label.Item2;
+            }
         }
 
         private void OnGeneralSettingChange(object sender, RoutedEventArgs e)
@@ -368,12 +381,7 @@ namespace GUIPixelPainter.GUI
         {
             if (ignoreEvents)
                 return;
-            foreach (KeyValuePair<int, LinkedList<long>> pair in lastUserPlaceTimes)
-            {
-                long last = pair.Value.Last.Value;
-                pair.Value.Clear();
-                pair.Value.AddLast(last);
-            }
+            recentPixels.Clear();
         }
 
         private void OnTranslucencyValueChange(object sender, RoutedPropertyChangedEventArgs<double> e)

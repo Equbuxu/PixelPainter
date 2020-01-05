@@ -19,6 +19,7 @@ namespace GUIPixelPainter
 
         bool stalled = false;
         int stallDelay = 0;
+        int lastPacketSize = 0;
 
         private LinkedList<IdPixel> queue = new LinkedList<IdPixel>();
         private SocketIO server;
@@ -108,7 +109,7 @@ namespace GUIPixelPainter
             if (queueCount == 0 || server.Status != Status.OPEN)
             {
                 //Thread.Sleep(packetDelay);
-                Thread.Sleep(10);
+                Thread.Sleep(100);
                 return false;
             }
 
@@ -117,9 +118,15 @@ namespace GUIPixelPainter
 
             long time = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
             long estimatedRecieveTime = (lastPacketTime + lastRecieveTime) / 2;
-            if (time - estimatedRecieveTime < packetDelay)
+
+            int delay = (int)(packetDelay * (lastPacketSize / (double)packetSize));
+            if (time - estimatedRecieveTime < delay)
             {
-                Thread.Sleep((int)(packetDelay - (time - estimatedRecieveTime)));
+                int sleeptime = (int)(delay - (time - estimatedRecieveTime));
+                if (sleeptime < 80)
+                    sleeptime = 80;
+                Logger.Info("{2} is sleeping for {0} ms after sending {1} pixels", sleeptime, lastPacketSize, server.Username);
+                Thread.Sleep(sleeptime);
             }
 
             if (stalled)
@@ -131,6 +138,7 @@ namespace GUIPixelPainter
 
             if (server.Status == Status.OPEN)
             {
+                lastPacketSize = toPlace.Count;
                 server.SendPixels(toPlace, SendCallback);
                 packetSent.WaitOne();
                 lastRecieveTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;

@@ -435,6 +435,15 @@ namespace GUIPixelPainter
                 PixelPacket px = args as PixelPacket;
                 if (placementBehaviour.GetMode() == PlacementMode.TOPDOWN)
                     (placementBehaviour as TopDownPlacementBehaviour).ResetResendDelay(px.x, px.y);
+                guiUpdater.PushEvent(type, args);
+                if (px.instantPixel)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                guiUpdater.PushEvent(type, args);
             }
 
             lock (eventsToProcess)
@@ -442,7 +451,6 @@ namespace GUIPixelPainter
                 eventsToProcess.Add(new Tuple<string, EventArgs>(type, args));
             }
 
-            guiUpdater.PushEvent(type, args);
         }
     }
 }

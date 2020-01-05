@@ -288,7 +288,7 @@ namespace GUIPixelPainter
             {
                 CanvasId = canvasId;
 
-                botWindow.ClearChat();
+                botWindow.ClearChatAndSpeed();
                 taskPanel.SetCanvasId(canvasId);
                 pixelCanvas.ReloadCanvas(canvasId);
                 ClearManualTask();
@@ -371,13 +371,16 @@ namespace GUIPixelPainter
             botWindow.AddChatText(message, isLocal, c);
         }
 
-        public void PushPixel(int x, int y, Color color, int boardId, int userId, bool myOwnPixel)
+        public void PushPixel(int x, int y, Color color, int boardId, int userId, bool instantPixel)
         {
             if (boardId == CanvasId)
             {
                 var cColor = System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B);
                 pixelCanvas.SetPixel(x, y, cColor, userId);
-                botWindow.UpdateSpeed(x, y, cColor, userId, myOwnPixel);
+                if (instantPixel)
+                    return;
+
+                botWindow.UpdateSpeed(cColor, userId);
 
                 GUIPixel removed = new GUIPixel(x, y, color);
                 if (manualTask.Remove(removed))

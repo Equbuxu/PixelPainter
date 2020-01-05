@@ -137,15 +137,15 @@
                                 </Button>
                             </DockPanel>
 
-                            <Border Name="speedCannvas" BorderBrush="{StaticResource Borders}" BorderThickness="1" MinWidth="130" MinHeight="30">
+                            <Border BorderBrush="{StaticResource Borders}" BorderThickness="1" MinWidth="130" MinHeight="30">
                                 <Grid Name="speedPanelGrid">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*" MinWidth="30"/>
                                     </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0" Name="speedPanelName">
+                                    <StackPanel Grid.Column="0" Name="speedPanelName" MinHeight="300" MinWidth="90">
                                     </StackPanel>
-                                    <StackPanel Grid.Column="1" Name="speedPanelSpeed">
+                                    <StackPanel Grid.Column="1" Name="speedPanelSpeed" MinHeight="300">
                                     </StackPanel>
                                 </Grid>
                             </Border>

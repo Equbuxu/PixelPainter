@@ -60,6 +60,7 @@ namespace GUIPixelPainter.GUI
 
         private List<Pixel> manualTask = new List<Pixel>();
 
+
         private GUIHelper helper;
         public GUIHelper Helper { get { return helper; } set { helper = value; } }
         public GUIDataExchange DataExchange { get; set; }

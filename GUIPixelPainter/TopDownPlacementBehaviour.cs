@@ -44,7 +44,7 @@ namespace GUIPixelPainter
             {
                 iterCount++;
             }
-            if (queue.Count != 0)
+            if (queue.Count > 3)
                 Logger.Info("Made a queue of {0} pixels", queue.Count);
             return queue;
         }
