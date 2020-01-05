@@ -155,6 +155,38 @@ namespace GUIPixelPainter
             public int pingTimeout = 0;
         }
 
+        class Config
+        {
+            public Canvas canvas = null;
+            public User user = null;
+
+            public override string ToString()
+            {
+                return "{canvas:" + canvas.ToString() + ", user:" + user.ToString() + "}";
+            }
+        }
+
+        class User
+        {
+            public int id = 0;
+            public string username = "";
+            public bool premium = false;
+            public bool mod = false;
+            public override string ToString()
+            {
+                return "{id:" + id.ToString() + ",username:" + username.ToString() + ",premium:" + premium.ToString() + ",mod:" + mod.ToString() + "}";
+            }
+        }
+
+        class Canvas
+        {
+            public int t = 0;
+            public override string ToString()
+            {
+                return "{t:" + t.ToString() + "}";
+            }
+        }
+
         private readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private readonly char[] characters = new char[] {
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
@@ -173,17 +205,22 @@ namespace GUIPixelPainter
 
         public bool Premium { get; private set; }
         public string Username { get; private set; }
+        public int T { get; private set; }
         public int PixelId { get; private set; }
         public Status Status { get; private set; }
 
         private string id;
+
         private Thread thread;
         private LockBool saveNextPoll = new LockBool(false);
         private LockBool abortRequested = new LockBool(false);
-        private LockBool canSendRequest = new LockBool(true);
+        private LockBool canSendRequest = new LockBool(false);
         private Task<HttpResponseMessage> pollingTask;
         private StringBuilder messageQueue = new StringBuilder();
         private List<Action<Task<HttpResponseMessage>>> callbackQueue = new List<Action<Task<HttpResponseMessage>>>();
+
+        private System.Timers.Timer pingTimer;
+        private System.Timers.Timer agentTimer;
 
         public event OnEventHandler OnEvent;
         public delegate void OnEventHandler(string type, EventArgs args);
@@ -308,7 +345,7 @@ namespace GUIPixelPainter
             if (Status == Status.CLOSEDDISCONNECT || Status == Status.CLOSEDERROR)
                 return;
 
-            ConnectLoop();
+            StartPingLoop();
         }
 
         private void ConnectSequence()
@@ -326,7 +363,7 @@ namespace GUIPixelPainter
                         Status = Status.CLOSEDERROR;
                         return;
                     }
-                    ParsePremiumAndUsername(page);
+                    ParsePage(page);
                     SendAuthKeyAuthToken();
                 }
                 else
@@ -380,39 +417,49 @@ namespace GUIPixelPainter
             }
         }
 
-        private void ParsePremiumAndUsername(HttpResponseMessage page)
+        private int FindClosingBracketMatchIndex(string str, int pos)
+        {
+            if (str[pos] != '{')
+            {
+                return -1;
+            }
+            int depth = 1;
+            for (int i = pos + 1; i < str.Length; i++)
+            {
+                switch (str[i])
+                {
+                    case '{':
+                        depth++;
+                        break;
+                    case '}':
+                        if (--depth == 0)
+                        {
+                            return i;
+                        }
+                        break;
+                }
+            }
+            return -1;
+        }
+
+        private void ParsePage(HttpResponseMessage page)
         {
             string content = page.Content.ReadAsStringAsync().Result;
-            int configStart = content.IndexOf(@"var CONFIG = {");
-            int userStart = content.IndexOf("user: {", configStart);
+            int configStart = content.IndexOf(@"var CONFIG = {") + 13;
+            int configEnd = FindClosingBracketMatchIndex(content, configStart);
+            string config = content.Substring(configStart, configEnd - configStart + 1);
 
-            int idStart = content.IndexOf(@"id:", userStart);
-            string idToken = content.Substring(idStart, content.IndexOf(',', idStart) - idStart);
-            string idString = idToken.Substring(3, idToken.Length - 3);
-            if (idString == "null")
-            {
-                Status = Status.CLOSEDERROR;
-                return;
-            }
-            PixelId = int.Parse(idString);
+            config = config.Replace("isTouchDevice()", "false");
+            config = config.Replace("shittyBrowserCheck()", "false");
 
-            int usernameStart = content.IndexOf(@"username:", userStart);
-            string usernameToken = content.Substring(usernameStart, content.IndexOf(',', usernameStart) - usernameStart);
-            Username = usernameToken.Substring(11, usernameToken.Length - 12);
+            JObject parsed = JObject.Parse(config);
+            Config deser = parsed.ToObject<Config>();
 
-            int premiumStart = content.IndexOf(@"premium:", userStart);
-            string premiumToken = content.Substring(premiumStart, content.IndexOf(',', premiumStart) + 1 - premiumStart);
-            Premium = premiumToken.Contains("true");
-
-            Logger.Info("premium={0} ({1}) for {2}", Premium, premiumToken, Username);
-            if (!Premium)
-            {
-                int modStart = content.IndexOf(@"mod:", userStart);
-                string modToken = content.Substring(modStart, content.IndexOf(',', modStart) + 1 - modStart);
-                Premium = modToken.Contains("true");
-
-                Logger.Info("mod={1} ({0}) for {2}", modToken, Premium, Username);
-            }
+            Logger.Info(deser.ToString());
+            PixelId = deser.user.id;
+            Premium = deser.user.premium || deser.user.mod;
+            Username = deser.user.username;
+            T = deser.canvas.t;
         }
 
         private void MakeSidRequest()
@@ -473,11 +520,21 @@ namespace GUIPixelPainter
             HttpResponseMessage response = client.PostAsync(urlBase + CalcTime() + "&sid=" + id, request).Result;
         }
 
-        private void ConnectLoop()
+        private void StartPingLoop()
         {
             Status = Status.OPEN;
             pollingTask = SendGetRequest(urlBase + CalcTime() + "&sid=" + id);
 
+            pingTimer = new System.Timers.Timer(25000);
+            pingTimer.AutoReset = true;
+            pingTimer.Elapsed += PingElapsed;
+            pingTimer.Start();
+
+            agentTimer = new System.Timers.Timer(10000);
+            agentTimer.AutoReset = true;
+            agentTimer.Elapsed += AgentElapsed;
+            agentTimer.Start();
+            /*
             while (true)
             {
                 if (abortRequested.Value || Status != Status.OPEN)
@@ -500,6 +557,54 @@ namespace GUIPixelPainter
                 }
 
                 Thread.Sleep(25000);
+            }*/
+        }
+
+        private void PingElapsed(object sender, EventArgs args)
+        {
+            if (abortRequested.Value || Status != Status.OPEN)
+            {
+                pingTimer.Stop();
+                pingTimer.Dispose();
+            }
+
+            try
+            {
+                TrySendRequest("1:2");
+            }
+            catch (HttpRequestException)
+            {
+                Status = Status.CLOSEDDISCONNECT;
+                return;
+            }
+            catch (AggregateException)
+            {
+                Status = Status.CLOSEDDISCONNECT;
+                return;
+            }
+        }
+
+        private void AgentElapsed(object sender, EventArgs args)
+        {
+            if (abortRequested.Value || Status != Status.OPEN)
+            {
+                agentTimer.Stop();
+                agentTimer.Dispose();
+            }
+
+            try
+            {
+                TrySendRequest("14:42[\"agent\",{}]");
+            }
+            catch (HttpRequestException)
+            {
+                Status = Status.CLOSEDDISCONNECT;
+                return;
+            }
+            catch (AggregateException)
+            {
+                Status = Status.CLOSEDDISCONNECT;
+                return;
             }
         }
 
@@ -552,7 +657,7 @@ namespace GUIPixelPainter
             StringBuilder builder = new StringBuilder();
             foreach (IdPixel pixel in pixels)
             {
-                string pixelMessage = String.Format("42[\"place\",{{\"x\":{0},\"y\":{1},\"c\":{2}}}]", pixel.X, pixel.Y, pixel.Color);
+                string pixelMessage = String.Format("42[\"place\",{{\"x\":{0},\"y\":{1},\"c\":{2},\"t\":{3}}}]", pixel.X, pixel.Y, pixel.Color, T);
                 builder.Append(String.Format("{0}:{1}", pixelMessage.Length, pixelMessage));
             }
             try

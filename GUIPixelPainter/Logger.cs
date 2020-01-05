@@ -16,7 +16,12 @@ namespace GUIPixelPainter
 
         public static void Info(string text, params object[] args)
         {
-            string result = string.Format(text, args);
+            string result;
+            if (args.Length > 0)
+                result = string.Format(text, args);
+            else
+                result = text;
+            
             string final = GetTime() + result;
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(final);
@@ -24,7 +29,11 @@ namespace GUIPixelPainter
 
         public static void Warning(string text, params object[] args)
         {
-            string result = string.Format(text, args);
+            string result;
+            if (args.Length > 0)
+                result = string.Format(text, args);
+            else
+                result = text;
             string final = GetTime() + result;
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine(final);
@@ -32,7 +41,11 @@ namespace GUIPixelPainter
 
         public static void Error(string text, params object[] args)
         {
-            string result = string.Format(text, args);
+            string result;
+            if (args.Length > 0)
+                result = string.Format(text, args);
+            else
+                result = text;
             string final = GetTime() + result;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(final);
