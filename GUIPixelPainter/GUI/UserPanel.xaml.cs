@@ -78,6 +78,16 @@ namespace GUIPixelPainter.GUI
             UpdateUserList();
         }
 
+        public void DisableAllUsers()
+        {
+            foreach (var user in users)
+            {
+                user.isEnabled = false;
+            }
+            DataExchange.UpdateUsersFromGUI();
+            UpdateUserList();
+        }
+
         public void AddNewUser(GUIUser user)
         {
             User newUser = new User()

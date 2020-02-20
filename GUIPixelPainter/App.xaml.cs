@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 
 namespace GUIPixelPainter
@@ -9,14 +10,16 @@ namespace GUIPixelPainter
     public partial class App : Application
     {
         private bool checkLicense = false;
-        private RoutedEventHandler onBotStartup;
+        private Dictionary<ArgsParser.ArgName, Dictionary<string, object>> args;
+        private Action<Dictionary<ArgsParser.ArgName, Dictionary<string, object>>> onBotStartup;
 
-        public App() : this(true, null) { }
+        public App() : this(true, null, null) { }
 
-        public App(bool checkLicense, RoutedEventHandler onStartup) : base()
+        public App(bool checkLicense, Dictionary<ArgsParser.ArgName, Dictionary<string, object>> args, Action<Dictionary<ArgsParser.ArgName, Dictionary<string, object>>> onStartup) : base()
         {
             this.checkLicense = checkLicense;
             this.onBotStartup = onStartup;
+            this.args = args;
 
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
         }
@@ -45,7 +48,7 @@ namespace GUIPixelPainter
             }
             GUI.BotWindow botWindow = new GUI.BotWindow();
             if (onBotStartup != null)
-                botWindow.Loaded += onBotStartup;
+                botWindow.Loaded += (a, b) => onBotStartup(args);
             botWindow.Closed += (a, b) => this.Shutdown();
             botWindow.Show();
         }

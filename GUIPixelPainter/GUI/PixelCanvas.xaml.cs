@@ -55,6 +55,10 @@ namespace GUIPixelPainter.GUI
         private WriteableBitmap bitmap;
         private System.Drawing.Bitmap revertState;
         private int canvasId = -1;
+        private bool running = false;
+
+        private bool firstLoad = true;
+        private Action firstLoadAction;
 
         private DropShadowEffect textShadow = new DropShadowEffect();
 
@@ -89,12 +93,24 @@ namespace GUIPixelPainter.GUI
         public void Run()
         {
             CreatePalette();
+            running = true;
+            ReloadCanvas(canvasId);
+        }
+
+        public void SetOnFirstLoad(Action action)
+        {
+            this.firstLoadAction = action;
         }
 
         public void ReloadCanvas(int id)
         {
             if (loading)
                 return;
+            if (!running)
+            {
+                canvasId = id;
+                return;
+            }
             Thread loadThread = new Thread(() =>
             {
                 loading = true;
@@ -152,6 +168,12 @@ namespace GUIPixelPainter.GUI
                     MainImageBorder.Visibility = Visibility.Visible;
                     loadingSign.Visibility = Visibility.Hidden;
                     HideOverlay(false);
+                    if (firstLoad)
+                    {
+                        firstLoad = false;
+                        if (firstLoadAction != null)
+                            firstLoadAction();
+                    }
                 });
             });
             loadThread.Name = "canvas loading thread";

@@ -22,15 +22,16 @@ namespace GUIPixelPainter
 
         private static Launcher launcher;
         [STAThread]
-        public static void Main()
+        public static void Main(string[] args)
         {
+            //args ex: -canvas 7 -timelapse fps=60 speed=20.00 time=00:01:00:00 restart -nousers
             launcher = new Launcher();
 
             AppDomain currentDomain = default(AppDomain);
             currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += launcher.GlobalUnhandledExceptionHandler;
 
-            launcher.Launch();
+            launcher.Launch(args);
         }
 
         private void GlobalUnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
@@ -41,12 +42,15 @@ namespace GUIPixelPainter
             Save();
         }
 
-        public void Launch()
+        public void Launch(string[] args)
         {
             EnsureBrowserEmulationEnabled();
 
+            ArgsParser parser = new ArgsParser(args);
+            var parsedArgs = parser.Parse();
+
             bool lisenceCheckSuc = CheckLicense();
-            app = new App(!lisenceCheckSuc, Startup);
+            app = new App(!lisenceCheckSuc, parsedArgs, Startup);
             app.Run();
             if (startupExecuted)
                 Save();
@@ -88,7 +92,7 @@ namespace GUIPixelPainter
             }
         }
 
-        private void Startup(object sender, System.Windows.RoutedEventArgs e)
+        private void Startup(Dictionary<ArgsParser.ArgName, Dictionary<string, object>> args)
         {
 
             //Create palettes
@@ -194,6 +198,10 @@ namespace GUIPixelPainter
 
             //Load saved data
             loader.Load();
+
+            //Load args
+            ArgsProcessor processor = new ArgsProcessor(args, dataExchange);
+            processor.ApplyArgs();
 
             //Start loading data
             window.Run();

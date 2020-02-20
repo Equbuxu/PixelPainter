@@ -174,6 +174,15 @@ namespace GUIPixelPainter.GUI
             DataExchange.UpdateGeneralSettingsFromGUI();
         }
 
+        public void SetCanvasId(int id)
+        {
+            ignoreEvents = true;
+            this.canvasId.Text = id.ToString();
+            ignoreEvents = false;
+
+            DataExchange.UpdateGeneralSettingsFromGUI();
+        }
+
         public void ClearChatAndSpeed()
         {
             chatLocal.Children.Clear();

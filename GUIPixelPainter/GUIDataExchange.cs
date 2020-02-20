@@ -427,5 +427,31 @@ namespace GUIPixelPainter
         {
             botWindow.SetLoadingState(loading);
         }
+
+        public void PushDisableAllUsers()
+        {
+            userPanel.DisableAllUsers();
+        }
+
+        public void PushCanvasId(int id)
+        {
+            botWindow.SetCanvasId(id);
+        }
+
+        public void PushTimelapseSettings(int fps, double speed, TimeSpan time, bool restart)
+        {
+            timelapsePanelViewModel.FPS = fps.ToString();
+            timelapsePanelViewModel.SpeedMult = speed.ToString();
+            timelapsePanelViewModel.RecTime = time.ToString();
+            timelapsePanelViewModel.RestartRec = restart;
+        }
+
+        public void PushEnqueueTimelapseStart()
+        {
+            pixelCanvas.SetOnFirstLoad(() =>
+            {
+                timelapsePanelViewModel.StartRec.Execute(null);
+            });
+        }
     }
 }

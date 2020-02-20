@@ -72,6 +72,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ArgsParser.cs" />
+    <Compile Include="ArgsProcessor.cs" />
     <Compile Include="DataLoader.cs" />
     <Compile Include="DenoisePlacementBehaviour.cs" />
     <Compile Include="GUIHelper.cs" />
