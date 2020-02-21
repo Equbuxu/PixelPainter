@@ -345,7 +345,7 @@ namespace GUIPixelPainter.GUI
 
             if (!Directory.Exists("videoout"))
                 Directory.CreateDirectory("videoout");
-            string filename = "videoout//" + DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+            string filename = "videoout//" + DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + "_" + speedMult.ToString("0.00", CultureInfo.InvariantCulture) + "x";
 
             ffmpeg = new Process();
             ffmpeg.StartInfo.FileName = @"ffmpeg.exe";
