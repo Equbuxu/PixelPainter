@@ -435,7 +435,10 @@ namespace GUIPixelPainter
                 PixelPacket px = args as PixelPacket;
                 if (placementBehaviour.GetMode() == PlacementMode.TOPDOWN)
                     (placementBehaviour as TopDownPlacementBehaviour).ResetResendDelay(px.x, px.y);
-                guiUpdater.PushEvent(type, args);
+
+                var border = borders.GetPixel(px.x, px.y);
+                if (!(border.R == 204 && border.G == 204 && border.B == 204))
+                    guiUpdater.PushEvent(type, args);
                 if (px.instantPixel)
                 {
                     return;
