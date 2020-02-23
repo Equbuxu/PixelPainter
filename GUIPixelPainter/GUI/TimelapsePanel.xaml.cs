@@ -365,7 +365,7 @@ namespace GUIPixelPainter.GUI
             TotalSecondsVideo = TotalFrames / selectedFps;
 
             long totalMsReal = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond - startMs;
-            long targetMs = selectedTargetRecTime * 1000;
+            long targetMs = selectedTargetRecTime * 1000L;
             long remainingMs = targetMs - totalMsReal;
 
             dataExchange.SaveBitmapToStream(ffmpeg.StandardInput.BaseStream);
