@@ -139,7 +139,14 @@ namespace GUIPixelPainter.GUI
                     responseStream = response.GetResponseStream();
                     using (var loadedBitmap = new System.Drawing.Bitmap(responseStream))
                     {
-                        Dispatcher.Invoke(() => bitmap = new WriteableBitmap(Helper.Convert(loadedBitmap)));
+                        System.Drawing.Bitmap white = new System.Drawing.Bitmap(loadedBitmap.Width, loadedBitmap.Height);
+                        using (System.Drawing.Graphics gr = System.Drawing.Graphics.FromImage(white))
+                        {
+                            gr.Clear(System.Drawing.Color.White);
+                            gr.DrawImageUnscaled(loadedBitmap, new System.Drawing.Point(0, 0));
+                        }
+                        loadedBitmap.Dispose();
+                        Dispatcher.Invoke(() => bitmap = new WriteableBitmap(Helper.Convert(white)));
                         Dispatcher.Invoke(() => MainImage.Source = bitmap);
                     }
                     Dispatcher.Invoke(() => CreatePalette());
