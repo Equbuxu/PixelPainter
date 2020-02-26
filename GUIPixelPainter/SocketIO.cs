@@ -264,6 +264,7 @@ namespace GUIPixelPainter
 
         private Task<HttpResponseMessage> SendGetRequest(string address)
         {
+            Logger.Packet("Get {0}", Username, false, address);
             Task<HttpResponseMessage> task = client.GetAsync(address);
             task.ContinueWith(OnTaskCompletion);
             return task;
@@ -271,6 +272,7 @@ namespace GUIPixelPainter
 
         private void SendPostRequest(string address, string data, List<Action<Task<HttpResponseMessage>>> additionalCallbacks = null)
         {
+            Logger.Packet("Post {0}, req: {1}", Username, false, address, data);
             StringContent content = new StringContent(data);
             Task<HttpResponseMessage> task = client.PostAsync(address, content);
             task.ContinueWith(OnTaskCompletion);
@@ -295,6 +297,8 @@ namespace GUIPixelPainter
             }
 
             string response = task.Result.Content.ReadAsStringAsync().Result;
+            Logger.Packet("Response, data: {0}", Username, true, response.Length < 100 ? response : response.Substring(0, 100));
+
             if (response.Contains("Session ID unknown")) //HACK shouldnt be here
             {
                 Logger.Warning("Session ID unknown err for {0}", Username);
@@ -594,7 +598,7 @@ namespace GUIPixelPainter
 
             try
             {
-                TrySendRequest("14:42[\"agent\",{}]");
+                SendPostRequest(urlBase + CalcTime() + "&sid=" + id, "14:42[\"agent\",{}]");
             }
             catch (HttpRequestException)
             {
@@ -621,6 +625,10 @@ namespace GUIPixelPainter
                     messageQueue.Clear();
                     callbackQueue.Clear();
                     canSendRequest.Value = false;
+                }
+                else
+                {
+                    Logger.Warning($"[{Username}] TrySendRequest failed, req: {(packet.Length < 100 ? packet : packet.Substring(0, 100))}");
                 }
             }
         }
@@ -664,7 +672,6 @@ namespace GUIPixelPainter
             {
                 TrySendRequest(builder.ToString(), callback);
                 saveNextPoll.Value = true;
-                //SendPostRequest(urlBase + CalcTime() + "&sid=" + id, builder.ToString(), callback);
                 Logger.Info("Sent {0} pixels for {1}", pixels.Count, Username);
             }
             catch (HttpRequestException)

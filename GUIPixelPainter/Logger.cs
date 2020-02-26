@@ -36,6 +36,11 @@ namespace GUIPixelPainter
             Instance.LogError(text, args);
         }
 
+        public static void Packet(string text, string username, bool response, params object[] args)
+        {
+            Instance.LogPacket(text, username, response, args);
+        }
+
         private StreamWriter output = null;
         private FileStream latestFile = null;
 
@@ -52,6 +57,20 @@ namespace GUIPixelPainter
             latestFile = File.Create("logs/" + DateTime.Now.ToString("dd-mm-yyyy__hh-mm-ss") + ".txt");
             output = new StreamWriter(latestFile);
 #endif
+        }
+
+        public void LogPacket(string text, string username, bool response, params object[] args)
+        {
+            string result;
+            if (args.Length > 0)
+                result = string.Format(text, args);
+            else
+                result = text;
+
+            string final = GetTime() + $"[{username}] " + result;
+            Console.ForegroundColor = response ? ConsoleColor.Magenta : ConsoleColor.DarkMagenta;
+            Console.WriteLine(final);
+            WriteFile(final);
         }
 
         public void LogInfo(string text, params object[] args)
