@@ -190,12 +190,12 @@ namespace GUIPixelPainter.GUI
             recentPixels.Clear();
         }
 
-        public void AddChatText(string text, bool isLocal, System.Windows.Media.Color c)
+        public void AddChatText(string prefix, string text, bool isLocal, System.Windows.Media.Color c)
         {
             TextBlock msgBlock = new TextBlock();
             msgBlock.Padding = new Thickness(5);
             msgBlock.TextWrapping = TextWrapping.Wrap;
-            msgBlock.Foreground = new SolidColorBrush(c);
+            msgBlock.Foreground = Brushes.White;
             msgBlock.Effect = textShadow;
 
             //Highlight hyperlinks
@@ -251,6 +251,10 @@ namespace GUIPixelPainter.GUI
             }
 
             msgBlock.Inlines.Add(splitLinks[lastSegment]);
+
+            Run prefixRun = new Run(prefix);
+            prefixRun.Foreground = new SolidColorBrush(c);
+            msgBlock.Inlines.InsertBefore(msgBlock.Inlines.FirstInline, prefixRun);
 
             if (isLocal)
             {

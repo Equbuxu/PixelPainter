@@ -75,7 +75,7 @@ namespace GUIPixelPainter
                 if (message.chat != 0 && message.chat != DataExchange.CanvasId)
                     return;
 
-                string formatted = String.Format("{0}: {1}", message.username, message.message);
+                string formatted = String.Format("{0}: ", message.username);
                 if (!String.IsNullOrWhiteSpace(message.guild))
                     formatted = formatted.Insert(0, String.Format("<{0}>", message.guild));
                 if (message.admin)
@@ -91,7 +91,7 @@ namespace GUIPixelPainter
                 if (!palette.ContainsKey(boardId))
                     boardId = 7;
                 Color color = palette[boardId][message.color];
-                DataExchange.PushChatMessage(formatted, message.chat != 0, System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B));
+                DataExchange.PushChatMessage(formatted, message.message, message.chat != 0, System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B));
             }
             else if (type == "pixels")
             {

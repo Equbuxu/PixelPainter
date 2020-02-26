@@ -366,9 +366,9 @@ namespace GUIPixelPainter
             guiHelper.AddUsername(id, name);
         }
 
-        public void PushChatMessage(string message, bool isLocal, System.Windows.Media.Color c)
+        public void PushChatMessage(string prefix, string message, bool isLocal, System.Windows.Media.Color c)
         {
-            botWindow.AddChatText(message, isLocal, c);
+            botWindow.AddChatText(prefix, message, isLocal, c);
         }
 
         public void PushPixel(int x, int y, Color color, int boardId, int userId, bool instantPixel)
