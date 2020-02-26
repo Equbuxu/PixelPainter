@@ -57,7 +57,7 @@ namespace GUIPixelPainter
         private List<GUIEvent> latestGUIEvents = new List<GUIEvent>();
 
         private Guid currentActiveUser = Guid.NewGuid();
-        private Bitmap borders;
+        private LockBitmap borders;
         private Bitmap canvas;
         private int curCanvas = -1;
         private DateTime lastUserConnectionTime = DateTime.MinValue;
@@ -106,6 +106,7 @@ namespace GUIPixelPainter
                     UpdatePlacementSpeed();
                     RefreshConnections();
                     ManageQueues();
+                    ProcessGUIEvents();
                     ProcessGUIEvents();
                     ProcessEvents();
                     ManageUnknownUsernames();
@@ -214,7 +215,7 @@ namespace GUIPixelPainter
             {
                 if (users.Find((a) => a.Id == user.Id) == null)
                 {
-                    Logger.Info("User connected, there was {0} users in total", users.Count);
+                    Logger.Info("User connection initiated, there was {0} users in total", users.Count);
                     SocketIO server = CreateSocketIO(user);
                     server.Connect();
                     UserSession newUser = new UserSession(server);
@@ -226,7 +227,7 @@ namespace GUIPixelPainter
             }
             if (users.Find(a => a.Id == Guid.Empty) == null)
             {
-                Logger.Info("Unauthenticated user connected, there was {0} users in total", users.Count);
+                Logger.Info("Unauthenticated user connection initiated, there was {0} users in total", users.Count);
                 SocketIO server = CreateSocketIO();
                 server.Connect();
                 Connection connection = new Connection(server, null, Guid.Empty);
@@ -295,7 +296,7 @@ namespace GUIPixelPainter
                             actualColor = palette[7][pixel.color];
                         if (pixel.x < 0 || pixel.x >= canvas.Width || pixel.y < 0 || pixel.y >= canvas.Height)
                             continue;
-                        var border = borders.GetPixel(pixel.x, pixel.y);
+                        Color border = borders.GetPixel(pixel.x, pixel.y);
                         if (!(border.R == 204 && border.G == 204 && border.B == 204))
                             canvas.SetPixel(pixel.x, pixel.y, actualColor);
                     }
@@ -346,16 +347,20 @@ namespace GUIPixelPainter
             try
             {
                 //Load locked pixels
-                borders?.Dispose();
                 System.Net.WebRequest request2 = System.Net.WebRequest.Create("https://pixelplace.io/canvas/" + guiData.CanvasId.ToString() + "p.png");
                 System.Net.WebResponse response2 = request2.GetResponse();
                 System.IO.Stream responseStream2 = response2.GetResponseStream();
-                borders = new Bitmap(responseStream2);
+
+                borders?.Dispose();
+                borders = new LockBitmap(responseStream2);
+
                 responseStream2.Dispose();
             }
             catch (System.Net.WebException)
             {
-                borders = new Bitmap(canvas.Width, canvas.Height);
+
+                borders = new LockBitmap(canvas.Width, canvas.Height);
+
             }
             eventsToProcess.Clear();
             ChangePlacementBehaviour();
@@ -436,7 +441,11 @@ namespace GUIPixelPainter
                 if (placementBehaviour.GetMode() == PlacementMode.TOPDOWN)
                     (placementBehaviour as TopDownPlacementBehaviour).ResetResendDelay(px.x, px.y);
 
-                var border = borders.GetPixel(px.x, px.y);
+                Color border;
+
+                border = borders.GetPixel(px.x, px.y);
+
+
                 if (!(border.R == 204 && border.G == 204 && border.B == 204))
                     guiUpdater.PushEvent(type, args);
                 if (px.instantPixel)

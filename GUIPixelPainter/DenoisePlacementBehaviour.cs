@@ -9,13 +9,13 @@ namespace GUIPixelPainter
     {
         private UsefulDataRepresentation guiData;
         private Bitmap canvas;
-        private Bitmap borders;
+        private LockBitmap borders;
         private const int maxQueueSize = 200;
         private Dictionary<System.Drawing.Color, int> curCanvasInvPalette;
         Random random = new Random();
         private Dictionary<Guid, List<IdPixel>> taskQueues = new Dictionary<Guid, List<IdPixel>>();
 
-        public DenoisePlacementBehaviour(UsefulDataRepresentation guiData, Bitmap canvas, Bitmap borders, Dictionary<System.Drawing.Color, int> curCanvasInvPalette)
+        public DenoisePlacementBehaviour(UsefulDataRepresentation guiData, Bitmap canvas, LockBitmap borders, Dictionary<System.Drawing.Color, int> curCanvasInvPalette)
         {
             this.guiData = guiData;
             this.canvas = canvas;
