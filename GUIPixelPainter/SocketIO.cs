@@ -89,7 +89,7 @@ namespace GUIPixelPainter
         [JsonProperty(PropertyName = "c")]
         public int color = 0;
         [JsonProperty(PropertyName = "u")]
-        public int userId = 0;
+        public int userId = -1;
         [JsonProperty(PropertyName = "b")]
         public int boardId = 0;
         [JsonIgnore]

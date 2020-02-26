@@ -1,4 +1,5 @@
 {
+  "-1": "[UnknownUser]",
   "106": "SovietOnion",
   "867": "ATIKLAR",
   "998": "GoktanRi",

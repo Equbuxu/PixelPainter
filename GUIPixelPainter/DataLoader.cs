@@ -53,7 +53,18 @@ namespace GUIPixelPainter
 
         public void Load()
         {
+            Logger.Info("Loading config...");
             ConfigVersion version = GetConfigVersion();
+            Logger.Info("Detected config version: {0}", version);
+
+            if (version == ConfigVersion.UNKNOWN)
+            {
+                if (!File.Exists(configPath))
+                    Logger.Info("Config file doesn't exist");
+                else
+                    Logger.Info("Config file couldn't be parsed");
+            }
+
             if (version == ConfigVersion.UNKNOWN)
                 LoadNew();
             else if (version == ConfigVersion.LEGACY)
@@ -62,6 +73,7 @@ namespace GUIPixelPainter
                 LoadV0or1(version == ConfigVersion.v1);
 
             LoadUsernames();
+            Logger.Info("Config loading complete");
         }
 
         public void LoadUsernames()
@@ -219,12 +231,15 @@ namespace GUIPixelPainter
 
         public void Save()
         {
+            Logger.Info("Saving config...");
+
             Directory.CreateDirectory(folderPath);
             Directory.CreateDirectory(Path.Combine(folderPath, "original"));
             Directory.CreateDirectory(Path.Combine(folderPath, "converted"));
             Directory.CreateDirectory(Path.Combine(folderPath, "dithered"));
 
             //Delete old images
+            Logger.Info("Deleting old images");
             ClearDirectory(Path.Combine(folderPath, "original"));
             ClearDirectory(Path.Combine(folderPath, "converted"));
             ClearDirectory(Path.Combine(folderPath, "dithered"));
@@ -260,8 +275,10 @@ namespace GUIPixelPainter
                     dataExchangeData,
                     });
 
+                Logger.Info("Writing changes");
                 File.WriteAllText(configPath, writer.ToString());
                 //save images
+                Logger.Info("Saving images");
                 foreach (KeyValuePair<int, List<GUITask>> pair in tasks)
                 {
                     foreach (GUITask task in pair.Value)
@@ -274,6 +291,7 @@ namespace GUIPixelPainter
             }
 
             SaveUsernames(usernamesPath);
+            Logger.Info("Config saving complete");
         }
     }
 }
