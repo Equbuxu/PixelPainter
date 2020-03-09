@@ -187,10 +187,12 @@ namespace GUIPixelPainter.GUI
         {
             chatLocal.Children.Clear();
             chatGlobal.Children.Clear();
+            chatGuild.Children.Clear();
+            chatWhispers.Children.Clear();
             recentPixels.Clear();
         }
 
-        public void AddChatText(string prefix, string text, bool isLocal, System.Windows.Media.Color c)
+        public void AddChatText(string prefix, string text, ChatType chatType, System.Windows.Media.Color c)
         {
             TextBlock msgBlock = new TextBlock();
             msgBlock.Padding = new Thickness(5);
@@ -256,20 +258,43 @@ namespace GUIPixelPainter.GUI
             prefixRun.Foreground = new SolidColorBrush(c);
             msgBlock.Inlines.InsertBefore(msgBlock.Inlines.FirstInline, prefixRun);
 
-            if (isLocal)
+
+            StackPanel reqChat;
+            ScrollViewer reqScroll;
+
+            switch (chatType)
             {
-                chatLocal.Children.Add(msgBlock);
-                chatScrollLocal.ScrollToBottom();
-                if (chatLocal.Children.Count > 35)
-                    chatLocal.Children.RemoveAt(0);
+                case ChatType.Local:
+                    reqChat = chatLocal;
+                    reqScroll = chatScrollLocal;
+                    break;
+                case ChatType.Guild:
+                    reqChat = chatGuild;
+                    reqScroll = chatScrollGuild;
+                    break;
+                case ChatType.Whispers:
+                    reqChat = chatWhispers;
+                    reqScroll = chatScrollWhispers;
+                    break;
+                default:
+                case ChatType.Global:
+                    reqChat = chatGlobal;
+                    reqScroll = chatScrollGlobal;
+                    break;
+            }
+
+            if (reqScroll.VerticalOffset == reqScroll.ScrollableHeight)
+            {
+                reqChat.Children.Add(msgBlock);
+                reqScroll.ScrollToBottom();
             }
             else
             {
-                chatGlobal.Children.Add(msgBlock);
-                chatScrollGlobal.ScrollToBottom();
-                if (chatGlobal.Children.Count > 35)
-                    chatGlobal.Children.RemoveAt(0);
+                reqChat.Children.Add(msgBlock);
             }
+            if (reqChat.Children.Count > 35)
+                reqChat.Children.RemoveAt(0);
+
         }
 
         public void UpdateSpeed(System.Windows.Media.Color c, int userId)
@@ -418,16 +443,24 @@ namespace GUIPixelPainter.GUI
 
         private void OnChangeChatMode(object sender, RoutedEventArgs e)
         {
+            Visibility global = Visibility.Collapsed;
+            Visibility local = Visibility.Collapsed;
+            Visibility whisper = Visibility.Collapsed;
+            Visibility guild = Visibility.Collapsed;
+
             if (sender == globalChatMode)
-            {
-                chatScrollGlobal.Visibility = Visibility.Visible;
-                chatScrollLocal.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                chatScrollGlobal.Visibility = Visibility.Collapsed;
-                chatScrollLocal.Visibility = Visibility.Visible;
-            }
+                global = Visibility.Visible;
+            else if (sender == localChatMode)
+                local = Visibility.Visible;
+            else if (sender == whisperChatMode)
+                whisper = Visibility.Visible;
+            else if (sender == guildChatMode)
+                guild = Visibility.Visible;
+
+            chatScrollGlobal.Visibility = global;
+            chatScrollLocal.Visibility = local;
+            chatScrollWhispers.Visibility = whisper;
+            chatScrollGuild.Visibility = guild;
         }
 
         private void OnImportUsernames(object sender, RoutedEventArgs e)

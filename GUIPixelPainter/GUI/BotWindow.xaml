@@ -93,10 +93,21 @@
                 <local:UserPanel x:Name="usersPanel"></local:UserPanel>
                 <Expander Header="Chat" IsExpanded="True" BorderBrush="{StaticResource Borders}" BorderThickness="1" Margin="5">
                     <StackPanel Margin="5">
-                        <DockPanel>
-                            <RadioButton GroupName="chatMode" Margin="0,0,5,0" Checked="OnChangeChatMode" Name="globalChatMode">Global chat</RadioButton>
-                            <RadioButton GroupName="chatMode" Checked="OnChangeChatMode" Name="localChatMode">Current canvas</RadioButton>
-                        </DockPanel>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition></RowDefinition>
+                                <RowDefinition></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <RadioButton Grid.Row="0" Grid.Column="0" GroupName="chatMode" Checked="OnChangeChatMode" Name="globalChatMode">Global chat</RadioButton>
+                            <RadioButton Grid.Row="0" Grid.Column="1" GroupName="chatMode" Checked="OnChangeChatMode" Name="localChatMode">Current canvas</RadioButton>
+                            <RadioButton Grid.Row="1" Grid.Column="0" GroupName="chatMode" Checked="OnChangeChatMode" Name="guildChatMode">Guild</RadioButton>
+                            <RadioButton Grid.Row="1" Grid.Column="1" GroupName="chatMode" Checked="OnChangeChatMode" Name="whisperChatMode">Whispers</RadioButton>
+                        </Grid>
+
                         <Border BorderBrush="{StaticResource Borders}" Margin="5" BorderThickness="1">
                             <StackPanel>
                                 <ScrollViewer Name="chatScrollGlobal" Width="auto" Height="230" Visibility="Visible">
@@ -105,6 +116,14 @@
                                 </ScrollViewer>
                                 <ScrollViewer Name="chatScrollLocal" Width="auto" Height="230" Visibility="Collapsed">
                                     <StackPanel Name="chatLocal">
+                                    </StackPanel>
+                                </ScrollViewer>
+                                <ScrollViewer Name="chatScrollGuild" Width="auto" Height="230" Visibility="Collapsed">
+                                    <StackPanel Name="chatGuild">
+                                    </StackPanel>
+                                </ScrollViewer>
+                                <ScrollViewer Name="chatScrollWhispers" Width="auto" Height="230" Visibility="Collapsed">
+                                    <StackPanel Name="chatWhispers">
                                     </StackPanel>
                                 </ScrollViewer>
                             </StackPanel>

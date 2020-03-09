@@ -362,7 +362,10 @@ namespace GUIPixelPainter
                 borders = new LockBitmap(canvas.Width, canvas.Height);
 
             }
-            eventsToProcess.Clear();
+            lock (eventsToProcess)
+            {
+                eventsToProcess.Clear();
+            }
             ChangePlacementBehaviour();
 
             Logger.Info("UserManager canvas loading finished");
@@ -424,7 +427,11 @@ namespace GUIPixelPainter
             if (user != currentActiveUser && type != "tokens" && type != "nickname")
             {
                 var curactive = users.Where((a) => a.Id == currentActiveUser).ToList();
-                if (curactive.Count == 0 || curactive[0].Client.Status != Status.OPEN)
+                var curUsers = users.Where((a) => a.Id == currentActiveUser);
+                var actUsers = users.Where((a) => a.Id == user);
+                bool isCurPremium = curUsers.Count() > 0 ? curUsers.FirstOrDefault().Client.Premium : false;
+                bool isPremium = actUsers.Count() > 0 ? actUsers.FirstOrDefault().Client.Premium : false;
+                if (curactive.Count == 0 || curactive[0].Client.Status != Status.OPEN || (!isCurPremium && isPremium))
                 {
                     currentActiveUser = user;
                     Logger.Info("Listening to {0}", user);
@@ -462,7 +469,6 @@ namespace GUIPixelPainter
             {
                 eventsToProcess.Add(new Tuple<string, EventArgs>(type, args));
             }
-
         }
     }
 }

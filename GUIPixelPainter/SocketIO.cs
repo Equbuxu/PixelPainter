@@ -48,8 +48,10 @@ namespace GUIPixelPainter
         public bool admin = false;
         public bool mod = false;
         public bool premium = false;
+        public string icon = null;
         public int boardId = 0;
-        public int chat = 0;
+        public string chat = null;
+        public string chatType = null;
 
         public override int GetHashCode()
         {
@@ -125,16 +127,17 @@ namespace GUIPixelPainter
     class LockBool
     {
         private bool val;
+        private readonly object key = new object();
         public bool Value
         {
             set
             {
-                lock (this)
+                lock (key)
                     val = value;
             }
             get
             {
-                lock (this)
+                lock (key)
                     return val;
             }
         }
@@ -309,12 +312,13 @@ namespace GUIPixelPainter
 
             if (!ProcessMessage(response, task.Result.RequestMessage.RequestUri.ToString()))
             {
+                Logger.Warning("Couldn't process response for {0}", Username);
                 Status = Status.CLOSEDERROR;
                 abortRequested.Value = true;
                 return;
             }
 
-            if (!abortRequested.Value && task == pollingTask)
+            if (!abortRequested.Value && task.Id == pollingTask.Id)
             {
                 task.Dispose();
                 pollingTask = SendGetRequest(urlBase + CalcTime() + "&sid=" + id);
@@ -570,6 +574,7 @@ namespace GUIPixelPainter
             {
                 pingTimer.Stop();
                 pingTimer.Dispose();
+                Logger.Warning("Ping timer stopped for {0}", Username);
             }
 
             try
@@ -594,6 +599,7 @@ namespace GUIPixelPainter
             {
                 agentTimer.Stop();
                 agentTimer.Dispose();
+                Logger.Warning("Agent timer stopped for {0}", Username);
             }
 
             try
@@ -792,6 +798,7 @@ namespace GUIPixelPainter
                         break;
                 }
             }
+
             if (saveNext)
                 saveNextPoll.Value = false;
 

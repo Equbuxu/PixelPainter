@@ -4,6 +4,11 @@ using System.Drawing;
 
 namespace GUIPixelPainter
 {
+    public enum ChatType
+    {
+        Local, Global, Guild, Whispers
+    }
+
     public class GUIEvent
     {
 
@@ -72,7 +77,7 @@ namespace GUIPixelPainter
             {
                 var message = args as ChatMessagePacket;
 
-                if (message.chat != 0 && message.chat != DataExchange.CanvasId)
+                if (message.chat != "0" && message.chat != DataExchange.CanvasId.ToString())
                     return;
 
                 string formatted = String.Format("{0}: ", message.username);
@@ -82,6 +87,8 @@ namespace GUIPixelPainter
                     formatted = formatted.Insert(0, "[🔧]");
                 if (message.mod)
                     formatted = formatted.Insert(0, "[🔨]");
+                if (message.icon == "mvp-moderator")
+                    formatted = formatted.Insert(0, "[mvp]");
                 if (message.premium)
                     formatted = formatted.Insert(0, "[💎]");
                 if (message.boardId != DataExchange.CanvasId)
@@ -91,7 +98,25 @@ namespace GUIPixelPainter
                 if (!palette.ContainsKey(boardId))
                     boardId = 7;
                 Color color = palette[boardId][message.color];
-                DataExchange.PushChatMessage(formatted, message.message, message.chat != 0, System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B));
+
+                ChatType chatType = ChatType.Global;
+                switch (message.chatType)
+                {
+                    case "channel":
+                        if (message.chat == "0")
+                            chatType = ChatType.Global;
+                        else
+                            chatType = ChatType.Local;
+                        break;
+                    case "guild":
+                        chatType = ChatType.Guild;
+                        break;
+                    case "whisper":
+                        chatType = ChatType.Whispers;
+                        break;
+                }
+
+                DataExchange.PushChatMessage(formatted, message.message, chatType, System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B));
             }
             else if (type == "pixels")
             {
