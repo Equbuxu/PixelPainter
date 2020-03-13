@@ -99,6 +99,7 @@
     </Compile>
     <Compile Include="LockBitmap.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="NewTopDownPlacementBehaviour.cs" />
     <Compile Include="OrderedSet.cs" />
     <Compile Include="PlacementBehaviour.cs" />
     <Compile Include="SocketIO.cs" />

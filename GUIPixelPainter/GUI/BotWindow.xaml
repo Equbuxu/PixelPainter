@@ -44,7 +44,7 @@
                             <TextBlock Margin="5,5,5,0" VerticalAlignment="Center" Style="{StaticResource TextBlockStyle}">Placement mode</TextBlock>
                             <ComboBox Name="placementMode" Margin="5" SelectionChanged="OnGeneralSettingChange">
                                 <TextBlock Style="{StaticResource TextBlockStyle}">Top-down</TextBlock>
-                                <TextBlock Style="{StaticResource TextBlockStyle}">Denoise</TextBlock>
+                                <TextBlock Style="{StaticResource TextBlockStyle}">Remove dots</TextBlock>
                             </ComboBox>
                         </DockPanel>
                         <DockPanel>

@@ -65,6 +65,9 @@ namespace GUIPixelPainter
         private Dictionary<int, Dictionary<int, System.Drawing.Color>> palette;
         private Dictionary<int, Dictionary<System.Drawing.Color, int>> invPalette;
 
+        private Dictionary<int, List<Tuple<int, int>>> toSendQueue = new Dictionary<int, List<Tuple<int, int>>>();
+        private Dictionary<int, List<Tuple<int, int>>> sentQueue = new Dictionary<int, List<Tuple<int, int>>>();
+
         private UsefulDataRepresentation guiData;
         private PlacementBehaviour placementBehaviour;
         private GUIUpdater guiUpdater;
@@ -135,6 +138,16 @@ namespace GUIPixelPainter
 
                 break;
             }
+        }
+
+        private void EnqueueTask(UsefulTask task)
+        {
+
+        }
+
+        private void CheckNewPixel(PixelPacket pixel)
+        {
+
         }
 
         private void ManageQueues()
@@ -384,7 +397,8 @@ namespace GUIPixelPainter
             }
             foreach (Connection conn in users)
             {
-                conn.Session.ClearQueue();
+                if (conn.Session != null)
+                    conn.Session.ClearQueue();
             }
 
         }
