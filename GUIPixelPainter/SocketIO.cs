@@ -52,6 +52,7 @@ namespace GUIPixelPainter
         public int boardId = 0;
         public string chat = null;
         public string chatType = null;
+        public string createdAt = null;
 
         public override int GetHashCode()
         {
@@ -497,6 +498,8 @@ namespace GUIPixelPainter
                 writer.WriteValue(authKey);
                 writer.WritePropertyName("authToken");
                 writer.WriteValue(authToken);
+                writer.WritePropertyName("sessionId");
+                writer.WriteValue(phpSessId);
                 writer.WritePropertyName("boardId");
                 writer.WriteValue(boardId);
                 writer.WriteEndObject();

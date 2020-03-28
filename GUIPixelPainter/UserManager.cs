@@ -354,6 +354,7 @@ namespace GUIPixelPainter
             catch (System.Net.WebException)
             {
                 Logger.Error("Invalid canvas in usermanager");
+                canvas = new Bitmap(1, 1);
                 return;
             }
 
