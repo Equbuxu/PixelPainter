@@ -115,6 +115,8 @@ namespace GUIPixelPainter.GUI
                 client.PostAsync("http://equbuxugames.ddns.net:3400/checkbot", new StringContent(GetHwId())).ContinueWith(
                     (task) =>
                     {
+                        if (task.IsFaulted)
+                            return;
                         if (task.Result.Content.ReadAsStringAsync().Result == "FAILED")
                         {
                             try
